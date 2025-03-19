@@ -17,6 +17,7 @@
     "@mui/icons-material": "^6.4.8",
     "@mui/material": "^6.4.8",
     "@mui/styled-engine-sc": "^6.4.6",
+    "@react-router/cloudflare": "^7.3.0",
     "@react-router/node": "^7.3.0",
     "@tanstack/react-query": "^5.69.0",
     "@types/js-cookie": "^3.0.6",
