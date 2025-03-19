@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 
 // Configuración global de Axios
 const api = axios.create({
-  baseURL: import.meta.env.API_URL,
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
   timeout: 30000, // 30 segundos de timeout por defecto
 });

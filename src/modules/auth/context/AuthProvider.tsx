@@ -1,15 +1,15 @@
 import React, { useState, useCallback, useEffect, ReactNode } from "react";
 import Cookies from "js-cookie";
-import { useApiRequest } from "../hooks/useApiRequest";
-import { useLoaderStore, useUserStore } from "../stores";
-import { apiRoutes } from "../lib/api.routes";
 import { useNavigate } from "react-router";
 import { jwtDecode } from "jwt-decode";
 import { AuthContext } from "./AuthContext";
 import axios from "axios";
+import { useApiRequest } from "../../../hooks/useApiRequest";
+import { apiRoutes } from "../../../lib/api.routes";
+import { useLoaderStore, useUserStore } from "../../../stores";
 
 interface LoginCredentials {
-  email: string;
+  username: string;
   password: string;
 }
 
@@ -127,6 +127,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (response && response.access_token && response.refresh_token) {
           setCookies(response.access_token, response.refresh_token);
+          navigate("/bop");
           return true;
         }
         return false;
