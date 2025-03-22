@@ -19,6 +19,7 @@
     "@mui/styled-engine-sc": "^6.4.6",
     "@types/js-cookie": "^3.0.6",
     "@types/react-helmet": "^6.1.11",
+    "axios": "^1.8.4",
     "install": "^0.13.0",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
