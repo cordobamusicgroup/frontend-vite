@@ -1,18 +1,17 @@
 // React Router generated types for route:
-// modules/portal/pages/Overview.tsx
+// components/layouts/BackofficeLayout.tsx
 
 import type * as T from "react-router/route-module"
 
-import type { Info as Parent0 } from "../../../../+types/root.js"
-import type { Info as Parent1 } from "../../../../components/layouts/+types/BackofficeLayout.js"
+import type { Info as Parent0 } from "../../../+types/root.js"
 
-type Module = typeof import("../Overview.js")
+type Module = typeof import("../BackofficeLayout.js")
 
 export type Info = {
-  parents: [Parent0, Parent1],
-  id: "modules/portal/pages/Overview"
-  file: "modules/portal/pages/Overview.tsx"
-  path: "/backoffice"
+  parents: [Parent0],
+  id: "components/layouts/BackofficeLayout"
+  file: "components/layouts/BackofficeLayout.tsx"
+  path: "undefined"
   params: {} & { [key: string]: string | undefined }
   module: Module
   loaderData: T.CreateLoaderData<Module>

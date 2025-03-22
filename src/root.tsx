@@ -1,5 +1,7 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, useNavigation } from "react-router";
 import { AuthProvider } from "./modules/auth/context/AuthProvider";
+import { Skeleton } from "@mui/material";
+import FullScreenLoader from "./components/ui/molecules/FullScreenLoader";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (

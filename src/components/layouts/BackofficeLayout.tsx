@@ -4,6 +4,7 @@ import { Skeleton, Stack, styled } from "@mui/material";
 import { Outlet, useNavigation } from "react-router";
 import HeaderLayout from "./HeaderLayout";
 import VerticalMenu from "../ui/molecules/VerticalMenu";
+import SkeletonLoader from "../ui/molecules/SkeletonLoader";
 
 //TODO: Implement this layout
 // * Add HeaderLayout
@@ -40,29 +41,10 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{ 
   };
 });
 
-/**
- * Content skeleton to display during navigation
- */
-const ContentSkeleton = () => (
-  <Stack spacing={2}>
-    <Skeleton variant="rectangular" height={60} />
-    <Skeleton variant="rectangular" height={40} />
-    <Stack direction="row" spacing={2}>
-      <Skeleton variant="rectangular" height={200} width="30%" />
-      <Skeleton variant="rectangular" height={200} width="70%" />
-    </Stack>
-    <Stack spacing={1}>
-      <Skeleton variant="rectangular" height={40} />
-      <Skeleton variant="rectangular" height={40} />
-      <Skeleton variant="rectangular" height={40} />
-    </Stack>
-  </Stack>
-);
-
 const BackofficeLayout: React.FC = () => {
   const isOpen = usePageDataStore().openMenu;
   const navigation = useNavigation();
-  const isLoading = navigation.state === "loading";
+  const isNavigating = Boolean(navigation.location);
 
   return (
     <div>
@@ -70,7 +52,7 @@ const BackofficeLayout: React.FC = () => {
       {!isMobile() && <VerticalMenu />}
       {isMobile() && isOpen && <VerticalMenu />}
       <Main open={isOpen}>
-        {isLoading && <ContentSkeleton />}
+        {isNavigating && <SkeletonLoader />}
         <Outlet />
       </Main>
     </div>
