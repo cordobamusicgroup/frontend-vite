@@ -1,4 +1,4 @@
-import { Button, ButtonProps } from "@mui/material";
+import { Button, type ButtonProps } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { isMobile } from "../../../theme";
 

@@ -4,22 +4,29 @@
  * * Migrate Form Reset Popup (requieres new hooks)
  */
 
-import { Helmet } from "react-helmet";
-import AuthLayout from "../layouts/AuthLayout";
-import { useLoaderStore } from "../../../stores";
-import { useForm, SubmitHandler, FormProvider } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Box, Grid2, Button, Link } from "@mui/material";
+import { useForm, type SubmitHandler, FormProvider } from "react-hook-form";
+
 import { z } from "zod";
-import { useAuth } from "../hooks/useAuth";
-import { Box, Button, Grid2, Link } from "@mui/material";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { MetaFunction } from "react-router";
+import ErrorModal from "@/components/ui/molecules/ErrorModal";
+import { useLoaderStore, useErrorStore } from "@/stores";
 import LoginFormFields from "../components/molecules/LoginFormFields";
+import { useAuth } from "../hooks/useAuth";
+import AuthLayout from "../layouts/AuthLayout";
+import { Helmet } from "react-helmet";
+
+export const meta: MetaFunction = () => {
+  return [{ title: "Auth - Córdoba Music Group" }];
+};
 
 interface IFormInput {
   username: string;
   password: string;
 }
 
-const validationSchema = z.object({
+const schema = z.object({
   username: z.string().nonempty("Username is required"),
   password: z.string().nonempty("Password is required"),
 });
@@ -27,33 +34,32 @@ const validationSchema = z.object({
 function LoginPage() {
   const { login } = useAuth();
   const { loading, setLoading } = useLoaderStore();
+  const { error, clearError } = useErrorStore();
 
   const methods = useForm({
     mode: "all",
-    resolver: zodResolver(validationSchema),
-    reValidateMode: "onSubmit",
+    resolver: zodResolver(schema),
   });
 
   const { handleSubmit } = methods;
 
   const onSubmit: SubmitHandler<IFormInput> = async ({ username, password }) => {
     setLoading(true);
+    clearError();
     console.log("Form submitted with:", { username, password });
-    try {
-      const success = await login({ username, password });
-      if (!success) {
-        // Handle login failure
-        alert("Login failed");
-      }
-    } finally {
-      setLoading(false);
+    const success = await login({ username, password });
+    if (!success) {
+      // Handle login failure
+      console.error("Login failed");
     }
+    setLoading(false);
   };
 
   return (
     <>
       <Helmet>
         <title>Auth - Córdoba Music Group</title>
+        <meta name="description" content="Login page for Córdoba Music Group" />
       </Helmet>
       <AuthLayout>
         <FormProvider {...methods}>
@@ -73,6 +79,7 @@ function LoginPage() {
             </Grid2>
           </Box>
         </FormProvider>
+        <ErrorModal open={!!error} onClose={clearError} errorMessage={error || ""} />
       </AuthLayout>
     </>
   );

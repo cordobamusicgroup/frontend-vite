@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
-import { ReactNode } from "react";
 import LoginLogo from "../components/atoms/LoginLogo";
+import type { ReactNode } from "react";
 
 interface AuthLayoutProps {
   children: ReactNode;

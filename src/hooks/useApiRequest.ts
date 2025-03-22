@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import axios, { AxiosRequestConfig, AxiosError, CancelTokenSource } from "axios";
 import Cookies from "js-cookie";
+import axios, { AxiosError, type AxiosRequestConfig, type CancelTokenSource } from "axios";
 
 // Configuración global de Axios
 const api = axios.create({
@@ -8,25 +8,6 @@ const api = axios.create({
   withCredentials: true,
   timeout: 30000, // 30 segundos de timeout por defecto
 });
-
-// Configuramos interceptores para manejar errores comunes
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response) {
-      switch (error.response.status) {
-        case 401:
-          // Token inválido o expirado
-          Cookies.remove("access_token");
-          window.location.href = "/login";
-          break;
-      }
-    }
-    return Promise.reject(error);
-  }
-);
-
-// Eliminamos la cache y sus constantes relacionadas
 
 interface ApiParams {
   url: string;

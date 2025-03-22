@@ -1,4 +1,4 @@
-import { TextField, TextFieldProps } from "@mui/material";
+import { TextField, type TextFieldProps } from "@mui/material";
 import { Controller, useFormContext } from "react-hook-form";
 
 interface TextFieldFormProps extends Omit<TextFieldProps, "error"> {

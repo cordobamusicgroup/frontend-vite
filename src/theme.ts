@@ -1,5 +1,3 @@
-"use client";
-
 import { createTheme } from "@mui/material/styles";
 
 declare module "@mui/material/styles" {
@@ -39,10 +37,10 @@ const theme = createTheme({
 });
 
 const isMobile = () => {
-  if (typeof window !== "undefined") {
-    return window.innerWidth < theme.breakpoints.values.sm;
+  if (typeof window === "undefined") {
+    return false; // Si estamos en SSR, asumimos que no es móvil
   }
-  return false;
+  return window.innerWidth < theme.breakpoints.values.sm;
 };
 
 theme.typography.h1 = {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, ReactNode } from "react";
+import React, { useState, useCallback, useEffect, type ReactNode } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router";
 import { jwtDecode } from "jwt-decode";
@@ -7,6 +7,8 @@ import axios from "axios";
 import { useApiRequest } from "../../../hooks/useApiRequest";
 import { apiRoutes } from "../../../lib/api.routes";
 import { useLoaderStore, useUserStore } from "../../../stores";
+import { useErrorStore } from "../../../stores/error.store";
+import routes from "@/lib/routes";
 
 interface LoginCredentials {
   username: string;
@@ -28,10 +30,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { apiRequest } = useApiRequest();
   const { setLoading } = useLoaderStore();
   const { userData, setUserData } = useUserStore();
+  const { setError: setGlobalError } = useErrorStore();
   const navigate = useNavigate();
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null); // estado para errores
 
   // Función auxiliar para manejar tokens inválidos
   const handleInvalidToken = useCallback(() => {
@@ -82,36 +84,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // Función auxiliar para manejar errores de autenticación
-  const handleAuthError = useCallback((error: unknown) => {
-    if (axios.isAxiosError(error)) {
-      const errorCode = error.response?.data?.code;
-      switch (errorCode) {
-        case 1001:
-          setError("User not found");
-          break;
-        case 1002:
-          setError("Invalid username or password");
-          break;
-        case 1012:
-          setError("Password is too weak");
-          break;
-        case 1013:
-          setError("Invalid or expired token");
-          break;
-        case 1015:
-          setError("Unauthorized access");
-          break;
-        case 1016:
-          setError(error.response?.data?.message || "Validation error");
-          break;
-        case 1017:
-          setError("The client related to your user is blocked, contact us for more details.");
-          break;
-        default:
-          setError("An unexpected error occurred");
+  const handleAuthError = useCallback(
+    (error: unknown) => {
+      let errorMessage = "An unexpected error occurred";
+      if (axios.isAxiosError(error)) {
+        const errorCode = error.response?.data?.code;
+        switch (errorCode) {
+          case 1001:
+            errorMessage = "User not found";
+            break;
+          case 1002:
+            errorMessage = "Invalid username or password";
+            break;
+          case 1012:
+            errorMessage = "Password is too weak";
+            break;
+          case 1013:
+            errorMessage = "Invalid or expired token";
+            break;
+          case 1015:
+            errorMessage = "Unauthorized access";
+            break;
+          case 1016:
+            errorMessage = error.response?.data?.message || "Validation error";
+            break;
+          case 1017:
+            errorMessage = "The client related to your user is blocked, contact us for more details.";
+            break;
+          default:
+            errorMessage = "An unexpected error occurred";
+        }
       }
-    }
-  }, []);
+      setGlobalError(errorMessage);
+    },
+    [setGlobalError]
+  );
 
   // Función de login: únicamente se encarga de autenticarse
   const login = useCallback(
@@ -127,12 +134,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (response && response.access_token && response.refresh_token) {
           setCookies(response.access_token, response.refresh_token);
-          navigate("/bop");
+          navigate(routes.web.backoffice.overview);
           return true;
         }
         return false;
       } catch (err) {
-        console.error("Error en el login:", err);
+        console.error("Error en el login:", err); // Ensure this line logs the error
         handleAuthError(err);
         return false;
       } finally {
@@ -184,7 +191,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     validateToken,
-    error, // se devuelve el estado error en el contexto
   };
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
