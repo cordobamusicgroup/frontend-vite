@@ -1,5 +1,5 @@
 import { Roles } from "@/constants/roles";
-import routes from "@/lib/web.routes";
+import webRoutes from "@/lib/web.routes";
 import { Home as HomeIcon, AttachMoney as AttachMoneyIcon, LibraryMusic, SupervisedUserCircle, ContactEmergency, Assessment, Inbox } from "@mui/icons-material";
 
 export interface SubMenuType {
@@ -23,7 +23,7 @@ export const usePortalMenus = (userRole: Roles): MenuItemType[] => {
       text: "Overview",
       icon: <HomeIcon />,
       roles: [Roles.All],
-      path: routes.web.backoffice.overview,
+      path: webRoutes.web.backoffice.overview,
     },
     {
       text: "Financial",
@@ -32,12 +32,12 @@ export const usePortalMenus = (userRole: Roles): MenuItemType[] => {
       subMenuItems: [
         {
           text: "Payments & Operations",
-          path: routes.web.backoffice.financial.payments,
+          path: webRoutes.web.backoffice.financial.payments,
           roles: [Roles.All],
         },
         {
           text: "Financial Reports",
-          path: routes.web.backoffice.financial.reports,
+          path: webRoutes.web.backoffice.financial.reports,
           roles: [Roles.All],
         },
       ],
@@ -46,25 +46,25 @@ export const usePortalMenus = (userRole: Roles): MenuItemType[] => {
       text: "Workflow",
       icon: <Inbox />,
       roles: [Roles.Admin],
-      path: routes.web.admin.workflow.root,
+      path: webRoutes.web.admin.workflow.root,
     },
     {
       text: "Clients",
       icon: <ContactEmergency />,
       roles: [Roles.Admin],
-      path: routes.web.admin.clients.root,
+      path: webRoutes.web.admin.clients.root,
     },
     {
       text: "Labels",
       icon: <LibraryMusic />,
       roles: [Roles.Admin],
-      path: routes.web.admin.labels.root,
+      path: webRoutes.web.admin.labels.root,
     },
     {
       text: "Users",
       icon: <SupervisedUserCircle />,
       roles: [Roles.Admin],
-      path: routes.web.admin.users.root,
+      path: webRoutes.web.admin.users.root,
     },
     {
       text: "Reports",
@@ -73,7 +73,7 @@ export const usePortalMenus = (userRole: Roles): MenuItemType[] => {
       subMenuItems: [
         {
           text: "Link Missing Reports",
-          path: routes.web.admin.reports.unlinked.root,
+          path: webRoutes.web.admin.reports.unlinked.root,
           roles: [Roles.Admin],
         },
       ],

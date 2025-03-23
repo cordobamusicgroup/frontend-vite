@@ -8,7 +8,8 @@ import { useApiRequest } from "../../../hooks/useApiRequest";
 import { apiRoutes } from "../../../lib/api.routes";
 import { useLoaderStore, useUserStore } from "../../../stores";
 import { useErrorStore } from "../../../stores/error.store";
-import routes from "@/lib/web.routes";
+import webRoutes from "@/lib/web.routes";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface LoginCredentials {
   username: string;
@@ -32,6 +33,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { userData, setUserData } = useUserStore();
   const { setError: setGlobalError } = useErrorStore();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
@@ -40,6 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     Cookies.remove("access_token");
     Cookies.remove("refresh_token");
     setIsAuthenticated(false);
+    queryClient.clear(); // Limpiar todas las cachés al cerrar sesión
     navigate("/auth/login");
   };
 
@@ -117,104 +120,144 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setGlobalError(errorMessage);
   };
 
-  // Función de login: únicamente se encarga de autenticarse
-  const login = async (credentials: LoginCredentials): Promise<boolean> => {
-    setLoading(true);
-    try {
-      const response = await apiRequest<{ access_token: string; refresh_token: string }>({
-        url: apiRoutes.auth.login,
-        method: "post",
-        data: credentials,
-        requiereAuth: false,
-      });
-
-      if (response && response.access_token && response.refresh_token) {
-        setCookies(response.access_token, response.refresh_token);
-        navigate(routes.web.backoffice.overview);
-        return true;
+  // Usuario actual con Tanstack Query
+  const userQuery = useQuery({
+    queryKey: ["auth", "user"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest<any>({
+          url: apiRoutes.auth.me,
+          method: "get",
+        });
+        setUserData(response);
+        return response;
+      } catch (error) {
+        console.error("Error al obtener datos del usuario:", error);
+        throw error;
       }
-      return false;
-    } catch (err) {
-      console.error("Error en el login:", err); // Ensure this line logs the error
-      handleAuthError(err);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    enabled: isAuthenticated && !userData,
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
 
-  // Función de logout: cierra sesión y limpia las cookies
-  const logout = async () => {
-    setLoading(true);
-    try {
-      await apiRequest({
-        url: apiRoutes.auth.logout,
-        method: "post",
-      });
-    } catch (err) {
-      console.error("Error durante el logout:", err);
-    } finally {
-      handleInvalidToken();
-      setLoading(false);
-    }
-  };
+  // Mutación para login
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: LoginCredentials) => {
+      setLoading(true);
+      try {
+        return await apiRequest<{ access_token: string; refresh_token: string }>({
+          url: apiRoutes.auth.login,
+          method: "post",
+          data: credentials,
+          requiereAuth: false,
+        });
+      } catch (err) {
+        console.error("Error en el login:", err);
+        handleAuthError(err);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    onSuccess: (data) => {
+      if (data && data.access_token && data.refresh_token) {
+        setCookies(data.access_token, data.refresh_token);
+        queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
+        navigate(webRoutes.backoffice.overview);
+      }
+    },
+  });
 
-  // Función para obtener los datos del usuario a partir de auth.me y guardarlos en Zustand
-  const fetchUserData = async () => {
+  // Mutación para logout
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      setLoading(true);
+      try {
+        return await apiRequest({
+          url: apiRoutes.auth.logout,
+          method: "post",
+        });
+      } catch (err) {
+        console.error("Error durante el logout:", err);
+        throw err;
+      } finally {
+        setLoading(false);
+        handleInvalidToken();
+      }
+    },
+    onSuccess: () => {
+      queryClient.clear();
+    },
+  });
+
+  // Mutación para recuperar contraseña
+  const forgotPasswordMutation = useMutation({
+    mutationFn: async (email: string) => {
+      setLoading(true);
+      try {
+        return await apiRequest({
+          url: apiRoutes.auth.forgotPassword,
+          method: "post",
+          data: { email },
+          requiereAuth: false,
+        });
+      } catch (error) {
+        handleAuthError(error);
+        console.error("Error al enviar el correo de recuperación de contraseña:", error);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
+
+  // Mutación para restablecer contraseña
+  const resetPasswordMutation = useMutation({
+    mutationFn: async ({ token, newPassword }: { token: string; newPassword: string }) => {
+      setLoading(true);
+      try {
+        return await apiRequest({
+          url: apiRoutes.auth.resetPassword,
+          method: "post",
+          data: { token, newPassword },
+          requiereAuth: false,
+        });
+      } catch (error) {
+        handleAuthError(error);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
+
+  // Funciones wrapper para exponer en el contexto
+  const login = async (credentials: LoginCredentials): Promise<boolean> => {
     try {
-      const response = await apiRequest<any>({
-        url: apiRoutes.auth.me,
-        method: "get",
-      });
-      setUserData(response);
+      await loginMutation.mutateAsync(credentials);
+      return true;
     } catch (error) {
-      console.error("Error al obtener datos del usuario:", error);
+      return false;
     }
+  };
+
+  const logout = async () => {
+    await logoutMutation.mutateAsync();
   };
 
   const forgotPassword = async (email: string) => {
-    setLoading(true);
-    try {
-      const response = await apiRequest({
-        url: apiRoutes.auth.forgotPassword,
-        method: "post",
-        data: { email },
-        requiereAuth: false,
-      });
-      return response;
-    } catch (error) {
-      handleAuthError(error);
-      console.error("Error al enviar el correo de recuperación de contraseña:", error);
-    } finally {
-      setLoading(false);
-    }
+    return forgotPasswordMutation.mutateAsync(email);
   };
 
   const resetPassword = async (token: string, newPassword: string) => {
-    setLoading(true);
-    try {
-      const response = await apiRequest({
-        url: apiRoutes.auth.resetPassword,
-        method: "post",
-        data: { token, newPassword },
-        requiereAuth: false,
-      });
-      return response;
-    } catch (error) {
-      handleAuthError(error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+    return resetPasswordMutation.mutateAsync({ token, newPassword });
   };
 
-  // Al montar el componente, validar el token y obtener datos del usuario si es necesario
+  // Al montar el componente, validar el token
   useEffect(() => {
-    const isValid = validateToken();
-    if (isValid && !userData) {
-      fetchUserData();
-    }
-  }, [validateToken, fetchUserData, userData]);
+    validateToken();
+  }, []);
 
   const contextValue = {
     isAuthenticated,

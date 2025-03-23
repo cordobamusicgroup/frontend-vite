@@ -85,12 +85,10 @@ function createProtectedRoutes(): ProtectedRouteConfig[] {
   ];
 }
 
-const routes = {
-  web: {
-    login: "/auth/login",
-    ...prefixedRoutes,
-  },
+const webRoutes = {
+  login: "/auth/login",
+  ...prefixedRoutes,
   protected: createProtectedRoutes(),
 };
 
-export default routes;
+export default webRoutes;
