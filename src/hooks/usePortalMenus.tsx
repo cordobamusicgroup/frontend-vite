@@ -1,5 +1,5 @@
 import { Roles } from "@/constants/roles";
-import routes from "@/lib/routes";
+import routes from "@/lib/web.routes";
 import { Home as HomeIcon, AttachMoney as AttachMoneyIcon, LibraryMusic, SupervisedUserCircle, ContactEmergency, Assessment, Inbox } from "@mui/icons-material";
 
 export interface SubMenuType {

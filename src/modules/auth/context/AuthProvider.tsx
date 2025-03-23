@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, type ReactNode } from "react";
+import React, { useState, useEffect, type ReactNode } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router";
 import { jwtDecode } from "jwt-decode";
@@ -8,7 +8,7 @@ import { useApiRequest } from "../../../hooks/useApiRequest";
 import { apiRoutes } from "../../../lib/api.routes";
 import { useLoaderStore, useUserStore } from "../../../stores";
 import { useErrorStore } from "../../../stores/error.store";
-import routes from "@/lib/routes";
+import routes from "@/lib/web.routes";
 
 interface LoginCredentials {
   username: string;
@@ -36,15 +36,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   // Función auxiliar para manejar tokens inválidos
-  const handleInvalidToken = useCallback(() => {
+  const handleInvalidToken = () => {
     Cookies.remove("access_token");
     Cookies.remove("refresh_token");
     setIsAuthenticated(false);
     navigate("/auth/login");
-  }, [navigate]);
+  };
 
   // Validar el token utilizando jwt-decode
-  const validateToken = useCallback(() => {
+  const validateToken = () => {
     const token = Cookies.get("access_token");
     if (!token) {
       handleInvalidToken();
@@ -66,10 +66,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       handleInvalidToken();
       return false;
     }
-  }, [handleInvalidToken]);
+  };
 
   // Función para establecer las cookies de autenticación
-  const setCookies = useCallback((access_token: string, refresh_token: string) => {
+  const setCookies = (access_token: string, refresh_token: string) => {
     Cookies.set("access_token", access_token, {
       expires: new Date(Date.now() + 15 * 60 * 1000), // 15 minutos
       path: "/",
@@ -81,80 +81,74 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       sameSite: "strict",
     });
     setIsAuthenticated(true);
-  }, []);
+  };
 
   // Función auxiliar para manejar errores de autenticación
-  const handleAuthError = useCallback(
-    (error: unknown) => {
-      let errorMessage = "An unexpected error occurred";
-      if (axios.isAxiosError(error)) {
-        const errorCode = error.response?.data?.code;
-        switch (errorCode) {
-          case 1001:
-            errorMessage = "User not found";
-            break;
-          case 1002:
-            errorMessage = "Invalid username or password";
-            break;
-          case 1012:
-            errorMessage = "Password is too weak";
-            break;
-          case 1013:
-            errorMessage = "Invalid or expired token";
-            break;
-          case 1015:
-            errorMessage = "Unauthorized access";
-            break;
-          case 1016:
-            errorMessage = error.response?.data?.message || "Validation error";
-            break;
-          case 1017:
-            errorMessage = "The client related to your user is blocked, contact us for more details.";
-            break;
-          default:
-            errorMessage = "An unexpected error occurred";
-        }
+  const handleAuthError = (error: unknown) => {
+    let errorMessage = "An unexpected error occurred";
+    if (axios.isAxiosError(error)) {
+      const errorCode = error.response?.data?.code;
+      switch (errorCode) {
+        case 1001:
+          errorMessage = "User not found";
+          break;
+        case 1002:
+          errorMessage = "Invalid username or password";
+          break;
+        case 1012:
+          errorMessage = "Password is too weak";
+          break;
+        case 1013:
+          errorMessage = "Invalid or expired token";
+          break;
+        case 1015:
+          errorMessage = "Unauthorized access";
+          break;
+        case 1016:
+          errorMessage = error.response?.data?.message || "Validation error";
+          break;
+        case 1017:
+          errorMessage = "The client related to your user is blocked, contact us for more details.";
+          break;
+        default:
+          errorMessage = "An unexpected error occurred";
       }
-      setGlobalError(errorMessage);
-    },
-    [setGlobalError]
-  );
+    }
+    setGlobalError(errorMessage);
+  };
 
   // Función de login: únicamente se encarga de autenticarse
-  const login = useCallback(
-    async (credentials: LoginCredentials): Promise<boolean> => {
-      setLoading(true);
-      try {
-        const response = await apiRequest<{ access_token: string; refresh_token: string }>({
-          url: apiRoutes.api.auth.login,
-          method: "post",
-          data: credentials,
-          requiereAuth: false,
-        });
+  const login = async (credentials: LoginCredentials): Promise<boolean> => {
+    setLoading(true);
+    try {
+      const response = await apiRequest<{ access_token: string; refresh_token: string }>({
+        url: apiRoutes.auth.login,
+        method: "post",
+        data: credentials,
+        requiereAuth: false,
+      });
 
-        if (response && response.access_token && response.refresh_token) {
-          setCookies(response.access_token, response.refresh_token);
-          navigate(routes.web.backoffice.overview);
-          return true;
-        }
-        return false;
-      } catch (err) {
-        console.error("Error en el login:", err); // Ensure this line logs the error
-        handleAuthError(err);
-        return false;
-      } finally {
-        setLoading(false);
+      if (response && response.access_token && response.refresh_token) {
+        setCookies(response.access_token, response.refresh_token);
+        navigate(routes.web.backoffice.overview);
+        return true;
       }
-    },
-    [apiRequest, setCookies, setLoading, handleAuthError]
-  );
+      return false;
+    } catch (err) {
+      console.error("Error en el login:", err); // Ensure this line logs the error
+      handleAuthError(err);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Función de logout: cierra sesión y limpia las cookies
-  const logout = useCallback(async () => {
+  const logout = async () => {
     setLoading(true);
     try {
       await apiRequest({
-        url: apiRoutes.api.auth.logout,
+        url: apiRoutes.auth.logout,
         method: "post",
       });
     } catch (err) {
@@ -163,20 +157,56 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       handleInvalidToken();
       setLoading(false);
     }
-  }, [apiRequest, setLoading, handleInvalidToken]);
+  };
 
   // Función para obtener los datos del usuario a partir de auth.me y guardarlos en Zustand
-  const fetchUserData = useCallback(async () => {
+  const fetchUserData = async () => {
     try {
       const response = await apiRequest<any>({
-        url: apiRoutes.api.auth.me,
+        url: apiRoutes.auth.me,
         method: "get",
       });
       setUserData(response);
     } catch (error) {
       console.error("Error al obtener datos del usuario:", error);
     }
-  }, [apiRequest, setUserData]);
+  };
+
+  const forgotPassword = async (email: string) => {
+    setLoading(true);
+    try {
+      const response = await apiRequest({
+        url: apiRoutes.auth.forgotPassword,
+        method: "post",
+        data: { email },
+        requiereAuth: false,
+      });
+      return response;
+    } catch (error) {
+      handleAuthError(error);
+      console.error("Error al enviar el correo de recuperación de contraseña:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (token: string, newPassword: string) => {
+    setLoading(true);
+    try {
+      const response = await apiRequest({
+        url: apiRoutes.auth.resetPassword,
+        method: "post",
+        data: { token, newPassword },
+        requiereAuth: false,
+      });
+      return response;
+    } catch (error) {
+      handleAuthError(error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Al montar el componente, validar el token y obtener datos del usuario si es necesario
   useEffect(() => {
@@ -190,6 +220,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated,
     login,
     logout,
+    forgotPassword,
+    resetPassword,
     validateToken,
   };
 

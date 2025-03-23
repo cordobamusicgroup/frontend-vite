@@ -1,5 +1,4 @@
 export const apiRoutes = {
-  api: {
     auth: {
       login: "/auth/login",
       me: "/auth/me",
@@ -49,5 +48,4 @@ export const apiRoutes = {
       },
     },
     countries: "/countries",
-  },
-};
+  };

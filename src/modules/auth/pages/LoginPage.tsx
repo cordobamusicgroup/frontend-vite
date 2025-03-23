@@ -16,6 +16,8 @@ import LoginFormFields from "../components/molecules/LoginFormFields";
 import { useAuth } from "../hooks/useAuth";
 import AuthLayout from "../layouts/AuthLayout";
 import { Helmet } from "react-helmet";
+import { useState } from "react";
+import ForgotPasswordPopup from "./ForgotPasswordPopup";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Auth - Córdoba Music Group" }];
@@ -35,6 +37,7 @@ function LoginPage() {
   const { login } = useAuth();
   const { loading, setLoading } = useLoaderStore();
   const { error, clearError } = useErrorStore();
+  const [openPopUpForgot, setOpenPopUpForgot] = useState<boolean>(false);
 
   const methods = useForm({
     mode: "all",
@@ -72,7 +75,7 @@ function LoginPage() {
           <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
             <Grid2 container justifyContent="center" sx={{ mt: 2 }}>
               <Grid2>
-                <Link href="#" variant="body2">
+                <Link onClick={() => setOpenPopUpForgot(true)} variant="body2">
                   Forgot password?
                 </Link>
               </Grid2>
@@ -80,6 +83,7 @@ function LoginPage() {
           </Box>
         </FormProvider>
         <ErrorModal open={!!error} onClose={clearError} errorMessage={error || ""} />
+        <ForgotPasswordPopup open={openPopUpForgot} onClose={() => setOpenPopUpForgot(false)} />
       </AuthLayout>
     </>
   );
