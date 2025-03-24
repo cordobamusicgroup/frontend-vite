@@ -1,7 +1,5 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, useNavigation } from "react-router";
 import { AuthProvider } from "./modules/auth/context/AuthProvider";
-import { Skeleton } from "@mui/material";
-import FullScreenLoader from "./components/ui/molecules/FullScreenLoader";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();

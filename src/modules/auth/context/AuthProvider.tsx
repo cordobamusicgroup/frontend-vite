@@ -11,11 +11,23 @@ import { useErrorStore } from "../../../stores/error.store";
 import webRoutes from "@/lib/web.routes";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+// Token expiration times in milliseconds
+const TOKEN_EXPIRATION = {
+  ACCESS: 15 * 60 * 1000, // 15 minutes
+  REFRESH: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
+
+/**
+ * Login credentials interface
+ */
 interface LoginCredentials {
   username: string;
   password: string;
 }
 
+/**
+ * JWT payload structure
+ */
 interface JWTPayload {
   sub: string;
   email: string;
@@ -23,10 +35,25 @@ interface JWTPayload {
   exp: number;
 }
 
+/**
+ * Auth API response for login
+ */
+interface AuthTokenResponse {
+  access_token: string;
+  refresh_token: string;
+}
+
+/**
+ * Auth provider props
+ */
 interface AuthProviderProps {
   children: ReactNode;
 }
 
+/**
+ * Authentication provider component
+ * Handles user authentication, token management, and related API calls
+ */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { apiRequest } = useApiRequest();
   const { setLoading } = useLoaderStore();
@@ -37,16 +64,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  // Función auxiliar para manejar tokens inválidos
+  /**
+   * Handles invalid or expired tokens by clearing credentials and redirecting to login
+   */
   const handleInvalidToken = () => {
     Cookies.remove("access_token");
     Cookies.remove("refresh_token");
     setIsAuthenticated(false);
-    queryClient.clear(); // Limpiar todas las cachés al cerrar sesión
+    queryClient.clear(); // Clear all caches on logout
     navigate("/auth/login");
+    setGlobalError("Your session has expired, please log in again");
   };
 
-  // Validar el token utilizando jwt-decode
+  /**
+   * Attempts to refresh the access token using the refresh token
+   * @returns {Promise<boolean>} Whether token refresh was successful
+   *
+   * NOTE: This function will be implemented in the future.
+   */
+  /* 
+  const refreshToken = async (): Promise<boolean> => {
+    const refreshTokenValue = Cookies.get("refresh_token");
+    if (!refreshTokenValue) return false;
+
+    try {
+      const response = await apiRequest<AuthTokenResponse>({
+        url: apiRoutes.auth.refreshToken,
+        method: "post",
+        data: { refresh_token: refreshTokenValue },
+        requiereAuth: false,
+      });
+      
+      if (response && response.access_token && response.refresh_token) {
+        setCookies(response.access_token, response.refresh_token);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+      return false;
+    }
+  };
+  */
+
+  /**
+   * Validates the current auth token
+   * @returns {boolean} Whether the token is valid
+   */
   const validateToken = () => {
     const token = Cookies.get("access_token");
     if (!token) {
@@ -57,70 +121,104 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const decoded = jwtDecode<JWTPayload>(token);
       const currentTime = Date.now() / 1000;
+
+      // If token is expired
       if (decoded.exp < currentTime) {
-        // Token expirado
+        // Token refresh will be implemented in the future
+        // For now, just handle invalid token
         handleInvalidToken();
         return false;
       }
+
+      // Token refresh for near-expiration will be implemented later
+      /* 
+      if (decoded.exp - currentTime < 300) {
+        refreshToken();
+      }
+      */
+
       setIsAuthenticated(true);
       return true;
     } catch (err) {
-      console.error("Error al decodificar el token:", err);
+      console.error("Error decoding token:", err);
       handleInvalidToken();
       return false;
     }
   };
 
-  // Función para establecer las cookies de autenticación
+  /**
+   * Sets authentication cookies with appropriate expiration
+   * @param {string} access_token - JWT access token
+   * @param {string} refresh_token - JWT refresh token
+   */
   const setCookies = (access_token: string, refresh_token: string) => {
     Cookies.set("access_token", access_token, {
-      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 minutos
+      expires: new Date(Date.now() + TOKEN_EXPIRATION.ACCESS),
       path: "/",
       sameSite: "strict",
     });
     Cookies.set("refresh_token", refresh_token, {
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 días
+      expires: new Date(Date.now() + TOKEN_EXPIRATION.REFRESH),
       path: "/",
       sameSite: "strict",
     });
     setIsAuthenticated(true);
   };
 
-  // Función auxiliar para manejar errores de autenticación
+  /**
+   * Error codes for authentication errors
+   */
+  enum AuthErrorCode {
+    USER_NOT_FOUND = 1001,
+    INVALID_CREDENTIALS = 1002,
+    WEAK_PASSWORD = 1012,
+    INVALID_TOKEN = 1013,
+    UNAUTHORIZED = 1015,
+    VALIDATION_ERROR = 1016,
+    CLIENT_BLOCKED = 1017,
+  }
+
+  /**
+   * Handles authentication errors with appropriate user messages
+   * @param {unknown} error - Error object from API call
+   */
   const handleAuthError = (error: unknown) => {
     let errorMessage = "An unexpected error occurred";
-    if (axios.isAxiosError(error)) {
-      const errorCode = error.response?.data?.code;
+
+    if (axios.isAxiosError(error) && error.response?.data?.code) {
+      const errorCode: number = error.response.data.code;
+
       switch (errorCode) {
-        case 1001:
+        case AuthErrorCode.USER_NOT_FOUND:
           errorMessage = "User not found";
           break;
-        case 1002:
+        case AuthErrorCode.INVALID_CREDENTIALS:
           errorMessage = "Invalid username or password";
           break;
-        case 1012:
+        case AuthErrorCode.WEAK_PASSWORD:
           errorMessage = "Password is too weak";
           break;
-        case 1013:
+        case AuthErrorCode.INVALID_TOKEN:
           errorMessage = "Invalid or expired token";
           break;
-        case 1015:
+        case AuthErrorCode.UNAUTHORIZED:
           errorMessage = "Unauthorized access";
           break;
-        case 1016:
+        case AuthErrorCode.VALIDATION_ERROR:
           errorMessage = error.response?.data?.message || "Validation error";
           break;
-        case 1017:
+        case AuthErrorCode.CLIENT_BLOCKED:
           errorMessage = "The client related to your user is blocked, contact us for more details.";
           break;
         default:
           errorMessage = "An unexpected error occurred";
       }
     }
+
     setGlobalError(errorMessage);
   };
 
-  // Usuario actual con Tanstack Query
+  // Current user query with Tanstack Query
   const userQuery = useQuery({
     queryKey: ["auth", "user"],
     queryFn: async () => {
@@ -132,28 +230,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUserData(response);
         return response;
       } catch (error) {
-        console.error("Error al obtener datos del usuario:", error);
+        console.error("Error fetching user data:", error);
         throw error;
       }
     },
     enabled: isAuthenticated && !userData,
     retry: 1,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Mutación para login
+  // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
       setLoading(true);
       try {
-        return await apiRequest<{ access_token: string; refresh_token: string }>({
+        return await apiRequest<AuthTokenResponse>({
           url: apiRoutes.auth.login,
           method: "post",
           data: credentials,
           requiereAuth: false,
         });
       } catch (err) {
-        console.error("Error en el login:", err);
+        console.error("Login error:", err);
         handleAuthError(err);
         throw err;
       } finally {
@@ -170,7 +268,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     },
   });
 
-  // Mutación para logout
+  // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
       setLoading(true);
@@ -180,7 +278,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           method: "post",
         });
       } catch (err) {
-        console.error("Error durante el logout:", err);
+        console.error("Logout error:", err);
         throw err;
       } finally {
         setLoading(false);
@@ -192,7 +290,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     },
   });
 
-  // Mutación para recuperar contraseña
+  // Forgot password mutation
   const forgotPasswordMutation = useMutation({
     mutationFn: async (email: string) => {
       setLoading(true);
@@ -205,7 +303,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
       } catch (error) {
         handleAuthError(error);
-        console.error("Error al enviar el correo de recuperación de contraseña:", error);
+        console.error("Error sending password recovery email:", error);
         throw error;
       } finally {
         setLoading(false);
@@ -213,7 +311,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     },
   });
 
-  // Mutación para restablecer contraseña
+  // Reset password mutation
   const resetPasswordMutation = useMutation({
     mutationFn: async ({ token, newPassword }: { token: string; newPassword: string }) => {
       setLoading(true);
@@ -233,7 +331,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     },
   });
 
-  // Funciones wrapper para exponer en el contexto
+  /**
+   * Login with provided credentials
+   * @param {LoginCredentials} credentials - User login credentials
+   * @returns {Promise<boolean>} Success status
+   */
   const login = async (credentials: LoginCredentials): Promise<boolean> => {
     try {
       await loginMutation.mutateAsync(credentials);
@@ -243,21 +345,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  /**
+   * Logs out the current user
+   */
   const logout = async () => {
     await logoutMutation.mutateAsync();
   };
 
+  /**
+   * Initiates password recovery process
+   * @param {string} email - User's email
+   */
   const forgotPassword = async (email: string) => {
     return forgotPasswordMutation.mutateAsync(email);
   };
 
+  /**
+   * Resets user's password with a token
+   * @param {string} token - Password reset token
+   * @param {string} newPassword - New password
+   */
   const resetPassword = async (token: string, newPassword: string) => {
     return resetPasswordMutation.mutateAsync({ token, newPassword });
   };
 
-  // Al montar el componente, validar el token
+  // Set up token validation check on component mount
   useEffect(() => {
     validateToken();
+
+    // Set up periodic token validation
+    const tokenCheckInterval = setInterval(() => {
+      validateToken();
+    }, 60000); // Check token every minute
+
+    return () => clearInterval(tokenCheckInterval);
   }, []);
 
   const contextValue = {

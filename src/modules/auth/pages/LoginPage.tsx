@@ -4,7 +4,7 @@
  * * Migrate Form Reset Popup (requieres new hooks)
  */
 
-import { Box, Grid2, Button, Link } from "@mui/material";
+import { Box, Button, Grid, Link } from "@mui/material";
 import { useForm, type SubmitHandler, FormProvider } from "react-hook-form";
 
 import { z } from "zod";
@@ -73,13 +73,13 @@ function LoginPage() {
             </Button>
           </Box>
           <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
-            <Grid2 container justifyContent="center" sx={{ mt: 2 }}>
-              <Grid2>
+            <Grid container justifyContent="center" sx={{ mt: 2 }}>
+              <Grid>
                 <Link href="#" onClick={() => setOpenPopUpForgot(true)} variant="body2">
                   Forgot password?
                 </Link>
-              </Grid2>
-            </Grid2>
+              </Grid>
+            </Grid>
           </Box>
         </FormProvider>
         <ErrorModal open={!!error} onClose={clearError} errorMessage={error || ""} />

@@ -7,9 +7,10 @@ import webRoutes from "@/lib/web.routes";
 import BasicButton from "@/components/ui/atoms/BasicButton";
 import ErrorBox from "@/components/ui/molecules/ErrorBox";
 import SuccessBox from "@/components/ui/molecules/SuccessBox";
-import ClientTable from "../components/organisms/ListClientsTable";
+import ListClientsTable from "../components/organisms/ListClientsTable";
 import { useNotificationStore } from "@/stores";
 import CustomPageHeader from "@/components/ui/molecules/CustomPageHeader";
+import { useNotificationCleanup } from "@/hooks/useNotificationCleanup";
 
 const ClientListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ const ClientListPage: React.FC = () => {
   const handleCreateClient = (): void => {
     navigate(webRoutes.admin.clients.create);
   };
+
+  useNotificationCleanup();
 
   return (
     <>
@@ -36,7 +39,7 @@ const ClientListPage: React.FC = () => {
         </Box>
 
         <Box sx={{ display: "flex", height: "600px", width: "100%" }}>
-          <ClientTable setNotification={setNotification} />
+          <ListClientsTable setNotification={setNotification} />
         </Box>
       </Box>
     </>

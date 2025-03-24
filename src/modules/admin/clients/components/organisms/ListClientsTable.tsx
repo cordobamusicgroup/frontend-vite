@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Box, Button, IconButton, InputAdornment, Menu, MenuItem, Skeleton, TextField, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import axios from "axios";
-import { Form } from "react-hook-form";
-import { MoreVert, Search } from "@mui/icons-material";
 import { useNavigate } from "react-router";
 import { AgGridReact } from "ag-grid-react";
 import webRoutes from "@/lib/web.routes";
@@ -14,7 +12,6 @@ import DMBStatusChip from "../atoms/DMBStatusChip";
 import ActionButtonsClient from "../atoms/ActionsButtonsClient";
 import { ColDef } from "ag-grid-community";
 import { useClients } from "../../hooks/useClientsAdmin";
-
 interface ClientTableProps {
   setNotification: (notification: { message: string; type: "success" | "error" }) => void;
 }
@@ -28,9 +25,9 @@ const formatCurrency = (currencySymbol: string, value: number): string => {
   return `${currencySymbol}${intPart}.${fraction}`;
 };
 
-const ClientTable: React.FC<ClientTableProps> = ({ setNotification }) => {
+const ListClientsTable: React.FC<ClientTableProps> = ({ setNotification }) => {
   const navigate = useNavigate();
-  const { clients, deleteClients, isFetchingClients, fetchError } = useClients();
+  const { clients, deleteClients, isFetching, isMutationPending, fetchError } = useClients();
   const gridRef = useRef<AgGridReact>(null);
 
   const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter(gridRef);
@@ -38,16 +35,17 @@ const ClientTable: React.FC<ClientTableProps> = ({ setNotification }) => {
     navigate(`${webRoutes.admin.clients.edit}/${client.id}`);
   };
 
-  const handleDelete = async (clientId: number): Promise<void> => {
-    await deleteClients.mutate([clientId]);
-    setNotification({ message: "Client deleted successfully", type: "success" });
+  const handleDelete = (clientId: number): void => {
+    deleteClients.mutate([clientId], {
+      onSuccess: () => {
+        setNotification({ message: "Client deleted successfully", type: "success" });
+      },
+      onError: (error) => {
+        const message = axios.isAxiosError(error) ? error.response?.data?.message || "Error deleting clients" : "Unknown error occurred";
+        setNotification({ message: message, type: "error" });
+      },
+    });
   };
-
-  useEffect(() => {
-    if (fetchError) {
-      setNotification({ message: fetchError.toString(), type: "error" });
-    }
-  }, [fetchError, setNotification]);
 
   const columns: ColDef[] = [
     { field: "id", headerName: "ID", filter: "agNumberColumnFilter", width: 80, sortable: false, resizable: false },
@@ -118,9 +116,9 @@ const ClientTable: React.FC<ClientTableProps> = ({ setNotification }) => {
   return (
     <Box sx={{ height: 600, width: "100%" }}>
       <SearchBoxTable searchTextRef={searchTextRef} applyFilter={applyFilter} resetFilter={resetFilter} />
-      <GridTables ref={gridRef} defaultColDef={{ sortable: false }} columns={columns} rowData={rowData} loading={isFetchingClients} quickFilterText={quickFilterText} />
+      <GridTables ref={gridRef} defaultColDef={{ sortable: false }} columns={columns} rowData={rowData} loading={isFetching || deleteClients.isPending} quickFilterText={quickFilterText} />
     </Box>
   );
 };
 
-export default ClientTable;
+export default ListClientsTable;
