@@ -163,8 +163,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     onSuccess: (data) => {
       if (data && data.access_token && data.refresh_token) {
         setCookies(data.access_token, data.refresh_token);
-        queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
-        navigate(webRoutes.backoffice.overview);
+        queryClient.invalidateQueries({ queryKey: ["auth", "user"] }).then(() => {
+          navigate(webRoutes.backoffice.overview);
+        });
       }
     },
   });

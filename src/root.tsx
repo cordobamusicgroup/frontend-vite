@@ -2,6 +2,9 @@ import { Links, Meta, Outlet, Scripts, ScrollRestoration, useNavigation } from "
 import { AuthProvider } from "./modules/auth/context/AuthProvider";
 import { Skeleton } from "@mui/material";
 import FullScreenLoader from "./components/ui/molecules/FullScreenLoader";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -13,7 +16,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        {children}
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -22,5 +25,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function Root() {
-  return <Outlet />;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Outlet />
+      </AuthProvider>
+    </QueryClientProvider>
+  );
 }

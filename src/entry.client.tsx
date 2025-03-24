@@ -5,13 +5,12 @@ import { AuthProvider } from "./modules/auth/context/AuthProvider";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { HydratedRouter } from "react-router/dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 ReactDOM.hydrateRoot(
   document,
-  <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <HydratedRouter />
-    </ThemeProvider>
-  </React.StrictMode>
+  <ThemeProvider theme={theme}>
+    <CssBaseline />
+    <HydratedRouter />
+  </ThemeProvider>
 );

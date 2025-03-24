@@ -1,7 +1,8 @@
-import { themeQuartz } from "@ag-grid-community/theming";
+import { themeQuartz } from "ag-grid-community";
 
 export const royaltiesgrid = themeQuartz.withParams({
   backgroundColor: undefined,
+
   columnBorder: false,
   fontFamily: {
     googleFont: "Roboto",

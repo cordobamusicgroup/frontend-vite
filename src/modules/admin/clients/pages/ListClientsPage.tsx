@@ -20,8 +20,6 @@ const ClientListPage: React.FC = () => {
     navigate(webRoutes.admin.clients.create);
   };
 
-  clearNotification();
-
   return (
     <>
       <Box p={3} sx={{ display: "flex", flexDirection: "column" }}>

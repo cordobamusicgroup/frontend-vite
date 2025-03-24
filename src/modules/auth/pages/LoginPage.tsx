@@ -75,7 +75,7 @@ function LoginPage() {
           <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
             <Grid2 container justifyContent="center" sx={{ mt: 2 }}>
               <Grid2>
-                <Link onClick={() => setOpenPopUpForgot(true)} variant="body2">
+                <Link href="#" onClick={() => setOpenPopUpForgot(true)} variant="body2">
                   Forgot password?
                 </Link>
               </Grid2>

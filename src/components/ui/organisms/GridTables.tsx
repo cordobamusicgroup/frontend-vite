@@ -1,9 +1,9 @@
 import React, { forwardRef } from "react";
-import { ClientSideRowModelModule, ModuleRegistry } from "ag-grid-community";
+import { AllCommunityModule, ClientSideRowModelModule, ModuleRegistry, PaginationModule, QuickFilterModule } from "ag-grid-community";
 import { AgGridReact, AgGridReactProps } from "ag-grid-react";
-import { cmgThemeGrid } from "@/styles/grid-royalties";
 import { Box } from "@mui/material";
 import LoadingSpinner from "../atoms/LoadingSpinnert";
+import { cmgThemeGrid } from "@/styles/grid-royalties";
 
 interface GridTablesProps extends AgGridReactProps {
   columns: any[];
@@ -12,7 +12,7 @@ interface GridTablesProps extends AgGridReactProps {
   width?: string;
 }
 
-ModuleRegistry.registerModules([ClientSideRowModelModule]);
+ModuleRegistry.registerModules([ClientSideRowModelModule, PaginationModule, QuickFilterModule]);
 
 const GridTables = forwardRef<AgGridReact, GridTablesProps>(({ columns, rowData, height = "500px", width = "100%", ...props }, ref) => {
   return (

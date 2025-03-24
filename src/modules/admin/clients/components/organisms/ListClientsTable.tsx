@@ -7,12 +7,13 @@ import { useNavigate } from "react-router";
 import { AgGridReact } from "ag-grid-react";
 import webRoutes from "@/lib/web.routes";
 import useQuickFilter from "@/hooks/useQuickFilter";
-import { useClientsAdmin } from "../../hooks/useClientsAdmin";
 import IsBlockedChip from "../atoms/IsBlockedChip";
 import GridTables from "@/components/ui/organisms/GridTables";
 import SearchBoxTable from "@/components/ui/organisms/SearchBoxTable";
 import DMBStatusChip from "../atoms/DMBStatusChip";
 import ActionButtonsClient from "../atoms/ActionsButtonsClient";
+import { ColDef } from "ag-grid-community";
+import { useClients } from "../../hooks/useClientsAdmin";
 
 interface ClientTableProps {
   setNotification: (notification: { message: string; type: "success" | "error" }) => void;
@@ -29,7 +30,7 @@ const formatCurrency = (currencySymbol: string, value: number): string => {
 
 const ClientTable: React.FC<ClientTableProps> = ({ setNotification }) => {
   const navigate = useNavigate();
-  const { clientData = [], clientFetchLoading, deleteClients, clientError, clientLoading } = useClientsAdmin();
+  const { clients, deleteClients, isFetchingClients, fetchError } = useClients();
   const gridRef = useRef<AgGridReact>(null);
 
   const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter(gridRef);
@@ -38,18 +39,17 @@ const ClientTable: React.FC<ClientTableProps> = ({ setNotification }) => {
   };
 
   const handleDelete = async (clientId: number): Promise<void> => {
-    if (await deleteClients([clientId])) {
-      setNotification({ message: "Client deleted successfully", type: "success" });
-    }
+    await deleteClients.mutate([clientId]);
+    setNotification({ message: "Client deleted successfully", type: "success" });
   };
 
   useEffect(() => {
-    if (clientError) {
-      setNotification({ message: clientError, type: "error" });
+    if (fetchError) {
+      setNotification({ message: fetchError.toString(), type: "error" });
     }
-  }, [clientError, setNotification]);
+  }, [fetchError, setNotification]);
 
-  const columns = [
+  const columns: ColDef[] = [
     { field: "id", headerName: "ID", filter: "agNumberColumnFilter", width: 80, sortable: false, resizable: false },
     { field: "clientName", headerName: "Client Name", width: 200 },
     {
@@ -95,7 +95,6 @@ const ClientTable: React.FC<ClientTableProps> = ({ setNotification }) => {
       headerName: "Actions",
       width: 200,
       minWidth: 100,
-      sortable: false,
       filter: false,
       resizable: false,
       flex: 1,
@@ -103,22 +102,23 @@ const ClientTable: React.FC<ClientTableProps> = ({ setNotification }) => {
     },
   ];
 
-  const rowData = clientData.map((client: any) => ({
-    id: client.id,
-    clientName: client.clientName,
-    firstName: client.firstName,
-    lastName: client.lastName,
-    type: client.type,
-    dmb: client.dmb, // objeto dmb con accessType, subclientName y status
-    balanceUsd: client.balances?.find((b: any) => b.currency === "USD")?.amount ?? 0,
-    balanceEur: client.balances?.find((b: any) => b.currency === "EUR")?.amount ?? 0,
-    isBlocked: client.isBlocked, // propiedad boolean isBlocked
-  }));
+  const rowData =
+    clients?.map((client: any) => ({
+      id: client.id,
+      clientName: client.clientName,
+      firstName: client.firstName,
+      lastName: client.lastName,
+      type: client.type,
+      dmb: client.dmb, // objeto dmb con accessType, subclientName y status
+      balanceUsd: client.balances?.find((b: any) => b.currency === "USD")?.amount ?? 0,
+      balanceEur: client.balances?.find((b: any) => b.currency === "EUR")?.amount ?? 0,
+      isBlocked: client.isBlocked, // propiedad boolean isBlocked
+    })) || [];
 
   return (
     <Box sx={{ height: 600, width: "100%" }}>
       <SearchBoxTable searchTextRef={searchTextRef} applyFilter={applyFilter} resetFilter={resetFilter} />
-      <GridTables ref={gridRef} columns={columns} rowData={rowData} loading={clientFetchLoading || clientLoading} quickFilterText={quickFilterText} />
+      <GridTables ref={gridRef} defaultColDef={{ sortable: false }} columns={columns} rowData={rowData} loading={isFetchingClients} quickFilterText={quickFilterText} />
     </Box>
   );
 };

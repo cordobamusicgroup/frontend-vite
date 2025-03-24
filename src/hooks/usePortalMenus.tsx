@@ -23,7 +23,7 @@ export const usePortalMenus = (userRole: Roles): MenuItemType[] => {
       text: "Overview",
       icon: <HomeIcon />,
       roles: [Roles.All],
-      path: webRoutes.web.backoffice.overview,
+      path: webRoutes.backoffice.overview,
     },
     {
       text: "Financial",
@@ -32,12 +32,12 @@ export const usePortalMenus = (userRole: Roles): MenuItemType[] => {
       subMenuItems: [
         {
           text: "Payments & Operations",
-          path: webRoutes.web.backoffice.financial.payments,
+          path: webRoutes.backoffice.financial.payments,
           roles: [Roles.All],
         },
         {
           text: "Financial Reports",
-          path: webRoutes.web.backoffice.financial.reports,
+          path: webRoutes.backoffice.financial.reports,
           roles: [Roles.All],
         },
       ],
@@ -46,25 +46,25 @@ export const usePortalMenus = (userRole: Roles): MenuItemType[] => {
       text: "Workflow",
       icon: <Inbox />,
       roles: [Roles.Admin],
-      path: webRoutes.web.admin.workflow.root,
+      path: webRoutes.admin.workflow.root,
     },
     {
       text: "Clients",
       icon: <ContactEmergency />,
       roles: [Roles.Admin],
-      path: webRoutes.web.admin.clients.root,
+      path: webRoutes.admin.clients.root,
     },
     {
       text: "Labels",
       icon: <LibraryMusic />,
       roles: [Roles.Admin],
-      path: webRoutes.web.admin.labels.root,
+      path: webRoutes.admin.labels.root,
     },
     {
       text: "Users",
       icon: <SupervisedUserCircle />,
       roles: [Roles.Admin],
-      path: webRoutes.web.admin.users.root,
+      path: webRoutes.admin.users.root,
     },
     {
       text: "Reports",
@@ -73,7 +73,7 @@ export const usePortalMenus = (userRole: Roles): MenuItemType[] => {
       subMenuItems: [
         {
           text: "Link Missing Reports",
-          path: webRoutes.web.admin.reports.unlinked.root,
+          path: webRoutes.admin.reports.unlinked.root,
           roles: [Roles.Admin],
         },
       ],

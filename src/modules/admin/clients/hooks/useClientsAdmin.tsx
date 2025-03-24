@@ -1,86 +1,144 @@
-import { useState } from "react";
-import axios from "axios";
-import { useApiRequest } from "@/hooks/useApiRequest";
-import { apiRoutes } from "@/lib/api.routes";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { apiRoutes } from "@/lib/api.routes";
+import { useApiRequest } from "@/hooks/useApiRequest";
 
-type Client = any;
+type Client = any; // Reemplaza con el tipo real si lo tienes
 
-export const useClientsAdmin = (clientId?: string) => {
+const fetchAllClients = async (apiRequest: any) => {
+  const response = await apiRequest({
+    url: apiRoutes.clients.root,
+    method: "get",
+    requiereAuth: true,
+  });
+  return response;
+};
+
+const fetchClientById = async (apiRequest: any, clientId: string) => {
+  const response = await apiRequest({
+    url: `${apiRoutes.clients.root}/${clientId}`,
+    method: "get",
+    requiereAuth: true,
+  });
+  return response;
+};
+
+export const useClients = () => {
   const { apiRequest } = useApiRequest();
+  const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const [error, setError] = useState<string | null>(null);
-
-  const clientsQueryKey = ["admin", "clients"];
-  const clientQueryKey = clientId ? ["admin", "client", clientId] : null;
-
-  const fetchClient = async () => {
-    setError(null);
-    try {
-      const url = clientId ? `${apiRoutes.clients.root}/${clientId}` : apiRoutes.clients.root;
-      return await apiRequest({ url, method: "get", requiereAuth: true });
-    } catch (err) {
-      const errorMessage = axios.isAxiosError(err) ? err.response?.data?.message || "Error fetching clients" : "Unknown error occurred";
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    }
-  };
-
   const {
-    data: clientData,
-    refetch,
-    isLoading: clientFetchLoading,
+    data: clients,
+    isLoading: isFetchingClients,
+    isError: hasFetchError,
+    error: queryError,
   } = useQuery({
-    queryKey: clientQueryKey || clientsQueryKey,
-    queryFn: fetchClient,
-    enabled: !!(clientQueryKey || clientsQueryKey),
-    refetchOnWindowFocus: false,
+    queryKey: ["clients"],
+    queryFn: () => fetchAllClients(apiRequest),
     retry: false,
+    refetchOnWindowFocus: false,
   });
 
-  const mutationHandler = async (method: "post" | "put" | "delete", url: string, data?: any) => {
-    setError(null);
-    try {
-      return await apiRequest({ url, method, data, requiereAuth: true });
-    } catch (err) {
-      const errorMessage = axios.isAxiosError(err) ? err.response?.data?.message || "An error occurred" : "Unknown error occurred";
-      setError(errorMessage);
-      throw new Error(errorMessage);
+  // Handle query error using useEffect
+  useEffect(() => {
+    if (queryError) {
+      const message = axios.isAxiosError(queryError) ? queryError.response?.data?.message || "Error fetching clients" : "Unknown error occurred";
+      setError(message);
     }
-  };
+  }, [queryError]);
 
-  const createClientMutation = useMutation({
-    mutationFn: (clientData: Client) => mutationHandler("post", apiRoutes.clients.root, clientData),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: clientsQueryKey }),
-  });
-
-  const updateClientMutation = useMutation({
-    mutationFn: (clientData: Client) => {
-      if (!clientId) throw new Error("Client ID is required to update client");
-      return mutationHandler("put", `${apiRoutes.clients.root}/${clientId}`, clientData);
-    },
+  const createClient = useMutation({
+    mutationFn: (newClient: Client) =>
+      apiRequest({
+        url: apiRoutes.clients.root,
+        method: "post",
+        requiereAuth: true,
+        data: newClient,
+      }),
     onSuccess: () => {
-      if (clientQueryKey) queryClient.invalidateQueries({ queryKey: clientQueryKey });
-      queryClient.invalidateQueries({ queryKey: clientsQueryKey });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
+    onError: (err: unknown) => {
+      const message = axios.isAxiosError(err) ? err.response?.data?.message || "Error creating client" : "Unknown error occurred";
+      setError(message);
     },
   });
 
-  const deleteClientsMutation = useMutation({
-    mutationFn: (ids: number[]) => mutationHandler("delete", apiRoutes.clients.root, { ids }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: clientsQueryKey }),
+  const updateClient = useMutation({
+    mutationFn: ({ clientId, clientData }: { clientId: string; clientData: Client }) =>
+      apiRequest({
+        url: `${apiRoutes.clients.root}/${clientId}`,
+        method: "put",
+        requiereAuth: true,
+        data: clientData,
+      }),
+    onSuccess: (_, { clientId }) => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["client", clientId] });
+    },
+    onError: (err: unknown) => {
+      const message = axios.isAxiosError(err) ? err.response?.data?.message || "Error updating client" : "Unknown error occurred";
+      setError(message);
+    },
   });
 
-  const clientLoading = createClientMutation.isPending || updateClientMutation.isPending || deleteClientsMutation.isPending;
+  const deleteClients = useMutation({
+    mutationFn: (ids: number[]) =>
+      apiRequest({
+        url: apiRoutes.clients.root,
+        method: "delete",
+        requiereAuth: true,
+        data: { ids },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
+    onError: (err: unknown) => {
+      const message = axios.isAxiosError(err) ? err.response?.data?.message || "Error deleting clients" : "Unknown error occurred";
+      setError(message);
+    },
+  });
 
   return {
-    clientData,
-    clientError: error,
-    clientFetchLoading,
-    clientLoading,
-    createClient: createClientMutation.mutateAsync,
-    updateClient: updateClientMutation.mutateAsync,
-    deleteClients: deleteClientsMutation.mutateAsync,
-    refetch,
+    clients,
+    isFetchingClients,
+    fetchError: error,
+    createClient,
+    updateClient,
+    deleteClients,
+  };
+};
+
+export const useClient = (clientId: string) => {
+  const { apiRequest } = useApiRequest();
+  const [error, setError] = useState<string | null>(null);
+
+  const {
+    data: client,
+    isLoading: isFetchingClient,
+    isError: hasFetchError,
+    error: queryError,
+  } = useQuery({
+    queryKey: ["client", clientId],
+    queryFn: () => fetchClientById(apiRequest, clientId),
+    enabled: !!clientId,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  // Handle query error using useEffect
+  useEffect(() => {
+    if (queryError) {
+      const message = axios.isAxiosError(queryError) ? queryError.response?.data?.message || "Error fetching client" : "Unknown error occurred";
+      setError(message);
+    }
+  }, [queryError]);
+
+  return {
+    client,
+    isFetchingClient,
+    fetchError: error,
   };
 };
