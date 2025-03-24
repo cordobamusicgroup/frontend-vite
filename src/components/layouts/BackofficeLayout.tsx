@@ -51,10 +51,7 @@ const BackofficeLayout: React.FC = () => {
       <HeaderLayout />
       {!isMobile() && <VerticalMenu />}
       {isMobile() && isOpen && <VerticalMenu />}
-      <Main open={isOpen}>
-        {isNavigating && <SkeletonLoader />}
-        <Outlet />
-      </Main>
+      <Main open={isOpen}>{isNavigating ? <SkeletonLoader /> : <Outlet />}</Main>
     </div>
   );
 };
