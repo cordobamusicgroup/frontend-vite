@@ -11,6 +11,7 @@ import ListClientsTable from "../components/organisms/ListClientsTable";
 import { useNotificationStore } from "@/stores";
 import CustomPageHeader from "@/components/ui/molecules/CustomPageHeader";
 import { useNotificationCleanup } from "@/hooks/useNotificationCleanup";
+import { Helmet } from "react-helmet";
 
 const ClientListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +26,9 @@ const ClientListPage: React.FC = () => {
 
   return (
     <>
+      <Helmet>
+        <title>Clients - Córdoba Music Group</title>
+      </Helmet>
       <Box p={3} sx={{ display: "flex", flexDirection: "column" }}>
         <CustomPageHeader background={"linear-gradient(90deg, #062E52 0%, #005C99 50%, #007BE6 100%)"} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: "16px" }}>Manage Clients</Typography>
