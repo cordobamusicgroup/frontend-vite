@@ -1,5 +1,3 @@
-"use client";
-
 // React imports
 import React, { useState } from "react";
 
@@ -15,6 +13,7 @@ import { isMobile } from "@/theme";
 
 // Components
 import LoadingSpinner from "../atoms/LoadingSpinnert";
+import { useNavigate } from "react-router";
 
 /**
  * Component that displays a user menu with options for the current user.
@@ -25,10 +24,11 @@ import LoadingSpinner from "../atoms/LoadingSpinnert";
  */
 const UserMenuHeader: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const navigate = useNavigate();
 
   const theme = useTheme();
-  const menuItems = useUserMenuItems();
   const { userData } = useUserStore();
+  const menuItems = useUserMenuItems(userData?.role || "User");
 
   const isMobileView = isMobile();
   const isMenuOpen = Boolean(anchorEl);
@@ -49,6 +49,18 @@ const UserMenuHeader: React.FC = () => {
    */
   const handleCloseMenu = () => {
     setAnchorEl(null);
+  };
+
+  /**
+   * Handles menu item click based on whether it has onClick or path
+   */
+  const handleMenuItemClick = (item: any) => {
+    if (item.onClick) {
+      item.onClick();
+    } else if (item.path) {
+      navigate(item.path);
+    }
+    handleCloseMenu();
   };
 
   return (
@@ -84,7 +96,7 @@ const UserMenuHeader: React.FC = () => {
               ml: 1, // Reduce margin between text and icon
             }}
           >
-            {userData.fullName}
+            {userData?.fullName}
           </Typography>
         )}
       </Box>
@@ -124,10 +136,10 @@ const UserMenuHeader: React.FC = () => {
           <>
             <Box sx={{ px: 2, py: 1, textAlign: "center" }}>
               <Typography variant="subtitle2" fontWeight="bold">
-                {userData.username}
+                {userData.username || "User"}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Client ID: {userData.clientId || "Unknown"}
+                Client ID: {userData?.clientId || "Unknown"}
               </Typography>
             </Box>
             <Divider sx={{ my: 0 }} />
@@ -148,13 +160,7 @@ const UserMenuHeader: React.FC = () => {
           }}
         >
           {menuItems.map((item, index) => (
-            <MenuItem
-              key={index}
-              onClick={() => {
-                item.onClick();
-                handleCloseMenu();
-              }}
-            >
+            <MenuItem key={index} onClick={() => handleMenuItemClick(item)}>
               <ListItemIcon sx={{ minWidth: "35px" }}>{item.icon}</ListItemIcon>
               <ListItemText
                 primary={item.text}

@@ -4,31 +4,33 @@ import webRoutes from "@/lib/web.routes";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { AccountBalance, AccountCircle, ExitToApp } from "@mui/icons-material";
 import { useNavigate } from "react-router";
+import { Roles } from "@/constants/roles";
 
 interface MenuItemType {
   text: string;
   icon: React.ReactNode;
-  onClick: () => void;
+  roles: Roles[];
+  path?: string;
+  onClick?: () => void;
 }
 
-// TODO: [CMGDEV-8]  Refactorizar este hook para que sea más legible y mantenible a largo plazo
-
-const createMenuItem = (text: string, icon: React.ReactNode, onClick: () => void): MenuItemType => ({
+const createMenuItem = (text: string, icon: React.ReactNode, roles: Roles[], onClick?: () => void, path?: string): MenuItemType => ({
   text,
   icon,
+  roles,
   onClick,
+  path,
 });
 
-export const useUserMenuItems = (): MenuItemType[] => {
+export const useUserMenuItems = (userRole: Roles): MenuItemType[] => {
   const auth = useAuth();
   const navigate = useNavigate();
 
-  return [
-    createMenuItem("Profile", <AccountCircle fontSize="small" />, () => {
-      navigate(webRoutes.backoffice.user.profile);
-    }),
-    createMenuItem("Logout", <ExitToApp fontSize="small" />, () => {
-      auth.logout();
-    }),
-  ];
+  const allMenuItems: MenuItemType[] = [createMenuItem("Profile", <AccountCircle fontSize="small" />, [Roles.All], () => navigate(webRoutes.backoffice.user.profile), webRoutes.backoffice.user.profile), createMenuItem("Logout", <ExitToApp fontSize="small" />, [Roles.All], () => auth.logout())];
+
+  const filterItemsByRole = <T extends { roles: Roles[] }>(items: T[], role: Roles): T[] => {
+    return items.filter((item) => item.roles.includes(Roles.All) || item.roles.includes(role));
+  };
+
+  return filterItemsByRole(allMenuItems, userRole);
 };
