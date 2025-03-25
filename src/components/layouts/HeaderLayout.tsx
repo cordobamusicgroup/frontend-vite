@@ -3,6 +3,7 @@ import { AppBar, Toolbar, Box, useMediaQuery, useTheme } from "@mui/material";
 import { usePageDataStore } from "@/stores";
 import MenuButtonToggle from "../ui/atoms/MenuButtonToggle";
 import MobileWhiteLogo from "../ui/atoms/MobileWhiteLogo";
+import UserMenuHeader from "../ui/molecules/UserMenuHeader";
 
 const StyledAppBar = styled(AppBar, {
   shouldForwardProp: (prop) => prop !== "isMenuOpen",
@@ -48,7 +49,9 @@ const HeaderLayout: React.FC = () => {
         <Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>{isMobile && <MobileWhiteLogo />}</Box>
 
         {/* Right section - will contain user menu */}
-        <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>{/* TODO <UserMenu /> */}</Box>
+        <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
+          <UserMenuHeader />
+        </Box>
       </Toolbar>
     </StyledAppBar>
   );

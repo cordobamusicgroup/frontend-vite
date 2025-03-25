@@ -5,5 +5,5 @@ export default [
   ...prefix("auth", [route("login", "modules/auth/pages/LoginPage.tsx")]),
 
   // Backoffice routes
-  ...prefix("/backoffice", [layout("components/layouts/BackofficeLayout.tsx", [index("modules/portal/pages/Overview.tsx"), ...prefix("admin", [...prefix("clients", [index("modules/admin/clients/pages/ListClientsPage.tsx"), route("create", "modules/admin/clients/pages/CreateClientPage.tsx"), route("edit", "modules/admin/clients/pages/EditClientPage.tsx")])])])]),
+  ...prefix("/backoffice", [layout("components/layouts/BackofficeLayout.tsx", [index("modules/portal/pages/Overview.tsx"), ...prefix("admin", [...prefix("clients", [index("modules/admin/clients/pages/ListClientsPage.tsx"), route("create", "modules/admin/clients/pages/CreateClientPage.tsx"), route("edit/:clientId", "modules/admin/clients/pages/EditClientPage.tsx")])])])]),
 ] satisfies RouteConfig;

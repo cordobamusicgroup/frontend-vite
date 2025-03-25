@@ -11,11 +11,7 @@ import { useErrorStore } from "../../../stores/error.store";
 import webRoutes from "@/lib/web.routes";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-// Token expiration times in milliseconds
-const TOKEN_EXPIRATION = {
-  ACCESS: 15 * 60 * 1000, // 15 minutes
-  REFRESH: 7 * 24 * 60 * 60 * 1000, // 7 days
-};
+// Remove hardcoded token expiration times since we'll get them from API
 
 /**
  * Login credentials interface
@@ -41,6 +37,8 @@ interface JWTPayload {
 interface AuthTokenResponse {
   access_token: string;
   refresh_token: string;
+  expires_in: number; // Access token expiration in seconds
+  refresh_expires_in: number; // Refresh token expiration in seconds
 }
 
 /**
@@ -72,8 +70,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     Cookies.remove("refresh_token");
     setIsAuthenticated(false);
     queryClient.clear(); // Clear all caches on logout
-    navigate("/auth/login");
-    setGlobalError("Your session has expired, please log in again");
+    navigate(webRoutes.login);
   };
 
   /**
@@ -95,8 +92,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         requiereAuth: false,
       });
       
-      if (response && response.access_token && response.refresh_token) {
-        setCookies(response.access_token, response.refresh_token);
+      if (
+        response && 
+        response.access_token && 
+        response.refresh_token && 
+        response.expires_in && 
+        response.refresh_expires_in
+      ) {
+        setCookies(
+          response.access_token, 
+          response.refresh_token, 
+          response.expires_in, 
+          response.refresh_expires_in
+        );
         return true;
       }
       return false;
@@ -150,15 +158,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * Sets authentication cookies with appropriate expiration
    * @param {string} access_token - JWT access token
    * @param {string} refresh_token - JWT refresh token
+   * @param {number} expires_in - Access token expiration in seconds
+   * @param {number} refresh_expires_in - Refresh token expiration in seconds
    */
-  const setCookies = (access_token: string, refresh_token: string) => {
+  const setCookies = (access_token: string, refresh_token: string, expires_in: number, refresh_expires_in: number) => {
+    // Convert seconds to milliseconds for Date object
+    const accessExpiration = new Date(Date.now() + expires_in * 1000);
+    const refreshExpiration = new Date(Date.now() + refresh_expires_in * 1000);
+
     Cookies.set("access_token", access_token, {
-      expires: new Date(Date.now() + TOKEN_EXPIRATION.ACCESS),
+      expires: accessExpiration,
       path: "/",
       sameSite: "strict",
     });
     Cookies.set("refresh_token", refresh_token, {
-      expires: new Date(Date.now() + TOKEN_EXPIRATION.REFRESH),
+      expires: refreshExpiration,
       path: "/",
       sameSite: "strict",
     });
@@ -259,8 +273,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     },
     onSuccess: (data) => {
-      if (data && data.access_token && data.refresh_token) {
-        setCookies(data.access_token, data.refresh_token);
+      if (data && data.access_token && data.refresh_token && data.expires_in && data.refresh_expires_in) {
+        setCookies(data.access_token, data.refresh_token, data.expires_in, data.refresh_expires_in);
         queryClient.invalidateQueries({ queryKey: ["auth", "user"] }).then(() => {
           navigate(webRoutes.backoffice.overview);
         });

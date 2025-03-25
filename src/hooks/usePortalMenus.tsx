@@ -43,12 +43,6 @@ export const usePortalMenus = (userRole: Roles): MenuItemType[] => {
       ],
     },
     {
-      text: "Workflow",
-      icon: <Inbox />,
-      roles: [Roles.Admin],
-      path: webRoutes.admin.workflow.root,
-    },
-    {
       text: "Clients",
       icon: <ContactEmergency />,
       roles: [Roles.Admin],
