@@ -1,5 +1,6 @@
-import { IconButton as MUIIconButton } from "@mui/material";
-import MenuOpenIcon from "@mui/icons-material/MenuOpen";
+import { IconButton as MUIIconButton } from '@mui/material';
+import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import MenuIcon from '@mui/icons-material/Menu';
 
 interface IconButtonProps {
   isOpen: boolean;
@@ -8,7 +9,7 @@ interface IconButtonProps {
 
 const MenuButtonToggle: React.FC<IconButtonProps> = ({ isOpen, onClick }) => (
   <MUIIconButton color="inherit" aria-label="toggle menu" onClick={onClick} edge="start">
-    {isOpen ? <MenuOpenIcon /> : <MenuOpenIcon />}
+    {isOpen ? <MenuOpenIcon /> : <MenuIcon />}
   </MUIIconButton>
 );
 
