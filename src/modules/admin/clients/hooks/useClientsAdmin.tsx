@@ -87,14 +87,14 @@ export const useClients = (clientId?: string) => {
    * Mutación para actualizar un cliente existente.
    */
   const updateClient = useMutation({
-    mutationFn: ({ clientId, clientData }: { clientId: string; clientData: any }) =>
+    mutationFn: (clientData: any) =>
       apiRequest({
         url: `${apiRoutes.clients.root}/${clientId}`,
         method: "put",
         requiereAuth: true,
         data: clientData,
       }),
-    onSuccess: (_, { clientId }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["client", clientId] });
     },

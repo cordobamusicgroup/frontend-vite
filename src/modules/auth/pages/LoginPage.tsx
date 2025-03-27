@@ -4,7 +4,7 @@
  * * Migrate Form Reset Popup (requieres new hooks)
  */
 
-import { Box, Button, Grid, Link } from "@mui/material";
+import { Box, Button, Grid, Link, Typography } from "@mui/material";
 import { useForm, type SubmitHandler, FormProvider } from "react-hook-form";
 
 import { z } from "zod";
@@ -18,6 +18,7 @@ import AuthLayout from "../layouts/AuthLayout";
 import { Helmet } from "react-helmet";
 import { useState } from "react";
 import ForgotPasswordPopup from "./ForgotPasswordPopup";
+import ErrorModal2 from "@/components/ui/molecules/ErrorModal2";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Auth - Córdoba Music Group" }];
@@ -82,7 +83,9 @@ function LoginPage() {
             </Grid>
           </Box>
         </FormProvider>
-        <ErrorModal open={!!error} onClose={clearError} errorMessage={error || ""} />
+        <ErrorModal2 open={!!error} onClose={clearError}>
+          <Typography>{error}</Typography>
+        </ErrorModal2>
         <ForgotPasswordPopup open={openPopUpForgot} onClose={() => setOpenPopUpForgot(false)} />
       </AuthLayout>
     </>
