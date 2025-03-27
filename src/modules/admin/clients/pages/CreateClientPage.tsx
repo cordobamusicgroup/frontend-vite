@@ -1,27 +1,27 @@
-import { useState } from "react";
-import { Box, CircularProgress, List, ListItem, ListItemText, TextField, Typography, useTheme } from "@mui/material";
-import { AddOutlined, PersonAdd } from "@mui/icons-material";
-import theme from "@/theme";
-import { useNavigate } from "react-router";
-import webRoutes from "@/lib/web.routes";
-import BasicButton from "@/components/ui/atoms/BasicButton";
-import ErrorBox from "@/components/ui/molecules/ErrorBox";
-import SuccessBox from "@/components/ui/molecules/SuccessBox";
-import ListClientsTable from "../components/organisms/ListClientsTable";
-import { useErrorStore, useNotificationStore } from "@/stores";
-import CustomPageHeader from "@/components/ui/molecules/CustomPageHeader";
-import { useNotificationCleanup } from "@/hooks/useNotificationCleanup";
-import { Helmet } from "react-helmet";
-import { useClients } from "../hooks/useClientsAdmin";
-import { FormProvider, useForm, SubmitHandler } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ClientValidationSchema } from "../schemas/ClientValidationSchema";
-import axios from "axios";
-import ErrorModal2 from "@/components/ui/molecules/ErrorModal2";
-import BackPageButton from "@/components/ui/atoms/BackPageButton";
-import ClientFormLayout from "../components/organisms/ClientFormLayout";
-import { access } from "fs";
+import { useState } from 'react';
+import { Box, CircularProgress, List, ListItem, ListItemText, TextField, Typography, useTheme } from '@mui/material';
+import { AddOutlined, PersonAdd } from '@mui/icons-material';
+import theme from '@/theme';
+import { useNavigate } from 'react-router';
+import webRoutes from '@/lib/web.routes';
+import BasicButton from '@/components/ui/atoms/BasicButton';
+import ErrorBox from '@/components/ui/molecules/ErrorBox';
+import SuccessBox from '@/components/ui/molecules/SuccessBox';
+import ListClientsTable from '../components/organisms/ListClientsTable';
+import { useErrorStore, useNotificationStore } from '@/stores';
+import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
+import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
+import { Helmet } from 'react-helmet';
+import { useClients } from '../hooks/useClientsAdmin';
+import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ClientValidationSchema } from '../schemas/ClientValidationSchema';
+import axios from 'axios';
+import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
+import BackPageButton from '@/components/ui/atoms/BackPageButton';
+import ClientFormLayout from '../components/organisms/ClientFormLayout';
+import { access } from 'fs';
 
 type ClientFormData = z.infer<typeof ClientValidationSchema>;
 
@@ -36,7 +36,7 @@ const CreateClientPage: React.FC = () => {
   useNotificationCleanup();
 
   const methods = useForm<ClientFormData>({
-    mode: "all",
+    mode: 'all',
     resolver: zodResolver(ClientValidationSchema),
   });
 
@@ -46,9 +46,8 @@ const CreateClientPage: React.FC = () => {
     reset,
   } = methods;
 
-  const onSubmit: SubmitHandler<ClientFormData> = async (data) => {
-    console.log("Data", data);
-    const { client, contract, address, dmb } = data;
+  const onSubmit: SubmitHandler<ClientFormData> = async (formData) => {
+    const { client, contract, address, dmb } = formData;
     const payload = {
       clientName: client.clientName,
       firstName: client.firstName,
@@ -85,16 +84,18 @@ const CreateClientPage: React.FC = () => {
     };
     createClient.mutate(payload, {
       onSuccess: () => {
-        setNotification({ message: "Client created successfully", type: "success" });
+        setNotification({ message: 'Client created successfully', type: 'success' });
         reset();
       },
       onError: (error) => {
         scrollToTop();
-        const message = axios.isAxiosError(error) ? error.response?.data?.message || "Error creating client" : "Unknown error occurred";
-        setNotification({ message: message, type: "error" });
+        const message = axios.isAxiosError(error)
+          ? error.response?.data?.message || 'Error creating client'
+          : 'Unknown error occurred';
+        setNotification({ message: message, type: 'error' });
       },
     });
-    console.log("Create Client Form Submitted:", payload);
+    console.log('Create Client Form Submitted:', payload);
   };
 
   const handleClientSubmit = handleSubmit(
@@ -105,11 +106,11 @@ const CreateClientPage: React.FC = () => {
       if (Object.keys(errors).length > 0) {
         setErrorOpen(true); // Abre el popup si hay errores
       }
-    }
+    },
   );
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleInputChange = () => clearNotification();
@@ -120,9 +121,9 @@ const CreateClientPage: React.FC = () => {
       if (errObj?.message) {
         messages.push(errObj.message);
       }
-      if (errObj && typeof errObj === "object") {
+      if (errObj && typeof errObj === 'object') {
         for (const key in errObj) {
-          if (typeof errObj[key] === "object") {
+          if (typeof errObj[key] === 'object') {
             iterate(errObj[key]);
           }
         }
@@ -135,20 +136,32 @@ const CreateClientPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Clients - Córdoba Music Group</title>
+        <title>Create Client - Córdoba Music Group</title>
       </Helmet>
-      <Box p={3} sx={{ display: "flex", flexDirection: "column" }}>
-        <CustomPageHeader background={"linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)"} color={theme.palette.primary.contrastText}>
-          <Typography sx={{ flexGrow: 1, fontSize: "18px" }}>Creating New Client</Typography>
+      <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+        <CustomPageHeader
+          background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'}
+          color={theme.palette.primary.contrastText}
+        >
+          <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Creating New Client</Typography>
           <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
-          <BasicButton colorBackground="white" colorText={theme.palette.secondary.main} onClick={handleClientSubmit} color="primary" variant="contained" disabled={mutationLoading} startIcon={<AddOutlined />} loading={mutationLoading}>
+          <BasicButton
+            colorBackground="white"
+            colorText={theme.palette.secondary.main}
+            onClick={handleClientSubmit}
+            color="primary"
+            variant="contained"
+            disabled={mutationLoading}
+            startIcon={<AddOutlined />}
+            loading={mutationLoading}
+          >
             Create Client
           </BasicButton>
         </CustomPageHeader>
 
         <Box>
-          {notification?.type === "success" && <SuccessBox>{notification.message}</SuccessBox>}
-          {notification?.type === "error" && <ErrorBox>{notification.message}</ErrorBox>}
+          {notification?.type === 'success' && <SuccessBox>{notification.message}</SuccessBox>}
+          {notification?.type === 'error' && <ErrorBox>{notification.message}</ErrorBox>}
         </Box>
 
         <FormProvider {...methods}>
@@ -157,7 +170,7 @@ const CreateClientPage: React.FC = () => {
         <ErrorModal2 open={errorOpen} onClose={() => setErrorOpen(false)}>
           <List sx={{ padding: 0, margin: 0 }}>
             {getErrorMessages(errors).map((msg, index) => (
-              <ListItem key={index} disableGutters sx={{ padding: "1px 0" }}>
+              <ListItem key={index} disableGutters sx={{ padding: '1px 0' }}>
                 <ListItemText primary={`• ${msg}`} sx={{ margin: 0, padding: 0 }} />
               </ListItem>
             ))}
