@@ -105,7 +105,7 @@ const ListClientsTable: React.FC<ClientTableProps> = ({ setNotification }) => {
   ];
 
   const rowData =
-    clients.map((apiData: any) => ({
+    clients?.map((apiData: any) => ({
       id: apiData.id,
       clientName: apiData.clientName,
       firstName: apiData.firstName,

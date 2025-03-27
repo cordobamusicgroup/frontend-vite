@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Box, TextField, Typography } from "@mui/material";
-import { AddOutlined, PersonAdd } from "@mui/icons-material";
+import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import theme from "@/theme";
 import { useNavigate } from "react-router";
 import webRoutes from "@/lib/web.routes";
@@ -32,7 +33,7 @@ const ClientListPage: React.FC = () => {
       <Box p={3} sx={{ display: "flex", flexDirection: "column" }}>
         <CustomPageHeader background={"linear-gradient(90deg, #062E52 0%, #005C99 50%, #007BE6 100%)"} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: "16px" }}>Manage Clients</Typography>
-          <BasicButton colorBackground="white" colorText={"#164723"} onClick={handleCreateClient} color="primary" variant="contained" startIcon={<PersonAdd />}>
+          <BasicButton colorBackground="white" colorText={"#164723"} onClick={handleCreateClient} color="primary" variant="contained" startIcon={<PersonAddIcon />}>
             Create Client
           </BasicButton>
         </CustomPageHeader>

@@ -2,7 +2,7 @@ import Modal from "@mui/material/Modal";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import { CheckCircle } from "@mui/icons-material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useTheme } from "@mui/material/styles";
 
 interface SuccessModalProps {
@@ -34,7 +34,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({ open, onClose, title, messa
   return (
     <Modal open={open} onClose={onClose} aria-labelledby="success-modal-title" aria-describedby="success-modal-description">
       <Box sx={style}>
-        <CheckCircle sx={{ color: theme.palette.success.main, fontSize: "3rem", mb: 2 }} />
+        <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: "3rem", mb: 2 }} />
         <Typography id="success-modal-title" variant="h6" component="h2" color="success">
           {title}
         </Typography>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Box, TextField, Typography } from '@mui/material';
-import { AddOutlined, PersonAdd } from '@mui/icons-material';
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import theme from '@/theme';
 import { useNavigate } from 'react-router';
 import webRoutes from '@/lib/web.routes';
@@ -37,7 +38,7 @@ const ListLabelsPage: React.FC = () => {
             onClick={handleCreateClient}
             color="primary"
             variant="contained"
-            startIcon={<PersonAdd />}
+            startIcon={<PersonAddIcon />}
           >
             Create Label
           </BasicButton>

@@ -1,19 +1,29 @@
 // React imports
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
 // MUI components
-import { Menu, MenuItem, ListItemIcon, ListItemText, Box, Typography, IconButton, Divider, Avatar } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-import useMediaQuery from "@mui/material/useMediaQuery";
+import {
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Box,
+  Typography,
+  IconButton,
+  Divider,
+  Avatar,
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 // Custom hooks and utilities
-import { useUserMenuItems } from "@/hooks/userMenuItems";
-import { useUserStore } from "@/stores";
-import { isMobile } from "@/theme";
+import { useUserMenuItems } from '@/hooks/userMenuItems';
+import { useUserStore } from '@/stores';
+import { isMobile } from '@/theme';
 
 // Components
-import LoadingSpinner from "../atoms/LoadingSpinnert";
-import { useNavigate } from "react-router";
+import LoadingSpinner from '../atoms/LoadingSpinnert';
+import { useNavigate } from 'react-router';
 
 /**
  * Component that displays a user menu with options for the current user.
@@ -28,13 +38,13 @@ const UserMenuHeader: React.FC = () => {
 
   const theme = useTheme();
   const { userData } = useUserStore();
-  const menuItems = useUserMenuItems(userData?.role || "User");
+  const menuItems = useUserMenuItems(userData?.role || 'User');
 
   const isMobileView = isMobile();
   const isMenuOpen = Boolean(anchorEl);
 
   // Get the first letter of user's fullName or use "U" as fallback
-  const userInitial = userData?.fullName ? userData.fullName.charAt(0).toUpperCase() : "U";
+  const userInitial = userData?.fullName ? userData.fullName.charAt(0).toUpperCase() : 'U';
 
   /**
    * Opens the user menu when clicking on the user icon.
@@ -65,7 +75,7 @@ const UserMenuHeader: React.FC = () => {
 
   return (
     <Box display="flex" alignItems="center">
-      <Box display="flex" alignItems="center" sx={{ cursor: "pointer" }} onClick={handleOpenMenu}>
+      <Box display="flex" alignItems="center" sx={{ cursor: 'pointer' }} onClick={handleOpenMenu}>
         <IconButton
           edge="end"
           aria-label="user account menu"
@@ -73,16 +83,16 @@ const UserMenuHeader: React.FC = () => {
           aria-haspopup="true"
           color="inherit"
           size="small" // Make the icon button smaller
-          sx={{ padding: "4px" }}
+          sx={{ padding: '4px' }}
         >
           <Avatar
             sx={{
               width: 32,
               height: 32,
-              bgcolor: "white",
+              bgcolor: 'white',
               color: theme.palette.primary.main,
-              fontSize: "0.875rem",
-              fontWeight: "bold",
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
             }}
           >
             {userInitial}
@@ -92,7 +102,7 @@ const UserMenuHeader: React.FC = () => {
           <Typography
             variant="body2"
             sx={{
-              display: { xs: "none", sm: "block" },
+              display: { xs: 'none', sm: 'block' },
               ml: 1, // Reduce margin between text and icon
             }}
           >
@@ -109,19 +119,19 @@ const UserMenuHeader: React.FC = () => {
         open={isMenuOpen}
         onClose={handleCloseMenu}
         anchorOrigin={{
-          vertical: "top",
-          horizontal: "right",
+          vertical: 'top',
+          horizontal: 'right',
         }}
         transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
+          vertical: 'top',
+          horizontal: 'right',
         }}
         slotProps={{
           paper: {
             style: {
-              maxHeight: "300px",
-              [theme.breakpoints.down("sm")]: {
-                maxHeight: "200px",
+              maxHeight: '300px',
+              [theme.breakpoints.down('sm')]: {
+                maxHeight: '200px',
               },
             },
           },
@@ -131,26 +141,25 @@ const UserMenuHeader: React.FC = () => {
           },
         }}
       >
-        {/* User info section at the top of the menu for all devices */}
         {userData ? (
-          <>
-            <Box sx={{ px: 2, py: 1, textAlign: "center" }}>
+          <div>
+            <Box sx={{ px: 2, py: 1, textAlign: 'center' }}>
               <Typography variant="subtitle2" fontWeight="bold">
-                {userData.username || "User"}
+                {userData.username || 'User'}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Client ID: {userData?.clientId || "Unknown"}
+                Client ID: {userData?.clientId || 'Unknown'}
               </Typography>
             </Box>
             <Divider sx={{ my: 0 }} />
-          </>
+          </div>
         ) : (
-          <>
-            <Box sx={{ px: 2, py: 1, textAlign: "center", display: "flex", justifyContent: "center" }}>
+          <div>
+            <Box sx={{ px: 2, py: 1, textAlign: 'center', display: 'flex', justifyContent: 'center' }}>
               <LoadingSpinner size={20} />
             </Box>
             <Divider sx={{ my: 0.5 }} />
-          </>
+          </div>
         )}
 
         <Box
@@ -161,12 +170,12 @@ const UserMenuHeader: React.FC = () => {
         >
           {menuItems.map((item, index) => (
             <MenuItem key={index} onClick={() => handleMenuItemClick(item)}>
-              <ListItemIcon sx={{ minWidth: "35px" }}>{item.icon}</ListItemIcon>
+              <ListItemIcon sx={{ minWidth: '35px' }}>{item.icon}</ListItemIcon>
               <ListItemText
                 primary={item.text}
                 slotProps={{
                   primary: {
-                    fontSize: "14px",
+                    fontSize: '14px',
                   },
                 }}
               />
