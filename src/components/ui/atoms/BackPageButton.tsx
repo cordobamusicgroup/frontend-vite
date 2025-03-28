@@ -23,6 +23,7 @@ function BackPageButton({ colorText = 'white', colorBackground = 'primary', ...p
       onClick={handleBack}
       startIcon={<ArrowBackIcon />}
       sx={{
+        fontWeight: 600,
         backgroundColor: colorBackground === 'primary' ? theme.palette.primary.main : colorBackground, // Fondo personalizado o el color primario
         color: colorText === 'primary' ? theme.palette.primary.contrastText : colorText, // Texto personalizado o el color del tema
         '&:hover': {
