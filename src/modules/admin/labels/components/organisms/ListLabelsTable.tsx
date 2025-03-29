@@ -10,6 +10,7 @@ import SearchBoxTable from '@/components/ui/organisms/SearchBoxTable';
 import { ColDef } from 'ag-grid-community';
 import { useClients } from '@/modules/admin/clients/hooks/useClientsAdmin';
 import TableSkeletonLoader from '@/components/ui/atoms/TableSkeletonLoader';
+import { useLabelsAdmin } from '../../hooks/useLabelsAdmin';
 
 interface Props {
   setNotification: (notification: { message: string; type: 'success' | 'error' }) => void;
@@ -24,7 +25,7 @@ interface Props {
 const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
   const navigate = useNavigate();
   const { clients, isFetching: clientLoading, fetchError: clientError } = useClients();
-  //TODO - Create Labels Hook
+  const { labels, isFetching, fetchError, deleteLabels } = useLabelsAdmin();
   const gridRef = useRef<AgGridReact>(null);
 
   const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter(gridRef);
@@ -34,19 +35,16 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
   };
 
   //TODO - Uncomment as soon labels hook is ready
-  // const handleDelete = (clientId: number): void => {
-  //   deleteLabels.mutate([clientId], {
-  //     onSuccess: () => {
-  //       setNotification({ message: 'Labels deleted successfully', type: 'success' });
-  //     },
-  //     onError: (error) => {
-  //       const message = axios.isAxiosError(error)
-  //         ? error.response?.data?.message || 'Error deleting labels'
-  //         : 'Unknown error occurred';
-  //       setNotification({ message: message, type: 'error' });
-  //     },
-  //   });
-  // };
+  const handleDelete = (clientId: number): void => {
+    try {
+      deleteLabels.mutateAsync([clientId]);
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+      ? error.response?.data?.message || 'Error deleting labels'
+      : 'Unknown error occurred';
+    setNotification({ message: message, type: 'error' });
+    }
+  };
   const columns: ColDef[] = [
     {
       field: 'id',
@@ -108,7 +106,7 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
     },
   ];
 
-  const rowData = labelData.map((apiData: any) => ({
+  const rowData = labels.map((apiData: any) => ({
     id: apiData.id,
     clientId: apiData.clientId,
     labelName: apiData.name,

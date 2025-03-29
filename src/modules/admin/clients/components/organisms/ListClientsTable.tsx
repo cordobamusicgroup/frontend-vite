@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Box } from '@mui/material';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { useNavigate } from 'react-router';
 import { AgGridReact } from 'ag-grid-react';
 import webRoutes from '@/lib/web.routes';
@@ -12,6 +12,7 @@ import DMBStatusChip from '../atoms/DMBStatusChip';
 import ActionButtonsClient from '../atoms/ActionsButtonsClient';
 import { ColDef } from 'ag-grid-community';
 import { useClients } from '../../hooks/useClientsAdmin';
+import { set } from 'react-hook-form';
 interface ClientTableProps {
   setNotification: (notification: { message: string; type: 'success' | 'error' }) => void;
 }
@@ -35,18 +36,20 @@ const ListClientsTable: React.FC<ClientTableProps> = ({ setNotification }) => {
     navigate(`${webRoutes.admin.clients.edit}/${client.id}`);
   };
 
-  const handleDelete = (clientId: number): void => {
-    deleteClients.mutate([clientId], {
-      onSuccess: () => {
-        setNotification({ message: 'Client deleted successfully', type: 'success' });
-      },
-      onError: (error) => {
-        const message = axios.isAxiosError(error)
-          ? error.response?.data?.message || 'Error deleting clients'
-          : 'Unknown error occurred';
-        setNotification({ message: message, type: 'error' });
-      },
-    });
+  const handleDelete = async (clientId: number): Promise<void> => {
+    try {
+      await deleteClients.mutateAsync([clientId]);
+      setNotification({ message: 'Client deleted successfully', type: 'success' });
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        setNotification({
+          message: error.response?.data.message || 'Error deleting client',
+          type: 'error',
+        });
+      } else {
+        setNotification({ message: 'An unknown error occurred', type: 'error' });
+      }
+    }
   };
 
   const columns: ColDef[] = [
