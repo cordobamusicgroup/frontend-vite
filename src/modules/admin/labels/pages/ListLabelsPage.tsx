@@ -12,6 +12,8 @@ import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { Helmet } from 'react-helmet';
+import ListClientsTable from '../../clients/components/organisms/ListClientsTable';
+import ListLabelsTable from '../components/organisms/ListLabelsTable';
 
 const ListLabelsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -50,7 +52,7 @@ const ListLabelsPage: React.FC = () => {
         </Box>
 
         <Box sx={{ display: 'flex', height: '600px', width: '100%' }}>
-          {/* <ListClientsTable setNotification={setNotification} /> */}
+          <ListLabelsTable setNotification={setNotification} />
         </Box>
       </Box>
     </>

@@ -11,6 +11,9 @@ import { ColDef } from 'ag-grid-community';
 import { useClients } from '@/modules/admin/clients/hooks/useClientsAdmin';
 import TableSkeletonLoader from '@/components/ui/atoms/TableSkeletonLoader';
 import { useLabelsAdmin } from '../../hooks/useLabelsAdmin';
+import ActionButtonsLabels from '../atoms/ActionButtonsLabels';
+import LabelStatusChip from '../atoms/LabelStatusChip';
+import LabelSpecialStoreStatus from '../atoms/LabelSpecialStoreStatus';
 
 interface Props {
   setNotification: (notification: { message: string; type: 'success' | 'error' }) => void;
@@ -34,8 +37,7 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
     navigate(`${webRoutes.admin.labels.edit}/${label.id}`);
   };
 
-  //TODO - Uncomment as soon labels hook is ready
-  const handleDelete = (clientId: number): void => {
+   const handleDelete = (clientId: number): void => {
     try {
       deleteLabels.mutateAsync([clientId]);
     } catch (error) {
