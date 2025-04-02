@@ -1,5 +1,4 @@
 import { type RouteConfig, index, layout, prefix, route } from '@react-router/dev/routes';
-import { redirect } from 'react-router';
 
 export default [
   index('modules/portal/RedirectToBackoffice.tsx'),
