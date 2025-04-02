@@ -1,6 +1,8 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
 import { AuthProvider } from './modules/auth/context/AuthProvider';
 import { ServerStatusProvider } from './context/ServerStatusContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Import Toastify CSS
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -13,6 +15,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover theme="colored" />
         <ScrollRestoration />
         <Scripts />
       </body>

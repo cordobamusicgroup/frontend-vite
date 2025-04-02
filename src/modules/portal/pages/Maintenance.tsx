@@ -1,24 +1,80 @@
 import React from 'react';
-import { Box, Typography, Container, Button } from '@mui/material';
-import { useNavigate } from 'react-router';
+import { Box, Typography, Button, Container, Avatar } from '@mui/material';
+import StorageIcon from '@mui/icons-material/Storage';
+import BuildIcon from '@mui/icons-material/Build';
 
-const Maintenance: React.FC = () => {
-  const navigate = useNavigate();
+interface MaintenanceProps {
+  onRetry: () => void;
+}
 
+const Maintenance: React.FC<MaintenanceProps> = ({ onRetry }) => {
   return (
-    <Container maxWidth="sm" sx={{ textAlign: 'center', mt: 10 }}>
-      <Box>
-        <Typography variant="h4" gutterBottom>
-          Page Unavailable
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: 'background.default',
+        py: 4,
+      }}
+    >
+      <Container
+        maxWidth="md"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          p: 4,
+        }}
+      >
+        <Box sx={{ position: 'relative', mb: 4 }}>
+          <StorageIcon sx={{ fontSize: 100, color: 'primary.main' }} />
+          <Avatar
+            sx={{
+              bgcolor: 'primary.main',
+              position: 'absolute',
+              right: -20,
+              top: -15,
+              width: 56,
+              height: 56,
+              boxShadow: 2,
+            }}
+          >
+            <BuildIcon sx={{ color: 'white', fontSize: 32 }} />
+          </Avatar>
+        </Box>
+
+        <Typography variant="h3" component="h1" gutterBottom fontWeight="bold" sx={{ mb: 2 }}>
+          System Maintenance
         </Typography>
-        <Typography variant="body1" gutterBottom>
-          Sorry, the website is currently unavailable but will be back soon.
+
+        <Typography variant="h6" color="text.secondary" sx={{ mb: 4, maxWidth: '600px' }}>
+          We're currently having trouble connecting to our servers. Our team is working to resolve the issue.
         </Typography>
-        <Button variant="contained" color="primary" sx={{ mt: 3 }} onClick={() => navigate(0)}>
-          Reload
+
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 5, maxWidth: '500px' }}>
+          Please try again in a few moments or contact support if the problem persists.
+        </Typography>
+
+        <Button
+          variant="contained"
+          onClick={onRetry}
+          color="primary"
+          size="large"
+          aria-label="Retry connection"
+          sx={{
+            borderRadius: 2,
+            px: 4,
+            py: 1.5,
+            fontSize: '1.1rem',
+          }}
+        >
+          Retry Connection
         </Button>
-      </Box>
-    </Container>
+      </Container>
+    </Box>
   );
 };
 
