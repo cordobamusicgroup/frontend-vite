@@ -1,9 +1,7 @@
-'use client';
-
 import React, { createContext, useContext } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useApiRequest } from '@/hooks/useApiRequest';
-import Maintenance from '@/modules/portal/pages/ServerDown';
+import ServerDown from '@/modules/portal/pages/ServerDown';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
 
 interface ServerStatusContextProps {
@@ -42,7 +40,7 @@ export const ServerStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   if (isLoading) return <CenteredLoader open={true} />;
 
-  if (isServerDown) return <Maintenance />;
+  if (isServerDown) return <ServerDown />;
 
   return <ServerStatusContext.Provider value={{ isServerDown }}>{children}</ServerStatusContext.Provider>;
 };

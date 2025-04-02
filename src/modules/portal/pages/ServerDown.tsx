@@ -3,7 +3,7 @@ import { Box, Typography, Button, Container, Avatar } from '@mui/material';
 import StorageIcon from '@mui/icons-material/Storage';
 import BuildIcon from '@mui/icons-material/Build';
 
-const Maintenance: React.FC = () => {
+const ServerDown: React.FC = () => {
   const handleReload = () => {
     window.location.reload();
   };
@@ -78,4 +78,4 @@ const Maintenance: React.FC = () => {
   );
 };
 
-export default Maintenance;
+export default ServerDown;
