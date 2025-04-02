@@ -23,7 +23,7 @@ export const ServerStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setIsServerDown(false); // Server is operational
       } catch (error: any) {
         if (error.response?.status === 502) {
-          setIsServerDown(true); // Server is down
+          setIsServerDown(true); // Explicitly handle 502 errors
         }
       }
     };
