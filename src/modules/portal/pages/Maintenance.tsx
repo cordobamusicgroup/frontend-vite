@@ -3,11 +3,11 @@ import { Box, Typography, Button, Container, Avatar } from '@mui/material';
 import StorageIcon from '@mui/icons-material/Storage';
 import BuildIcon from '@mui/icons-material/Build';
 
-interface MaintenanceProps {
-  onRetry: () => void;
-}
+const Maintenance: React.FC = () => {
+  const handleReload = () => {
+    window.location.reload();
+  };
 
-const Maintenance: React.FC<MaintenanceProps> = ({ onRetry }) => {
   return (
     <Box
       sx={{
@@ -60,10 +60,10 @@ const Maintenance: React.FC<MaintenanceProps> = ({ onRetry }) => {
 
         <Button
           variant="contained"
-          onClick={onRetry}
+          onClick={handleReload}
           color="primary"
           size="large"
-          aria-label="Retry connection"
+          aria-label="Reload page"
           sx={{
             borderRadius: 2,
             px: 4,
@@ -71,7 +71,7 @@ const Maintenance: React.FC<MaintenanceProps> = ({ onRetry }) => {
             fontSize: '1.1rem',
           }}
         >
-          Retry Connection
+          Reload Page
         </Button>
       </Container>
     </Box>
