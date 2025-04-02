@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
 import { apiRoutes } from '@/lib/api.routes';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { formatApiError, FormattedApiError } from '@/lib/formatApiError.util';
@@ -36,6 +35,12 @@ export const useClients = (clientId?: string) => {
       throw formatApiError(error);
     }
   };
+
+  const query = useQuery({
+    queryKey,
+    queryFn: fetchClients,
+    retry: false,
+  });
 
   const createClient = useMutation({
     mutationFn: async (data: any) => {
@@ -84,10 +89,27 @@ export const useClients = (clientId?: string) => {
     },
   });
 
-  const query = useQuery({
-    queryKey,
-    queryFn: fetchClients,
-    retry: false,
+  const deleteClients = useMutation({
+    mutationFn: async (clientsIds: number[]) => {
+      try {
+        return await apiRequest({
+          url: apiRoutes.clients.root,
+          method: 'delete',
+          requireAuth: true,
+          data: { ids: clientsIds },
+        });
+      } catch (error) {
+        throw formatApiError(error);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['clients'],
+      });
+    },
+    onError: (error: FormattedApiError) => {
+      console.log('Error deleting client:', error);
+    },
   });
 
   return {
@@ -100,5 +122,8 @@ export const useClients = (clientId?: string) => {
     updateClient,
     updateClientLoading: updateClient.isPending,
     updateClientError: updateClient.error,
+    deleteClients,
+    deleteClientsLoading: deleteClients.isPending,
+    deleteClientsError: deleteClients.error,
   };
 };

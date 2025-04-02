@@ -1,6 +1,6 @@
 import { usePageDataStore } from "@/stores";
 import { isMobile } from "@/theme";
-import { Skeleton, Stack, styled } from "@mui/material";
+import { styled } from "@mui/material";
 import { Outlet, useNavigation } from "react-router";
 import HeaderLayout from "./HeaderLayout";
 import VerticalMenu from "../ui/molecules/VerticalMenu";

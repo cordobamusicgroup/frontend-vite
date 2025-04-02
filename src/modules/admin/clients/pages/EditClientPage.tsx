@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Box, List, ListItem, ListItemText, Paper, Typography, useTheme } from '@mui/material';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { useParams } from 'react-router';
@@ -7,7 +7,6 @@ import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { Helmet } from 'react-helmet';
 import { useClients } from '../hooks/useClientsAdmin';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
@@ -19,6 +18,7 @@ import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ClientFormLayout from '../components/organisms/ClientFormLayout';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import dayjs from 'dayjs';
+import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 
 type IFormData = z.infer<typeof ClientValidationSchema>;
 
@@ -38,10 +38,8 @@ const UpdateClientPage: React.FC = () => {
   const { notification, setNotification, clearNotification } = useNotificationStore();
   const [errorOpen, setErrorOpen] = useState(false);
 
-  // Estado para guardar los datos originales para comparación
-  const [originalData, setOriginalData] = useState<any>(null);
-
-  useNotificationCleanup();
+  // Reintroduce originalData state
+  const [originalData, setOriginalData] = useState<IFormData | null>(null);
 
   const methods = useForm<IFormData>({
     mode: 'onSubmit',
@@ -54,6 +52,55 @@ const UpdateClientPage: React.FC = () => {
     formState: { errors },
     reset,
   } = methods;
+
+  const apiData = useMemo(() => {
+    if (!client) return null;
+
+    return {
+      client: {
+        clientId: client.id,
+        clientName: client.clientName,
+        firstName: client.firstName,
+        lastName: client.lastName,
+        type: client.type,
+        taxIdType: client.taxIdType,
+        taxId: client.taxId,
+        vatRegistered: client.vatRegistered,
+        vatId: client.vatId,
+      },
+      address: {
+        street: client.address?.street,
+        city: client.address?.city,
+        state: client.address?.state,
+        countryId: client.address?.countryId,
+        zip: client.address?.zip,
+      },
+      contract: {
+        uuid: client.contract.uuid,
+        type: client.contract.type,
+        status: client.contract.status,
+        startDate: dayjs(client.contract.startDate),
+        endDate: dayjs(client.contract.endDate),
+        signedBy: client.contract.signedBy,
+        signedAt: dayjs(client.contract.signedAt),
+        ppd: parseFloat(client.contract.ppd),
+        docUrl: client.contract.docUrl,
+      },
+      dmb: {
+        accessType: client.dmb?.accessType,
+        status: client.dmb?.status,
+        subclientName: client.dmb?.subclientName,
+        username: client.dmb?.username,
+      },
+    };
+  }, [client]);
+
+  useEffect(() => {
+    if (apiData) {
+      reset(apiData); // Reset form data unconditionally when apiData changes
+      setOriginalData(apiData); // Store the original data for comparison
+    }
+  }, [apiData, reset]);
 
   if (clientFetchError) {
     return (
@@ -70,8 +117,7 @@ const UpdateClientPage: React.FC = () => {
           sx={{
             p: 5,
             borderRadius: 3,
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'light' ? 'rgba(244, 67, 54, 0.05)' : 'rgba(244, 67, 54, 0.1)',
+            backgroundColor: (theme) => (theme.palette.mode === 'light' ? 'rgba(244, 67, 54, 0.05)' : 'rgba(244, 67, 54, 0.1)'),
           }}
         >
           <ErrorOutlineIcon sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
@@ -88,55 +134,13 @@ const UpdateClientPage: React.FC = () => {
     );
   }
 
-  useEffect(() => {
-    if (client) {
-      const apiData: IFormData = {
-        client: {
-          clientId: client.id,
-          clientName: client.clientName,
-          firstName: client.firstName,
-          lastName: client.lastName,
-          type: client.type,
-          taxIdType: client.taxIdType,
-          taxId: client.taxId,
-          vatRegistered: client.vatRegistered,
-          vatId: client.vatId,
-        },
-        address: {
-          street: client.address?.street,
-          city: client.address?.city,
-          state: client.address?.state,
-          countryId: client.address?.countryId,
-          zip: client.address?.zip,
-        },
-        contract: {
-          uuid: client.contract.uuid,
-          type: client.contract.type,
-          status: client.contract.status,
-          startDate: dayjs(client.contract.startDate),
-          endDate: dayjs(client.contract.endDate),
-          signedBy: client.contract.signedBy,
-          signedAt: dayjs(client.contract.signedAt),
-          ppd: parseFloat(client.contract.ppd),
-          docUrl: client.contract.docUrl,
-        },
-        dmb: {
-          accessType: client.dmb?.accessType,
-          status: client.dmb?.status,
-          subclientName: client.dmb?.subclientName,
-          username: client.dmb?.username,
-        },
-      };
-
-      // Establecer los valores en el formulario
-      reset(apiData);
-
-      // Guardar los datos originales para referencia
-      setOriginalData(apiData);
-    }
-  }, [client, reset]);
+  if (!client) {
+    return <SkeletonLoader />;
+  }
 
   const onSubmit: SubmitHandler<IFormData> = async (formData) => {
+    if (!originalData) return; // Ensure originalData is available
+
     const updatedFields = getUpdatedFields(formData, originalData);
 
     const mappedData = {
@@ -229,10 +233,7 @@ const UpdateClientPage: React.FC = () => {
         <title>{`Update Client: ${client?.clientName ?? 'Unknown'} - Córdoba Music Group`}</title>
       </Helmet>
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
-        <CustomPageHeader
-          background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'}
-          color={theme.palette.primary.contrastText}
-        >
+        <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Update Client: ID {client?.id}</Typography>
           <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
           <BasicButton
