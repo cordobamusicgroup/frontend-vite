@@ -47,7 +47,7 @@ const Maintenance: React.FC = () => {
         </Box>
 
         <Typography variant="h3" component="h1" gutterBottom fontWeight="bold" sx={{ mb: 2 }}>
-          System Maintenance
+          Backend Server Unavailable
         </Typography>
 
         <Typography variant="h6" color="text.secondary" sx={{ mb: 4, maxWidth: '600px' }}>

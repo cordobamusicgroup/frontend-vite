@@ -3,7 +3,7 @@
 import React, { createContext, useContext } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useApiRequest } from '@/hooks/useApiRequest';
-import Maintenance from '@/modules/portal/pages/Maintenance';
+import Maintenance from '@/modules/portal/pages/ServerDown';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
 
 interface ServerStatusContextProps {
