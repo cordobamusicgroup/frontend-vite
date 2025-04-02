@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { Box } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
@@ -27,8 +27,8 @@ interface Props {
 
 const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
   const navigate = useNavigate();
-  const { clients, isFetching: clientLoading, fetchError: clientError } = useClients();
-  const { labels, isFetching, fetchError, deleteLabels } = useLabelsAdmin();
+  const { clients, isFetching: clientLoading } = useClients();
+  const { labels, isFetching, deleteLabels } = useLabelsAdmin();
   const gridRef = useRef<AgGridReact>(null);
 
   const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter(gridRef);
@@ -37,14 +37,15 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
     navigate(`${webRoutes.admin.labels.edit}/${label.id}`);
   };
 
-   const handleDelete = (clientId: number): void => {
+  const handleDelete = async (labelId: number): Promise<void> => {
     try {
-      deleteLabels.mutateAsync([clientId]);
+      await deleteLabels.mutateAsync([labelId]);
+      setNotification({ message: `Label with ID ${labelId} deleted`, type: 'success' });
     } catch (error) {
       const message = axios.isAxiosError(error)
-      ? error.response?.data?.message || 'Error deleting labels'
-      : 'Unknown error occurred';
-    setNotification({ message: message, type: 'error' });
+        ? error.response?.data?.message || 'Error deleting labels'
+        : 'Unknown error occurred';
+      setNotification({ message: message, type: 'error' });
     }
   };
   const columns: ColDef[] = [
@@ -108,7 +109,7 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
     },
   ];
 
-  const rowData = labels.map((apiData: any) => ({
+  const rowData = labels?.map((apiData: any) => ({
     id: apiData.id,
     clientId: apiData.clientId,
     labelName: apiData.name,

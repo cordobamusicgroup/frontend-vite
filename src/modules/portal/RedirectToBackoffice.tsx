@@ -1,5 +1,4 @@
 import FullScreenLoader from '@/components/ui/molecules/FullScreenLoader';
-import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 import { Navigate, useNavigation } from 'react-router';
 
 export default function RedirectToBackoffice() {

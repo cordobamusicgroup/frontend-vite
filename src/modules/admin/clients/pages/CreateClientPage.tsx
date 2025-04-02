@@ -1,15 +1,10 @@
 import { useState } from 'react';
-import { Box, CircularProgress, List, ListItem, ListItemText, TextField, Typography, useTheme } from '@mui/material';
-import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import theme from '@/theme';
-import { useNavigate } from 'react-router';
-import webRoutes from '@/lib/web.routes';
+import { Box, List, ListItem, ListItemText, Typography, useTheme } from '@mui/material';
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
-import ListClientsTable from '../components/organisms/ListClientsTable';
-import { useErrorStore, useNotificationStore } from '@/stores';
+import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { Helmet } from 'react-helmet';
@@ -18,19 +13,16 @@ import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ClientValidationSchema } from '../schemas/ClientValidationSchema';
-import axios from 'axios';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ClientFormLayout from '../components/organisms/ClientFormLayout';
-import { access } from 'fs';
+import { FormattedApiError } from '@/lib/formatApiError.util';
 
 type ClientFormData = z.infer<typeof ClientValidationSchema>;
 
 const CreateClientPage: React.FC = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
-  const { createClient } = useClients();
-  const mutationLoading = createClient.isPending;
+  const { createClient, createClientLoading } = useClients();
   const { notification, setNotification, clearNotification } = useNotificationStore();
   const [errorOpen, setErrorOpen] = useState(false);
 
@@ -66,7 +58,7 @@ const CreateClientPage: React.FC = () => {
         zip: address.zip,
       },
       contract: {
-        contractType: contract.type,
+        type: contract.type,
         status: contract.status,
         signed: contract.signed,
         signedBy: contract.signedBy,
@@ -85,15 +77,15 @@ const CreateClientPage: React.FC = () => {
     };
     createClient.mutate(payload, {
       onSuccess: () => {
-        setNotification({ message: 'Client created successfully', type: 'success' });
-        reset();
-      },
-      onError: (error) => {
         scrollToTop();
-        const message = axios.isAxiosError(error)
-          ? error.response?.data?.message || 'Error creating client'
-          : 'Unknown error occurred';
-        setNotification({ message: message, type: 'error' });
+        setNotification({ message: 'Client created successfully', type: 'success' });
+      },
+      onError: (error: FormattedApiError) => {
+        scrollToTop();
+        setNotification({
+          message: error.messages,
+          type: 'error',
+        });
       },
     });
     console.log('Create Client Form Submitted:', payload);
@@ -101,9 +93,10 @@ const CreateClientPage: React.FC = () => {
 
   const handleClientSubmit = handleSubmit(
     (data) => {
+      console.log('Form data:', data); // Muestra los datos del formulario en la consola
       onSubmit(data); // Llama a la función onSubmit si no hay errores
     },
-    (errors) => {
+    (errors, data) => {
       if (Object.keys(errors).length > 0) {
         setErrorOpen(true); // Abre el popup si hay errores
       }
@@ -152,9 +145,9 @@ const CreateClientPage: React.FC = () => {
             onClick={handleClientSubmit}
             color="primary"
             variant="contained"
-            disabled={mutationLoading}
+            disabled={createClientLoading}
             startIcon={<AddOutlinedIcon />}
-            loading={mutationLoading}
+            loading={createClientLoading}
           >
             Create Client
           </BasicButton>

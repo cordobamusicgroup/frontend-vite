@@ -1,8 +1,5 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration, useNavigation } from "react-router";
-import { AuthProvider } from "./modules/auth/context/AuthProvider";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-const queryClient = new QueryClient();
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
+import { AuthProvider } from './modules/auth/context/AuthProvider';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -24,10 +21,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function Root() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Outlet />
-      </AuthProvider>
-    </QueryClientProvider>
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
   );
 }

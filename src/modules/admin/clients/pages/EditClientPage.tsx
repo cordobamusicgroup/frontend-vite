@@ -1,15 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Box, CircularProgress, List, ListItem, ListItemText, TextField, Typography, useTheme } from '@mui/material';
-import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import theme from '@/theme';
-import { useNavigate, useParams } from 'react-router';
-import webRoutes from '@/lib/web.routes';
+import { Box, List, ListItem, ListItemText, Paper, Typography, useTheme } from '@mui/material';
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+import { useParams } from 'react-router';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
-import ListClientsTable from '../components/organisms/ListClientsTable';
-import { useErrorStore, useNotificationStore } from '@/stores';
+import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { Helmet } from 'react-helmet';
@@ -18,11 +14,10 @@ import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ClientValidationSchema } from '../schemas/ClientValidationSchema';
-import axios from 'axios';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ClientFormLayout from '../components/organisms/ClientFormLayout';
-import { access } from 'fs';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import dayjs from 'dayjs';
 
 type IFormData = z.infer<typeof ClientValidationSchema>;
@@ -39,8 +34,7 @@ const getUpdatedFields = (formData: any, originalData: any) => {
 const UpdateClientPage: React.FC = () => {
   const theme = useTheme();
   const { clientId } = useParams();
-  const navigate = useNavigate();
-  const { client, updateClient, isFetching, isMutationPending, fetchError } = useClients(clientId);
+  const { clientsData: client, updateClient, updateClientLoading, clientFetchError } = useClients(clientId);
   const { notification, setNotification, clearNotification } = useNotificationStore();
   const [errorOpen, setErrorOpen] = useState(false);
 
@@ -61,12 +55,38 @@ const UpdateClientPage: React.FC = () => {
     reset,
   } = methods;
 
-  // Nuevo efecto para manejar errores en la carga inicial
-  useEffect(() => {
-    if (fetchError) {
-      setNotification({ message: fetchError || 'Error loading client data', type: 'error' });
-    }
-  }, [fetchError, setNotification]);
+  if (clientFetchError) {
+    return (
+      <Box
+        sx={{
+          width: '100%',
+          mx: 'auto',
+          mt: 1,
+          textAlign: 'center',
+        }}
+      >
+        <Paper
+          elevation={0}
+          sx={{
+            p: 5,
+            borderRadius: 3,
+            backgroundColor: (theme) =>
+              theme.palette.mode === 'light' ? 'rgba(244, 67, 54, 0.05)' : 'rgba(244, 67, 54, 0.1)',
+          }}
+        >
+          <ErrorOutlineIcon sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
+
+          <Typography variant="h5" color="error.main" gutterBottom>
+            Oops! Something went wrong
+          </Typography>
+
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            {clientFetchError.message || 'Failed to load client data.'}
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
 
   useEffect(() => {
     if (client) {
@@ -117,43 +137,52 @@ const UpdateClientPage: React.FC = () => {
   }, [client, reset]);
 
   const onSubmit: SubmitHandler<IFormData> = async (formData) => {
+    const updatedFields = getUpdatedFields(formData, originalData);
+
     const mappedData = {
-      clientName: formData.client.clientName,
-      firstName: formData.client.firstName,
-      lastName: formData.client.lastName,
-      type: formData.client.type,
-      taxIdType: formData.client.taxIdType,
-      taxId: formData.client.taxId,
-      vatRegistered: formData.client.vatRegistered,
-      vatId: formData.client.vatId,
+      clientName: updatedFields.client.clientName,
+      firstName: updatedFields.client.firstName,
+      lastName: updatedFields.client.lastName,
+      type: updatedFields.client.type,
+      taxIdType: updatedFields.client.taxIdType,
+      taxId: updatedFields.client.taxId,
+      vatRegistered: updatedFields.client.vatRegistered,
+      vatId: updatedFields.client.vatId,
       address: {
-        street: formData.address.street,
-        city: formData.address.city,
-        state: formData.address.state,
-        countryId: formData.address.countryId,
-        zip: formData.address.zip,
+        street: updatedFields.address.street,
+        city: updatedFields.address.city,
+        state: updatedFields.address.state,
+        countryId: updatedFields.address.countryId,
+        zip: updatedFields.address.zip,
       },
       contract: {
-        type: formData.contract.type,
-        status: formData.contract.status,
-        startDate: formData.contract.startDate,
-        endDate: formData.contract.endDate,
-        signed: formData.contract.signed,
-        signedBy: formData.contract.signedBy,
-        signedAt: formData.contract.signedAt,
-        ppd: formData.contract.ppd,
-        docUrl: formData.contract.docUrl,
+        type: updatedFields.contract.type,
+        status: updatedFields.contract.status,
+        startDate: updatedFields.contract.startDate,
+        endDate: updatedFields.contract.endDate,
+        signed: updatedFields.contract.signed,
+        signedBy: updatedFields.contract.signedBy,
+        signedAt: updatedFields.contract.signedAt,
+        ppd: updatedFields.contract.ppd,
+        docUrl: updatedFields.contract.docUrl,
       },
       dmb: {
-        accessType: formData.dmb.accessType,
-        status: formData.dmb.status,
-        subclientName: formData.dmb.subclientName,
-        username: formData.dmb.username,
+        accessType: updatedFields.dmb.accessType,
+        status: updatedFields.dmb.status,
+        subclientName: updatedFields.dmb.subclientName,
+        username: updatedFields.dmb.username,
       },
     };
     updateClient.mutate(mappedData, {
       onSuccess: () => {
         setNotification({ message: 'Client updated successfully', type: 'success' });
+        scrollToTop();
+      },
+      onError: (error: any) => {
+        setNotification({
+          message: error.messages,
+          type: 'error',
+        });
         scrollToTop();
       },
     });
@@ -213,7 +242,7 @@ const UpdateClientPage: React.FC = () => {
             color="primary"
             variant="contained"
             startIcon={<AddOutlinedIcon />}
-            loading={isMutationPending}
+            loading={updateClientLoading}
           >
             Update Client
           </BasicButton>

@@ -1,9 +1,14 @@
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+
+interface NotificationPayload {
+  message: string | string[]; // puede ser string o array
+  type: 'success' | 'error';
+}
 
 interface NotificationState {
-  notification: { message: string; type: "success" | "error" } | null;
-  setNotification: (notification: { message: string; type: "success" | "error" } | null) => void;
+  notification: NotificationPayload | null;
+  setNotification: (notification: NotificationPayload | null) => void;
   clearNotification: () => void;
 }
 
@@ -14,6 +19,6 @@ export const useNotificationStore = create<NotificationState>()(
       setNotification: (notification) => set({ notification }),
       clearNotification: () => set({ notification: null }),
     }),
-    { name: "NotificationStore" }
-  )
+    { name: 'NotificationStore' },
+  ),
 );

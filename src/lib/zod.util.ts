@@ -1,5 +1,5 @@
-import { z } from "zod";
-import dayjs from "dayjs";
+import { z } from 'zod';
+import dayjs from 'dayjs';
 
 /**
  * Validates if a value is a valid Dayjs object.
@@ -16,7 +16,7 @@ export const isValidDayjs = (value: any) => {
  * @returns {boolean} - Returns true if the value is not null, undefined, or an empty string.
  */
 export const isNotEmpty = (value: any) => {
-  return value !== null && value !== undefined && value !== "";
+  return value !== null && value !== undefined && value !== '';
 };
 
 /**
@@ -25,7 +25,7 @@ export const isNotEmpty = (value: any) => {
  * @returns {boolean} - Returns true if the date is in the future, otherwise false.
  */
 export const isFutureDate = (value: any) => {
-  return value && value.isAfter(dayjs().subtract(1, "day"));
+  return value && value.isAfter(dayjs().subtract(1, 'day'));
 };
 
 /**
@@ -34,7 +34,7 @@ export const isFutureDate = (value: any) => {
  * @returns {Dayjs|null} - Returns a valid Dayjs object if possible, otherwise null.
  */
 export const transformDate = (value: any) => {
-  if (!value || value === "") return null;
+  if (!value || value === '') return null;
   const parsedDate = dayjs(value);
   return parsedDate.isValid() ? parsedDate : null;
 };
@@ -50,7 +50,7 @@ export const transformDate = (value: any) => {
 export const futureDateSchema = (message: string) => {
   return z.preprocess(
     transformDate,
-    z.any().refine((value) => !value || isFutureDate(value), { message })
+    z.any().refine((value) => !value || isFutureDate(value), { message }),
   );
 };
 

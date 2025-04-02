@@ -1,6 +1,4 @@
-import { useState } from 'react';
-import { Box, TextField, Typography } from '@mui/material';
-import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+import { Box, Typography } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import theme from '@/theme';
 import { useNavigate } from 'react-router';
@@ -12,13 +10,12 @@ import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { Helmet } from 'react-helmet';
-import ListClientsTable from '../../clients/components/organisms/ListClientsTable';
 import ListLabelsTable from '../components/organisms/ListLabelsTable';
 
 const ListLabelsPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const { notification, setNotification, clearNotification } = useNotificationStore();
+  const { notification, setNotification } = useNotificationStore();
 
   const handleCreateClient = (): void => {
     navigate(webRoutes.admin.clients.create);

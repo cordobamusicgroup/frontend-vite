@@ -1,35 +1,33 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { MenuItem, InputAdornment, Box, FormControlLabel, Switch } from "@mui/material";
-import { Controller, useFormContext } from "react-hook-form";
-import { contractStatusOptions, CreateClientContractType } from "@/constants/backend.enums";
-import TextFieldForm from "@/components/ui/atoms/TextFieldForm";
-import DatePickerForm from "@/components/ui/atoms/DatePickerForm";
+import React, { useEffect, useMemo } from 'react';
+import { MenuItem, InputAdornment, Box, FormControlLabel, Switch } from '@mui/material';
+import { Controller, useFormContext, useWatch } from 'react-hook-form';
+import { contractStatusOptions, CreateClientContractType } from '@/constants/backend.enums';
+import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
+import DatePickerForm from '@/components/ui/atoms/DatePickerForm';
 
 const ContractDetailsForm: React.FC = () => {
-  const { setValue, watch, getValues, control } = useFormContext();
-  const [isDraft, setIsDraft] = useState(false);
+  const { setValue, getValues, control } = useFormContext();
 
-  const updateContractSigned = useCallback(
-    (status: string, contractSigned: boolean) => {
-      const shouldBeDraft = status === "DRAFT";
-      if (shouldBeDraft && contractSigned !== false) {
-        setValue("contract.contractSigned", false);
-        setIsDraft(true);
-      } else if (!shouldBeDraft && contractSigned !== true) {
-        setValue("contract.contractSigned", true);
-        setIsDraft(false);
-      }
-    },
-    [setValue]
-  );
+  // Observamos los campos necesarios
+  const status: string = useWatch({ name: 'contract.status' });
+  const signed: boolean = useWatch({ name: 'contract.signed' });
+
+  // Determinar si es DRAFT
+  const isDraft = !status || status === 'DRAFT';
 
   useEffect(() => {
-    const subscription = watch((value) => {
-      const { contract } = value;
-      updateContractSigned(contract?.status, contract?.contractSigned);
-    });
-    return () => subscription.unsubscribe();
-  }, [watch, updateContractSigned]);
+    const shouldBeSigned = status && status !== 'DRAFT';
+
+    // Si no hay status aún, lo tomamos como DRAFT (signed = false)
+    const desiredSigned = shouldBeSigned ? true : false;
+
+    if (signed !== desiredSigned) {
+      setValue('contract.signed', desiredSigned, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [status, signed, setValue]);
 
   return (
     <Box>
@@ -64,11 +62,20 @@ const ContractDetailsForm: React.FC = () => {
         )}
       />
       <TextFieldForm name="contract.docUrl" label="Document URL" />
-      <Box sx={{ display: "flex", gap: 5 }}>
+      <Box sx={{ display: 'flex', gap: 5 }}>
         <DatePickerForm name="contract.startDate" label="Start Date" />
-        <DatePickerForm name="contract.endDate" label="End Date" minDate={getValues("contract.startDate")} />
+        <DatePickerForm name="contract.endDate" label="End Date" minDate={getValues('contract.startDate')} />
       </Box>
-      <Controller name="contract.contractSigned" control={control} render={({ field }) => <FormControlLabel control={<Switch checked={field.value} name="contractSigned" color="primary" disabled />} label="Contract Signed" />} />
+      <Controller
+        name="contract.signed"
+        control={control}
+        render={({ field }) => (
+          <FormControlLabel
+            control={<Switch checked={field.value} name="contractSigned" color="primary" disabled />}
+            label="Contract Signed"
+          />
+        )}
+      />
       {!isDraft && (
         <>
           <TextFieldForm name="contract.signedBy" label="Signed By" />

@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Box } from '@mui/material';
-import axios, { AxiosError } from 'axios';
+import React, { useRef } from 'react';
+import { Box, Paper, Typography } from '@mui/material';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { useNavigate } from 'react-router';
 import { AgGridReact } from 'ag-grid-react';
 import webRoutes from '@/lib/web.routes';
@@ -9,10 +9,9 @@ import IsBlockedChip from '../atoms/IsBlockedChip';
 import GridTables from '@/components/ui/organisms/GridTables';
 import SearchBoxTable from '@/components/ui/organisms/SearchBoxTable';
 import DMBStatusChip from '../atoms/DMBStatusChip';
-import ActionButtonsClient from '../atoms/ActionsButtonsClient';
 import { ColDef } from 'ag-grid-community';
 import { useClients } from '../../hooks/useClientsAdmin';
-import { set } from 'react-hook-form';
+import ActionButtonsClient from '../atoms/ActionsButtonsClient';
 interface ClientTableProps {
   setNotification: (notification: { message: string; type: 'success' | 'error' }) => void;
 }
@@ -22,13 +21,13 @@ const formatCurrency = (currencySymbol: string, value: number): string => {
   const s = num.toString();
   if (!s.includes('.')) return `${currencySymbol}${s}.00`;
   const [intPart, fractionPart] = s.split('.');
-  const fraction = fractionPart.length === 1 ? fractionPart + '0' : fractionPart;
+  const fraction = (fractionPart ?? '').length === 1 ? (fractionPart ?? '') + '0' : fractionPart ?? '';
   return `${currencySymbol}${intPart}.${fraction}`;
 };
 
-const ListClientsTable: React.FC<ClientTableProps> = ({ setNotification }) => {
+const ListClientsTable: React.FC<ClientTableProps> = () => {
   const navigate = useNavigate();
-  const { clients, deleteClients, isFetching, isMutationPending, fetchError } = useClients();
+  const { clientsData, clientFetchLoading, clientFetchError } = useClients();
   const gridRef = useRef<AgGridReact>(null);
 
   const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter(gridRef);
@@ -36,24 +35,49 @@ const ListClientsTable: React.FC<ClientTableProps> = ({ setNotification }) => {
     navigate(`${webRoutes.admin.clients.edit}/${client.id}`);
   };
 
-  const handleDelete = async (clientId: number): Promise<void> => {
-    try {
-      await deleteClients.mutateAsync([clientId]);
-      setNotification({ message: 'Client deleted successfully', type: 'success' });
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        setNotification({
-          message: error.response?.data.message || 'Error deleting client',
-          type: 'error',
-        });
-      } else {
-        setNotification({ message: 'An unknown error occurred', type: 'error' });
-      }
-    }
-  };
+  if (clientFetchError) {
+    return (
+      <Box
+        sx={{
+          width: '100%',
+          mx: 'auto',
+          mt: 1,
+          textAlign: 'center',
+        }}
+      >
+        <Paper
+          elevation={0}
+          sx={{
+            p: 5,
+            borderRadius: 3,
+            backgroundColor: (theme) => (theme.palette.mode === 'light' ? 'rgba(244, 67, 54, 0.05)' : 'rgba(244, 67, 54, 0.1)'),
+          }}
+        >
+          <ErrorOutlineIcon sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
+
+          <Typography variant="h5" color="error.main" gutterBottom>
+            Oops! Something went wrong
+          </Typography>
+
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            {clientFetchError.message || 'Failed to load client data.'}
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
+
+  const handleDelete = async (clientId: number): Promise<void> => {};
 
   const columns: ColDef[] = [
-    { field: 'id', headerName: 'ID', filter: 'agNumberColumnFilter', width: 80, sortable: false, resizable: false },
+    {
+      field: 'id',
+      headerName: 'ID',
+      filter: 'agNumberColumnFilter',
+      width: 80,
+      sortable: true,
+      sort: 'asc',
+    },
     { field: 'clientName', headerName: 'Client Name', width: 200 },
     {
       headerName: 'Client Status',
@@ -101,14 +125,12 @@ const ListClientsTable: React.FC<ClientTableProps> = ({ setNotification }) => {
       filter: false,
       resizable: false,
       flex: 1,
-      cellRenderer: (params: any) => (
-        <ActionButtonsClient onEdit={() => handleEdit(params.data)} onDelete={() => handleDelete(params.data.id)} />
-      ),
+      cellRenderer: (params: any) => <ActionButtonsClient onEdit={() => handleEdit(params.data)} onDelete={() => handleDelete(params.data.id)} />,
     },
   ];
 
   const rowData =
-    clients?.map((apiData: any) => ({
+    clientsData?.map((apiData: any) => ({
       id: apiData.id,
       clientName: apiData.clientName,
       firstName: apiData.firstName,
@@ -123,14 +145,7 @@ const ListClientsTable: React.FC<ClientTableProps> = ({ setNotification }) => {
   return (
     <Box sx={{ height: 600, width: '100%' }}>
       <SearchBoxTable searchTextRef={searchTextRef} applyFilter={applyFilter} resetFilter={resetFilter} />
-      <GridTables
-        ref={gridRef}
-        defaultColDef={{ sortable: false }}
-        columns={columns}
-        rowData={rowData}
-        loading={isFetching || deleteClients.isPending}
-        quickFilterText={quickFilterText}
-      />
+      <GridTables ref={gridRef} defaultColDef={{ sortable: true, filter: true, resizable: false }} columns={columns} rowData={rowData} loading={clientFetchLoading} quickFilterText={quickFilterText} />
     </Box>
   );
 };

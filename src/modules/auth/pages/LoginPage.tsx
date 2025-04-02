@@ -36,8 +36,8 @@ const schema = z.object({
 
 function LoginPage() {
   const { login } = useAuth();
-  const { loading, setLoading } = useLoaderStore();
-  const { error, clearError } = useErrorStore();
+  const { loading } = useLoaderStore();
+  const { error, openModal, clearError, closeModal } = useErrorStore();
   const [openPopUpForgot, setOpenPopUpForgot] = useState<boolean>(false);
 
   const methods = useForm({
@@ -48,7 +48,6 @@ function LoginPage() {
   const { handleSubmit } = methods;
 
   const onSubmit: SubmitHandler<IFormInput> = async ({ username, password }) => {
-    setLoading(true);
     clearError();
     console.log('Form submitted with:', { username, password });
     const success = await login({ username, password });
@@ -56,7 +55,6 @@ function LoginPage() {
       // Handle login failure
       console.error('Login failed');
     }
-    setLoading(false);
   };
 
   return (
@@ -94,8 +92,11 @@ function LoginPage() {
             </Grid>
           </Box>
         </FormProvider>
-        <ErrorModal2 open={!!error} onClose={clearError}>
-          <Typography>{error || ''}</Typography>
+        <ErrorModal2
+          open={openModal}
+          onClose={closeModal}
+        >
+          <Typography>{error}</Typography>
         </ErrorModal2>
         <ForgotPasswordPopup open={openPopUpForgot} onClose={() => setOpenPopUpForgot(false)} />
       </AuthLayout>

@@ -15,7 +15,8 @@ import { useApiRequest } from '@/hooks/useApiRequest';
 export const useLabelsAdmin = (labelId?: string) => {
   const { apiRequest } = useApiRequest();
   const queryClient = useQueryClient();
-  const [error, setError] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Determinar la clave de la consulta según se requiera un cliente único o todos los clientes
   const queryKey = labelId ? ['label', labelId] : ['labels'];
@@ -46,7 +47,6 @@ export const useLabelsAdmin = (labelId?: string) => {
   const {
     data,
     isLoading: isFetching,
-    isError: hasFetchError,
     error: queryError,
   } = useQuery({
     queryKey,
@@ -61,7 +61,7 @@ export const useLabelsAdmin = (labelId?: string) => {
       const message = axios.isAxiosError(queryError)
         ? queryError.response?.data?.message || 'Error on fetching labels'
         : 'Unknown error occurred';
-      setError(message);
+      setErrorMessage(message);
     }
   }, [queryError]);
 
@@ -78,12 +78,13 @@ export const useLabelsAdmin = (labelId?: string) => {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['labels'] });
+      setSuccessMessage('Label created successfully');
     },
     onError: (err: unknown) => {
       const message = axios.isAxiosError(err)
         ? err.response?.data?.message || 'Error on creating label'
         : 'Unknown error occurred';
-      setError(message);
+      setErrorMessage(message);
     },
   });
 
@@ -101,12 +102,13 @@ export const useLabelsAdmin = (labelId?: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['labels'] });
       queryClient.invalidateQueries({ queryKey: ['label', labelId] });
+      setSuccessMessage('Label updated successfully');
     },
     onError: (err: unknown) => {
       const message = axios.isAxiosError(err)
         ? err.response?.data?.message || 'Error updating label'
         : 'Unknown error occurred';
-      setError(message);
+      setErrorMessage(message);
     },
   });
 
@@ -123,12 +125,13 @@ export const useLabelsAdmin = (labelId?: string) => {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['labels'] });
+      setSuccessMessage('Labels deleted successfully');
     },
     onError: (err: unknown) => {
       const message = axios.isAxiosError(err)
         ? err.response?.data?.message || 'Error deleting labels'
         : 'Unknown error occurred';
-      setError(message);
+      setErrorMessage(message);
     },
   });
 
@@ -142,7 +145,8 @@ export const useLabelsAdmin = (labelId?: string) => {
     label: labelId ? data : undefined,
     labels: labelId ? undefined : data,
     isFetching,
-    fetchError: error,
+    fetchError: errorMessage,
+    successMessage,
     createLabel: createLabel,
     updateLabel: updateLabel,
     deleteLabels: deleteLabels,
