@@ -1,15 +1,15 @@
-import React, { useState, useEffect, type ReactNode } from "react";
-import Cookies from "js-cookie";
-import { useNavigate } from "react-router";
-import { jwtDecode } from "jwt-decode";
-import { AuthContext } from "./AuthContext";
-import axios from "axios";
-import { useApiRequest } from "../../../hooks/useApiRequest";
-import { apiRoutes } from "../../../lib/api.routes";
-import { useLoaderStore, useUserStore } from "../../../stores";
-import { useErrorStore } from "../../../stores/error.store";
-import webRoutes from "@/lib/web.routes";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState, useEffect, type ReactNode } from 'react';
+import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router';
+import { jwtDecode } from 'jwt-decode';
+import { AuthContext } from './AuthContext';
+import axios from 'axios';
+import { useApiRequest } from '../../../hooks/useApiRequest';
+import { apiRoutes } from '../../../lib/api.routes';
+import { useLoaderStore, useUserStore } from '../../../stores';
+import { useErrorStore } from '../../../stores/error.store';
+import webRoutes from '@/lib/web.routes';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // Remove hardcoded token expiration times since we'll get them from API
 
@@ -66,8 +66,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * Handles invalid or expired tokens by clearing credentials and redirecting to login
    */
   const handleInvalidToken = () => {
-    Cookies.remove("access_token");
-    Cookies.remove("refresh_token");
+    Cookies.remove('access_token');
+    Cookies.remove('refresh_token');
     setIsAuthenticated(false);
     queryClient.clear(); // Clear all caches on logout
     navigate(webRoutes.login);
@@ -120,7 +120,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * @returns {boolean} Whether the token is valid
    */
   const validateToken = () => {
-    const token = Cookies.get("access_token");
+    const token = Cookies.get('access_token');
     if (!token) {
       handleInvalidToken();
       return false;
@@ -148,7 +148,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAuthenticated(true);
       return true;
     } catch (err) {
-      console.error("Error decoding token:", err);
+      console.error('Error decoding token:', err);
       handleInvalidToken();
       return false;
     }
@@ -166,15 +166,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const accessExpiration = new Date(Date.now() + expires_in * 1000);
     const refreshExpiration = new Date(Date.now() + refresh_expires_in * 1000);
 
-    Cookies.set("access_token", access_token, {
+    Cookies.set('access_token', access_token, {
       expires: accessExpiration,
-      path: "/",
-      sameSite: "strict",
+      path: '/',
+      sameSite: 'strict',
     });
-    Cookies.set("refresh_token", refresh_token, {
+    Cookies.set('refresh_token', refresh_token, {
       expires: refreshExpiration,
-      path: "/",
-      sameSite: "strict",
+      path: '/',
+      sameSite: 'strict',
     });
     setIsAuthenticated(true);
   };
@@ -197,35 +197,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * @param {unknown} error - Error object from API call
    */
   const handleAuthError = (error: unknown) => {
-    let errorMessage = "An unexpected error occurred";
+    let errorMessage = 'An unexpected error occurred';
 
     if (axios.isAxiosError(error) && error.response?.data?.code) {
       const errorCode: number = error.response.data.code;
 
       switch (errorCode) {
         case AuthErrorCode.USER_NOT_FOUND:
-          errorMessage = "User not found";
+          errorMessage = 'User not found';
           break;
         case AuthErrorCode.INVALID_CREDENTIALS:
-          errorMessage = "Invalid username or password";
+          errorMessage = 'Invalid username or password';
           break;
         case AuthErrorCode.WEAK_PASSWORD:
-          errorMessage = "Password is too weak";
+          errorMessage = 'Password is too weak';
           break;
         case AuthErrorCode.INVALID_TOKEN:
-          errorMessage = "Invalid or expired token";
+          errorMessage = 'Invalid or expired token';
           break;
         case AuthErrorCode.UNAUTHORIZED:
-          errorMessage = "Unauthorized access";
+          errorMessage = 'Unauthorized access';
           break;
         case AuthErrorCode.VALIDATION_ERROR:
-          errorMessage = error.response?.data?.message || "Validation error";
+          errorMessage = error.response?.data?.message || 'Validation error';
           break;
         case AuthErrorCode.CLIENT_BLOCKED:
-          errorMessage = "The client related to your user is blocked, contact us for more details.";
+          errorMessage = 'The client related to your user is blocked, contact us for more details.';
           break;
         default:
-          errorMessage = "An unexpected error occurred";
+          errorMessage = 'An unexpected error occurred';
       }
     }
 
@@ -233,18 +233,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   // Current user query with Tanstack Query
-  const userQuery = useQuery({
-    queryKey: ["auth", "user"],
+  useQuery({
+    queryKey: ['auth', 'user'],
     queryFn: async () => {
       try {
         const response = await apiRequest<any>({
           url: apiRoutes.auth.me,
-          method: "get",
+          method: 'get',
         });
         setUserData(response);
         return response;
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error('Error fetching user data:', error);
         throw error;
       }
     },
@@ -260,12 +260,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         return await apiRequest<AuthTokenResponse>({
           url: apiRoutes.auth.login,
-          method: "post",
+          method: 'post',
           data: credentials,
-          requiereAuth: false,
+          requireAuth: false,
         });
       } catch (err) {
-        console.error("Login error:", err);
+        console.error('Login error:', err);
         handleAuthError(err);
         throw err;
       } finally {
@@ -275,7 +275,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     onSuccess: (data) => {
       if (data && data.access_token && data.refresh_token && data.expires_in && data.refresh_expires_in) {
         setCookies(data.access_token, data.refresh_token, data.expires_in, data.refresh_expires_in);
-        queryClient.invalidateQueries({ queryKey: ["auth", "user"] }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['auth', 'user'] }).then(() => {
           navigate(webRoutes.backoffice.overview);
         });
       }
@@ -289,10 +289,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         return await apiRequest({
           url: apiRoutes.auth.logout,
-          method: "post",
+          method: 'post',
         });
       } catch (err) {
-        console.error("Logout error:", err);
+        console.error('Logout error:', err);
         throw err;
       } finally {
         setLoading(false);
@@ -311,13 +311,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         return await apiRequest({
           url: apiRoutes.auth.forgotPassword,
-          method: "post",
+          method: 'post',
           data: { email },
-          requiereAuth: false,
+          requireAuth: false,
         });
       } catch (error) {
         handleAuthError(error);
-        console.error("Error sending password recovery email:", error);
+        console.error('Error sending password recovery email:', error);
         throw error;
       } finally {
         setLoading(false);
@@ -332,9 +332,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         return await apiRequest({
           url: apiRoutes.auth.resetPassword,
-          method: "post",
+          method: 'post',
           data: { token, newPassword },
-          requiereAuth: false,
+          requireAuth: false,
         });
       } catch (error) {
         handleAuthError(error);

@@ -1,5 +1,6 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
 import { AuthProvider } from './modules/auth/context/AuthProvider';
+import { ServerStatusProvider } from './context/ServerStatusContext';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -21,8 +22,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function Root() {
   return (
-    <AuthProvider>
-      <Outlet />
-    </AuthProvider>
+    <ServerStatusProvider>
+      <AuthProvider>
+        <Outlet />
+      </AuthProvider>
+    </ServerStatusProvider>
   );
 }
