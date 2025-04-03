@@ -12,6 +12,7 @@ import DMBStatusChip from '../atoms/DMBStatusChip';
 import { ColDef } from 'ag-grid-community';
 import { useClients } from '../../hooks/useClientsAdmin';
 import ActionButtonsClient from '../atoms/ActionsButtonsClient';
+import { useNotificationStore } from '@/stores';
 interface ClientTableProps {
   setNotification: (notification: { message: string; type: 'success' | 'error' }) => void;
 }
@@ -27,8 +28,9 @@ const formatCurrency = (currencySymbol: string, value: number): string => {
 
 const ListClientsTable: React.FC<ClientTableProps> = () => {
   const navigate = useNavigate();
-  const { clientsData, clientFetchLoading, clientFetchError } = useClients();
+  const { clientsData, clientFetchLoading, clientFetchError, deleteClients, deleteClientsLoading } = useClients();
   const gridRef = useRef<AgGridReact>(null);
+  const { setNotification } = useNotificationStore();
 
   const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter(gridRef);
   const handleEdit = (client: any): void => {
@@ -67,7 +69,16 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
     );
   }
 
-  const handleDelete = async (clientId: number): Promise<void> => {};
+  const handleDelete = async (clientId: number): Promise<void> => {
+    deleteClients.mutateAsync([clientId], {
+      onSuccess: () => {
+        setNotification({ message: `Client with ID ${clientId} deleted successfully`, type: 'success' });
+      },
+      onError: (error: any) => {
+        setNotification({ message: error.messages, type: 'error' });
+      },
+    });
+  };
 
   const columns: ColDef[] = [
     {
@@ -145,7 +156,14 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
   return (
     <Box sx={{ height: 600, width: '100%' }}>
       <SearchBoxTable searchTextRef={searchTextRef} applyFilter={applyFilter} resetFilter={resetFilter} />
-      <GridTables ref={gridRef} defaultColDef={{ sortable: true, filter: true, resizable: false }} columns={columns} rowData={rowData} loading={clientFetchLoading} quickFilterText={quickFilterText} />
+      <GridTables
+        ref={gridRef}
+        defaultColDef={{ sortable: true, filter: true, resizable: false }}
+        columns={columns}
+        rowData={rowData}
+        loading={clientFetchLoading || deleteClientsLoading}
+        quickFilterText={quickFilterText}
+      />
     </Box>
   );
 };

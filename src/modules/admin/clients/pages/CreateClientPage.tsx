@@ -96,7 +96,7 @@ const CreateClientPage: React.FC = () => {
       console.log('Form data:', data); // Muestra los datos del formulario en la consola
       onSubmit(data); // Llama a la función onSubmit si no hay errores
     },
-    (errors, data) => {
+    (errors) => {
       if (Object.keys(errors).length > 0) {
         setErrorOpen(true); // Abre el popup si hay errores
       }

@@ -10,6 +10,7 @@ import { useLoaderStore, useUserStore } from '../../../stores';
 import { useErrorStore } from '../../../stores/error.store';
 import webRoutes from '@/lib/web.routes';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useServerStatus } from '@/context/ServerStatusContext';
 
 // Remove hardcoded token expiration times since we'll get them from API
 
@@ -59,6 +60,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { setError: setGlobalError } = useErrorStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { refetchServerStatus } = useServerStatus(); // Assuming this is a function to refetch server status
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
@@ -245,6 +247,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return response;
       } catch (error) {
         console.error('Error fetching user data:', error);
+        refetchServerStatus(); // Refetch server status on error
         throw error;
       }
     },

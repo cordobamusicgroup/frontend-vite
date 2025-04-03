@@ -15,7 +15,7 @@ import { Helmet } from "react-helmet";
 const ClientListPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const { notification, setNotification, clearNotification } = useNotificationStore();
+  const { notification, setNotification } = useNotificationStore();
 
   const handleCreateClient = (): void => {
     navigate(webRoutes.admin.clients.create);
