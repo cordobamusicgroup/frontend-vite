@@ -8,7 +8,7 @@ import useQuickFilter from '@/hooks/useQuickFilter';
 import GridTables from '@/components/ui/organisms/GridTables';
 import SearchBoxTable from '@/components/ui/organisms/SearchBoxTable';
 import { ColDef } from 'ag-grid-community';
-import { useClients } from '@/modules/admin/clients/hooks/useClientsAdmin';
+import { useClientsAdmin } from '@/modules/admin/clients/hooks/useClientsAdmin';
 import TableSkeletonLoader from '@/components/ui/atoms/TableSkeletonLoader';
 import { useLabelsAdmin } from '../../hooks/useLabelsAdmin';
 import ActionButtonsLabels from '../atoms/ActionButtonsLabels';
@@ -27,8 +27,8 @@ interface Props {
 
 const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
   const navigate = useNavigate();
-  const { clients, isFetching: clientLoading } = useClients();
-  const { labels, isFetching, deleteLabels } = useLabelsAdmin();
+  const { clientsData, clientFetchLoading, clientFetchError } = useClientsAdmin();
+  const { labelsData, labelFetchLoading, labelFetchError, deleteLabels } = useLabelsAdmin();
   const gridRef = useRef<AgGridReact>(null);
 
   const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter(gridRef);
@@ -37,21 +37,21 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
     navigate(`${webRoutes.admin.labels.edit}/${label.id}`);
   };
 
+  //TODO - implement labelFetchError return
+
+  // TODO - refactor this
   const handleDelete = async (labelId: number): Promise<void> => {
     try {
       await deleteLabels.mutateAsync([labelId]);
       setNotification({ message: `Label with ID ${labelId} deleted`, type: 'success' });
     } catch (error) {
-      const message = axios.isAxiosError(error)
-        ? error.response?.data?.message || 'Error deleting labels'
-        : 'Unknown error occurred';
+      const message = axios.isAxiosError(error) ? error.response?.data?.message || 'Error deleting labels' : 'Unknown error occurred';
       setNotification({ message: message, type: 'error' });
     }
   };
   const columns: ColDef[] = [
     {
       field: 'id',
-      filter: 'agNumberColumnFilter',
       headerName: 'ID',
       width: 70,
       sortable: false,
@@ -64,12 +64,12 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
       width: 300,
       cellRenderer: (params: any) => {
         // Si el valor es "loading", renderiza el componente de React con el spinner
-        if (clientLoading) {
+        if (clientFetchLoading) {
           return <TableSkeletonLoader />;
         }
 
-        const client = clients.find((c: any) => c.id === params.data.clientId);
-        return client ? `${client.clientName} (${client.id})` : 'loading';
+        const client = clientsData?.find((c: any) => c.id === params.data.clientId);
+        return client ? `${client.clientName} (${client.id})` : 'Unknown Client';
       },
     },
 
@@ -103,13 +103,11 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
       filter: false,
       resizable: false,
       flex: 1,
-      cellRenderer: (params: any) => (
-        <ActionButtonsLabels onEdit={() => handleEdit(params.data)} onDelete={() => handleDelete(params.data.id)} />
-      ),
+      cellRenderer: (params: any) => <ActionButtonsLabels onEdit={() => handleEdit(params.data)} onDelete={() => handleDelete(params.data.id)} />,
     },
   ];
 
-  const rowData = labels?.map((apiData: any) => ({
+  const rowData = labelsData?.map((apiData: any) => ({
     id: apiData.id,
     clientId: apiData.clientId,
     labelName: apiData.name,
@@ -125,14 +123,7 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
   return (
     <Box sx={{ height: 600, width: '100%' }}>
       <SearchBoxTable searchTextRef={searchTextRef} applyFilter={applyFilter} resetFilter={resetFilter} />
-      <GridTables
-        ref={gridRef}
-        defaultColDef={{ sortable: false }}
-        columns={columns}
-        rowData={rowData}
-        loading={isFetching || deleteLabels.isPending}
-        quickFilterText={quickFilterText}
-      />
+      <GridTables ref={gridRef} defaultColDef={{ sortable: false }} columns={columns} rowData={rowData} loading={labelFetchLoading || deleteLabels.isPending} quickFilterText={quickFilterText} />
     </Box>
   );
 };

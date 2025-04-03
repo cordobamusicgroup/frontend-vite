@@ -8,7 +8,7 @@ import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { Helmet } from 'react-helmet';
-import { useClients } from '../hooks/useClientsAdmin';
+import { useClientsAdmin } from '../hooks/useClientsAdmin';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -34,7 +34,7 @@ const getUpdatedFields = (formData: any, originalData: any) => {
 const UpdateClientPage: React.FC = () => {
   const theme = useTheme();
   const { clientId } = useParams();
-  const { clientsData: client, updateClient, updateClientLoading, clientFetchError } = useClients(clientId);
+  const { clientsData: client, updateClient, updateClientLoading, clientFetchError } = useClientsAdmin(clientId);
   const { notification, setNotification, clearNotification } = useNotificationStore();
   const [errorOpen, setErrorOpen] = useState(false);
 

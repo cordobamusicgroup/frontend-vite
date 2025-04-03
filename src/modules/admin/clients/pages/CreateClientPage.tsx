@@ -8,7 +8,7 @@ import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { Helmet } from 'react-helmet';
-import { useClients } from '../hooks/useClientsAdmin';
+import { useClientsAdmin } from '../hooks/useClientsAdmin';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,7 +22,7 @@ type ClientFormData = z.infer<typeof ClientValidationSchema>;
 
 const CreateClientPage: React.FC = () => {
   const theme = useTheme();
-  const { createClient, createClientLoading } = useClients();
+  const { createClient, createClientLoading } = useClientsAdmin();
   const { notification, setNotification, clearNotification } = useNotificationStore();
   const [errorOpen, setErrorOpen] = useState(false);
 
@@ -133,10 +133,7 @@ const CreateClientPage: React.FC = () => {
         <title>Create Client - Córdoba Music Group</title>
       </Helmet>
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
-        <CustomPageHeader
-          background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'}
-          color={theme.palette.primary.contrastText}
-        >
+        <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Creating New Client</Typography>
           <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
           <BasicButton

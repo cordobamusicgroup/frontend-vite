@@ -10,7 +10,7 @@ import GridTables from '@/components/ui/organisms/GridTables';
 import SearchBoxTable from '@/components/ui/organisms/SearchBoxTable';
 import DMBStatusChip from '../atoms/DMBStatusChip';
 import { ColDef } from 'ag-grid-community';
-import { useClients } from '../../hooks/useClientsAdmin';
+import { useClientsAdmin } from '../../hooks/useClientsAdmin';
 import ActionButtonsClient from '../atoms/ActionsButtonsClient';
 import { useNotificationStore } from '@/stores';
 interface ClientTableProps {
@@ -28,7 +28,7 @@ const formatCurrency = (currencySymbol: string, value: number): string => {
 
 const ListClientsTable: React.FC<ClientTableProps> = () => {
   const navigate = useNavigate();
-  const { clientsData, clientFetchLoading, clientFetchError, deleteClients, deleteClientsLoading } = useClients();
+  const { clientsData, clientFetchLoading, clientFetchError, deleteClients, deleteClientsLoading } = useClientsAdmin();
   const gridRef = useRef<AgGridReact>(null);
   const { setNotification } = useNotificationStore();
 

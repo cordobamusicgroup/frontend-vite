@@ -11,7 +11,7 @@ import { formatApiError, FormattedApiError } from '@/lib/formatApiError.util';
  * @param {string} [clientId] - ID of the client to fetch (optional).
  * @returns {object} Object with data, loading/error states, and mutation functions.
  */
-export const useClients = (clientId?: string) => {
+export const useClientsAdmin = (clientId?: string) => {
   const { apiRequest } = useApiRequest();
   const queryClient = useQueryClient();
 
