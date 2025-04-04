@@ -17,8 +17,8 @@ const ListLabelsPage: React.FC = () => {
 
   const { notification, setNotification } = useNotificationStore();
 
-  const handleCreateClient = (): void => {
-    navigate(webRoutes.admin.clients.create);
+  const handleCreateLabel = (): void => {
+    navigate(webRoutes.admin.labels.create);
   };
 
   useNotificationCleanup();
@@ -31,14 +31,7 @@ const ListLabelsPage: React.FC = () => {
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'#24793B'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '16px' }}>Manage Labels</Typography>
-          <BasicButton
-            colorBackground="white"
-            colorText={'#164723'}
-            onClick={handleCreateClient}
-            color="primary"
-            variant="contained"
-            startIcon={<PersonAddIcon />}
-          >
+          <BasicButton colorBackground="white" colorText={'#164723'} onClick={handleCreateLabel} color="primary" variant="contained" startIcon={<PersonAddIcon />}>
             Create Label
           </BasicButton>
         </CustomPageHeader>
