@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
-import { Box } from '@mui/material';
-import axios from 'axios';
+import { Box, Paper, Typography } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { AgGridReact } from 'ag-grid-react';
 import webRoutes from '@/lib/web.routes';
@@ -14,6 +13,7 @@ import { useLabelsAdmin } from '../../hooks/useLabelsAdmin';
 import ActionButtonsLabels from '../atoms/ActionButtonsLabels';
 import LabelStatusChip from '../atoms/LabelStatusChip';
 import LabelSpecialStoreStatus from '../atoms/LabelSpecialStoreStatus';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 interface Props {
   setNotification: (notification: { message: string; type: 'success' | 'error' }) => void;
@@ -37,32 +37,62 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
     navigate(`${webRoutes.admin.labels.edit}/${label.id}`);
   };
 
-  //TODO - implement labelFetchError return
+  if (clientFetchError || labelFetchError) {
+    return (
+      <Box
+        sx={{
+          width: '100%',
+          mx: 'auto',
+          mt: 1,
+          textAlign: 'center',
+        }}
+      >
+        <Paper
+          elevation={0}
+          sx={{
+            p: 5,
+            borderRadius: 3,
+            backgroundColor: (theme) => (theme.palette.mode === 'light' ? 'rgba(244, 67, 54, 0.05)' : 'rgba(244, 67, 54, 0.1)'),
+          }}
+        >
+          <ErrorOutlineIcon sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
 
-  // TODO - refactor this
+          <Typography variant="h5" color="error.main" gutterBottom>
+            Oops! Something went wrong
+          </Typography>
+
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            Failed to load data
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
+
   const handleDelete = async (labelId: number): Promise<void> => {
-    try {
-      await deleteLabels.mutateAsync([labelId]);
-      setNotification({ message: `Label with ID ${labelId} deleted`, type: 'success' });
-    } catch (error) {
-      const message = axios.isAxiosError(error) ? error.response?.data?.message || 'Error deleting labels' : 'Unknown error occurred';
-      setNotification({ message: message, type: 'error' });
-    }
+    await deleteLabels.mutateAsync([labelId], {
+      onSuccess: () => {
+        setNotification({ message: 'Label deleted successfully', type: 'success' });
+      },
+      onError: (error: any) => {
+        setNotification({ message: `Error deleting label: ${error.messages}`, type: 'error' });
+      },
+    });
   };
   const columns: ColDef[] = [
     {
       field: 'id',
       headerName: 'ID',
       width: 70,
-      sortable: false,
       resizable: false,
+      filter: false,
     },
     { field: 'labelName', headerName: 'Label Name', width: 400 },
     {
       field: 'client',
       headerName: 'Client Name',
       width: 300,
-      cellRenderer: (params: any) => {
+      valueGetter: (params: any) => {
         // Si el valor es "loading", renderiza el componente de React con el spinner
         if (clientFetchLoading) {
           return <TableSkeletonLoader />;
@@ -77,21 +107,18 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
       field: 'labelStatus',
       headerName: 'Status',
       width: 180,
-      filter: false,
       cellRenderer: (params: any) => <LabelStatusChip status={params.value} />,
     },
     {
       field: 'beatportStatus',
       headerName: 'Beatport Status',
       width: 180,
-      filter: false,
       cellRenderer: (params: any) => <LabelSpecialStoreStatus status={params.value} />,
     },
     {
       field: 'traxsourceStatus',
       headerName: 'Traxsource Status',
       width: 180,
-      filter: false,
       cellRenderer: (params: any) => <LabelSpecialStoreStatus status={params.value} />,
     },
     {
@@ -123,7 +150,7 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
   return (
     <Box sx={{ height: 600, width: '100%' }}>
       <SearchBoxTable searchTextRef={searchTextRef} applyFilter={applyFilter} resetFilter={resetFilter} />
-      <GridTables ref={gridRef} defaultColDef={{ sortable: false }} columns={columns} rowData={rowData} loading={labelFetchLoading || deleteLabels.isPending} quickFilterText={quickFilterText} />
+      <GridTables ref={gridRef} defaultColDef={{ filter: true }} columns={columns} rowData={rowData} loading={labelFetchLoading || deleteLabels.isPending} quickFilterText={quickFilterText} />
     </Box>
   );
 };

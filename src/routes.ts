@@ -23,7 +23,7 @@ export default [
         ]),
         ...prefix('labels', [
           index('modules/admin/labels/pages/ListLabelsPage.tsx'),
-          // route('create', 'modules/admin/labels/pages/CreateLabelPage.tsx'),
+          route('create', 'modules/admin/labels/pages/CreateLabelPage.tsx'),
           // route('edit/:labelId', 'modules/admin/labels/pages/EditLabelPage.tsx'),
         ]),
         ...prefix('users', [

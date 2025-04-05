@@ -1,9 +1,9 @@
-import React, { forwardRef } from "react";
-import { AllCommunityModule, ClientSideRowModelModule, ModuleRegistry, PaginationModule, QuickFilterModule } from "ag-grid-community";
-import { AgGridReact, AgGridReactProps } from "ag-grid-react";
-import { Box } from "@mui/material";
-import LoadingSpinner from "../atoms/LoadingSpinnert";
-import { cmgThemeGrid } from "@/styles/grid-royalties";
+import { forwardRef } from 'react';
+import { ClientSideRowModelModule, DateFilterModule, ModuleRegistry, NumberFilterModule, PaginationModule, QuickFilterModule, TextFilterModule } from 'ag-grid-community';
+import { AgGridReact, AgGridReactProps } from 'ag-grid-react';
+import { Box } from '@mui/material';
+import LoadingSpinner from '../atoms/LoadingSpinnert';
+import { cmgThemeGrid } from '@/styles/grid-royalties';
 
 interface GridTablesProps extends AgGridReactProps {
   columns: any[];
@@ -12,9 +12,9 @@ interface GridTablesProps extends AgGridReactProps {
   width?: string;
 }
 
-ModuleRegistry.registerModules([ClientSideRowModelModule, PaginationModule, QuickFilterModule]);
+ModuleRegistry.registerModules([ClientSideRowModelModule, PaginationModule, QuickFilterModule, TextFilterModule, DateFilterModule, NumberFilterModule]);
 
-const GridTables = forwardRef<AgGridReact, GridTablesProps>(({ columns, rowData, height = "500px", width = "100%", ...props }, ref) => {
+const GridTables = forwardRef<AgGridReact, GridTablesProps>(({ columns, rowData, height = '500px', width = '100%', ...props }, ref) => {
   return (
     <Box width={width} height={height}>
       <AgGridReact
@@ -23,6 +23,7 @@ const GridTables = forwardRef<AgGridReact, GridTablesProps>(({ columns, rowData,
         theme={cmgThemeGrid}
         columnDefs={columns}
         rowData={rowData}
+        {...props}
         loadingOverlayComponent={LoadingSpinner}
         loadingOverlayComponentParams={{ size: 30 }}
         suppressMovableColumns={true}
@@ -30,7 +31,6 @@ const GridTables = forwardRef<AgGridReact, GridTablesProps>(({ columns, rowData,
         paginationPageSize={20}
         suppressCellFocus
         enableCellTextSelection
-        {...props} // Props adicionales pasan directamente a AgGridReact
       />
     </Box>
   );
