@@ -79,6 +79,7 @@ const CreateClientPage: React.FC = () => {
       onSuccess: () => {
         scrollToTop();
         setNotification({ message: 'Client created successfully', type: 'success' });
+        reset(); // Reset the form after successful submission
       },
       onError: (error: FormattedApiError) => {
         scrollToTop();
