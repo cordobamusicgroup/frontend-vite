@@ -93,13 +93,21 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
       headerName: 'Client Name',
       width: 300,
       valueGetter: (params: any) => {
-        // Si el valor es "loading", renderiza el componente de React con el spinner
+        // Si los datos están cargando, devuelve un texto temporal
         if (clientFetchLoading) {
-          return <TableSkeletonLoader />;
+          return 'Loading...';
         }
 
         const client = clientsData?.find((c: any) => c.id === params.data.clientId);
         return client ? `${client.clientName} (${client.id})` : 'Unknown Client';
+      },
+      cellRenderer: (params: any) => {
+        // Renderiza un spinner o el valor final en la celda
+        if (clientFetchLoading) {
+          return <TableSkeletonLoader />;
+        }
+
+        return params.value; // Usa el valor calculado por valueGetter
       },
     },
 
