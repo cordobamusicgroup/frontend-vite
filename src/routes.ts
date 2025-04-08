@@ -3,6 +3,7 @@ import { type RouteConfig, index, layout, prefix, route } from '@react-router/de
 export default [
   index('modules/portal/RedirectToBackoffice.tsx'),
 
+  route('*', 'modules/portal/pages/not-found.tsx'),
   // Auth routes
   ...prefix('auth', [route('login', 'modules/auth/pages/LoginPage.tsx')]),
 
@@ -14,20 +15,20 @@ export default [
         // route('payments-operations', 'modules/financial/pages/PaymentsOperations.tsx'),
         // route('reports', 'modules/financial/pages/ReportsPage.tsx'),
       ]),
-      ...prefix('clients', []),
+      ...prefix('user', [route('profile', 'modules/user/profile/pages/UserProfilePage.tsx')]),
       ...prefix('admin', [
         ...prefix('clients', [
           index('modules/admin/clients/pages/ListClientsPage.tsx'),
           route('create', 'modules/admin/clients/pages/CreateClientPage.tsx'),
-          route('edit/:clientId', 'modules/admin/clients/pages/EditClientPage.tsx'),
+          route('edit/:clientId', 'modules/admin/clients/pages/UpdateClientPage.tsx'),
         ]),
         ...prefix('labels', [
           index('modules/admin/labels/pages/ListLabelsPage.tsx'),
           route('create', 'modules/admin/labels/pages/CreateLabelPage.tsx'),
-          // route('edit/:labelId', 'modules/admin/labels/pages/EditLabelPage.tsx'),
+          route('edit/:labelId', 'modules/admin/labels/pages/UpdateLabelPage.tsx'),
         ]),
         ...prefix('users', [
-          // index('modules/admin/users/pages/ListUsersPage.tsx'),
+          index('modules/admin/users/pages/ListUsersPage.tsx'),
           // route('create', 'modules/admin/users/pages/CreateUserPage.tsx'),
           // route('edit/:userId', 'modules/admin/users/pages/EditUserPage.tsx'),
         ]),

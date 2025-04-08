@@ -63,28 +63,25 @@ export const useLabelsAdmin = (labelId?: string) => {
     },
   });
 
-  // const updateClient = useMutation({
-  //   mutationFn: async (data: any) => {
-  //     try {
-  //       return await apiRequest({
-  //         url: `${apiRoutes.clients.root}/${labelId}`,
-  //         method: 'put',
-  //         data,
-  //         requireAuth: true,
-  //       });
-  //     } catch (error) {
-  //       throw formatApiError(error);
-  //     }
-  //   },
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({
-  //       queryKey: ['clients', 'client', labelId],
-  //     });
-  //   },
-  //   onError: (error: FormattedApiError) => {
-  //     console.log('Error updating client:', error);
-  //   },
-  // });
+  const updateLabel = useMutation({
+    mutationFn: async (data: any) => {
+      try {
+        return await apiRequest({
+          url: `${apiRoutes.labels.root}/${labelId}`,
+          method: 'put',
+          data,
+          requireAuth: true,
+        });
+      } catch (error) {
+        throw formatApiError(error);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['labels', 'label', labelId],
+      });
+    },
+  });
 
   const deleteLabels = useMutation({
     mutationFn: async (labelsIds: number[]) => {
@@ -113,6 +110,9 @@ export const useLabelsAdmin = (labelId?: string) => {
     createLabel,
     createLabelLoading: createLabel.isPending,
     createLabelError: createLabel.error,
+    updateLabel,
+    updateLabelLoading: updateLabel.isPending,
+    updateLabelError: updateLabel.error,
     deleteLabels,
     deleteLabelsLoading: deleteLabels.isPending,
     deleteLabelsError: deleteLabels.error,

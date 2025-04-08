@@ -27,7 +27,7 @@ interface Props {
 
 const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
   const navigate = useNavigate();
-  const { clientsData, clientFetchLoading, clientFetchError } = useClientsAdmin();
+  const { clientsData, loading: clientLoading, errors: clientErrors } = useClientsAdmin();
   const { labelsData, labelFetchLoading, labelFetchError, deleteLabels } = useLabelsAdmin();
   const gridRef = useRef<AgGridReact>(null);
 
@@ -37,7 +37,7 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
     navigate(`${webRoutes.admin.labels.edit}/${label.id}`);
   };
 
-  if (clientFetchError || labelFetchError) {
+  if (clientErrors.clientFetch || labelFetchError) {
     return (
       <Box
         sx={{
@@ -94,7 +94,7 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
       width: 300,
       valueGetter: (params: any) => {
         // Si los datos están cargando, devuelve un texto temporal
-        if (clientFetchLoading) {
+        if (clientLoading.clientFetch) {
           return 'Loading...';
         }
 
@@ -103,7 +103,7 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
       },
       cellRenderer: (params: any) => {
         // Renderiza un spinner o el valor final en la celda
-        if (clientFetchLoading) {
+        if (clientLoading.clientFetch) {
           return <TableSkeletonLoader />;
         }
 
@@ -155,10 +155,18 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
     traxsourceUrl: apiData.traxsourceUrl,
   }));
 
+  const defaultColDef: ColDef = {
+    wrapText: true,
+    autoHeight: true,
+    filter: true,
+    sortable: true,
+    resizable: false,
+  };
+
   return (
     <Box sx={{ height: 600, width: '100%' }}>
       <SearchBoxTable searchTextRef={searchTextRef} applyFilter={applyFilter} resetFilter={resetFilter} />
-      <GridTables ref={gridRef} defaultColDef={{ filter: true }} columns={columns} rowData={rowData} loading={labelFetchLoading || deleteLabels.isPending} quickFilterText={quickFilterText} />
+      <GridTables ref={gridRef} defaultColDef={defaultColDef} columns={columns} rowData={rowData} loading={labelFetchLoading || deleteLabels.isPending} quickFilterText={quickFilterText} />
     </Box>
   );
 };

@@ -28,7 +28,7 @@ const formatCurrency = (currencySymbol: string, value: number): string => {
 
 const ListClientsTable: React.FC<ClientTableProps> = () => {
   const navigate = useNavigate();
-  const { clientsData, clientFetchLoading, clientFetchError, deleteClients, deleteClientsLoading } = useClientsAdmin();
+  const { clientsData, loading, mutations, errors } = useClientsAdmin();
   const gridRef = useRef<AgGridReact>(null);
   const { setNotification } = useNotificationStore();
 
@@ -37,7 +37,7 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
     navigate(`${webRoutes.admin.clients.edit}/${client.id}`);
   };
 
-  if (clientFetchError) {
+  if (errors.clientFetch) {
     return (
       <Box
         sx={{
@@ -62,7 +62,7 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
           </Typography>
 
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            {clientFetchError.message || 'Failed to load client data.'}
+            {errors.clientFetch.message || 'Failed to load client data.'}
           </Typography>
         </Paper>
       </Box>
@@ -70,7 +70,7 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
   }
 
   const handleDelete = async (clientId: number): Promise<void> => {
-    deleteClients.mutateAsync([clientId], {
+    mutations.deleteClients.mutateAsync([clientId], {
       onSuccess: () => {
         setNotification({ message: `Client with ID ${clientId} deleted successfully`, type: 'success' });
       },
@@ -84,24 +84,24 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
     {
       field: 'id',
       headerName: 'ID',
-      filter: 'agNumberColumnFilter',
-      width: 80,
+      filter: false,
       sortable: true,
+      width: 80,
       sort: 'asc',
     },
     { field: 'clientName', headerName: 'Client Name', width: 200 },
     {
       headerName: 'Client Status',
-      width: 120,
+      width: 200,
       cellRenderer: (params: any) => <IsBlockedChip isBlocked={Boolean(params.data.isBlocked)} />,
     },
-    { field: 'firstName', headerName: 'First Name', width: 150 },
-    { field: 'lastName', headerName: 'Last Name', width: 150 },
+    { field: 'firstName', headerName: 'First Name', width: 200 },
+    { field: 'lastName', headerName: 'Last Name', width: 200 },
     { field: 'type', headerName: 'Type', width: 100 },
     // Se eliminó la columna "dmb" y se agregan nuevas columnas para cada propiedad
     {
       headerName: 'DMB Access Type',
-      width: 150,
+      width: 200,
       valueGetter: (params: any) => params.data.dmb?.accessType || '',
     },
     {
@@ -153,17 +153,18 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
       isBlocked: apiData.isBlocked, // propiedad boolean isBlocked
     })) || [];
 
+  const defaultColDef: ColDef = {
+    wrapText: true,
+    autoHeight: true,
+    filter: true,
+    sortable: true,
+    resizable: false,
+  };
+
   return (
     <Box sx={{ height: 600, width: '100%' }}>
       <SearchBoxTable searchTextRef={searchTextRef} applyFilter={applyFilter} resetFilter={resetFilter} />
-      <GridTables
-        ref={gridRef}
-        defaultColDef={{ sortable: true, filter: true, resizable: false }}
-        columns={columns}
-        rowData={rowData}
-        loading={clientFetchLoading || deleteClientsLoading}
-        quickFilterText={quickFilterText}
-      />
+      <GridTables ref={gridRef} defaultColDef={defaultColDef} columns={columns} rowData={rowData} loading={loading.clientFetch || loading.deleteClients} quickFilterText={quickFilterText} />
     </Box>
   );
 };

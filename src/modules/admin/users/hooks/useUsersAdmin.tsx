@@ -1,30 +1,30 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRoutes } from '@/lib/api.routes';
 import { useApiRequest } from '@/hooks/useApiRequest';
-import { formatApiError, FormattedApiError } from '@/lib/formatApiError.util';
+import { formatApiError } from '@/lib/formatApiError.util';
 
 /**
  * Hook to manage fetching and mutating clients.
  * If a `clientId` is provided, fetches a single client;
  * otherwise, fetches all clients.
  *
- * @param {string} [clientId] - ID of the client to fetch (optional).
+ * @param {string} [userId] - ID of the client to fetch (optional).
  * @returns {object} Object with data, loading/error states, and mutation functions.
  */
-export const useClientsAdmin = (clientId?: string) => {
+export const useUsersAdmin = (userId?: string) => {
   const { apiRequest } = useApiRequest();
   const queryClient = useQueryClient();
 
   // Determine the query key based on whether a single client or all clients are needed
-  const queryKey = clientId ? ['client', clientId] : ['clients'];
+  const queryKey = userId ? ['user', userId] : ['users'];
 
   /**
    * Function to fetch clients.
    * If `clientId` is provided, fetches the client by ID; otherwise, fetches all clients.
    */
-  const fetchClients = async () => {
+  const fetchUsers = async () => {
     try {
-      const url = clientId ? `${apiRoutes.clients.root}/${clientId}` : apiRoutes.clients.root;
+      const url = userId ? `${apiRoutes.users.admin.getById(Number(userId))}` : apiRoutes.users.admin.root;
 
       return await apiRequest({
         url,
@@ -38,15 +38,15 @@ export const useClientsAdmin = (clientId?: string) => {
 
   const query = useQuery({
     queryKey,
-    queryFn: fetchClients,
+    queryFn: fetchUsers,
     retry: false,
   });
 
-  const createClient = useMutation({
+  const registerUser = useMutation({
     mutationFn: async (data: any) => {
       try {
         return await apiRequest({
-          url: apiRoutes.clients.root,
+          url: apiRoutes.users.admin.register,
           method: 'post',
           data,
           requireAuth: true,
@@ -58,19 +58,16 @@ export const useClientsAdmin = (clientId?: string) => {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['clients'],
+        queryKey: ['users'],
       });
-    },
-    onError: (error: FormattedApiError) => {
-      console.log('Error creating client:', error);
     },
   });
 
-  const updateClient = useMutation({
+  const updateUser = useMutation({
     mutationFn: async (data: any) => {
       try {
         return await apiRequest({
-          url: `${apiRoutes.clients.root}/${clientId}`,
+          url: `${apiRoutes.users.admin.root}/${userId}`,
           method: 'put',
           data,
           requireAuth: true,
@@ -81,22 +78,19 @@ export const useClientsAdmin = (clientId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['clients', 'client', clientId],
+        queryKey: ['users', 'user', userId],
       });
-    },
-    onError: (error: FormattedApiError) => {
-      console.log('Error updating client:', error);
     },
   });
 
-  const deleteClients = useMutation({
-    mutationFn: async (clientsIds: number[]) => {
+  const deleteUsers = useMutation({
+    mutationFn: async (usersIds: number[]) => {
       try {
         return await apiRequest({
-          url: apiRoutes.clients.root,
+          url: apiRoutes.users.admin.root,
           method: 'delete',
           requireAuth: true,
-          data: { ids: clientsIds },
+          data: { ids: usersIds },
         });
       } catch (error) {
         throw formatApiError(error);
@@ -104,39 +98,69 @@ export const useClientsAdmin = (clientId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['clients'],
+        queryKey: ['users'],
       });
     },
-    onError: (error: FormattedApiError) => {
-      console.log('Error deleting client:', error);
+  });
+
+  const viewAsClient = useMutation({
+    mutationFn: async (clientId: number) => {
+      try {
+        return await apiRequest({
+          url: apiRoutes.users.admin.viewAs,
+          method: 'patch',
+          requireAuth: true,
+          data: { clientId },
+        });
+      } catch (error) {
+        throw formatApiError(error);
+      }
+    },
+  });
+
+  const resendWelcomeEmail = useMutation({
+    mutationFn: async (email: string) => {
+      try {
+        return await apiRequest({
+          url: apiRoutes.users.admin.resendAccountInfo,
+          method: 'post',
+          requireAuth: true,
+          data: { email },
+        });
+      } catch (error) {
+        throw formatApiError(error);
+      }
     },
   });
 
   return {
     // Data
-    clientsData: query.data,
+    usersData: query.data,
 
     // Loading states
     loading: {
-      clientFetch: query.isLoading,
-      createClient: createClient.isPending,
-      updateClient: updateClient.isPending,
-      deleteClients: deleteClients.isPending,
+      userFetch: query.isLoading,
+      registerUser: registerUser.isPending,
+      updateUser: updateUser.isPending,
+      deleteUsers: deleteUsers.isPending,
+      viewAsClient: viewAsClient.isPending,
+      resendWelcomeEmail: resendWelcomeEmail.isPending,
     },
 
     // Error states
     errors: {
-      clientFetch: query.error,
-      createClient: createClient.error,
-      updateClient: updateClient.error,
-      deleteClients: deleteClients.error,
+      userFetch: query.error,
+      viewAsClient: viewAsClient.error,
+      resendWelcomeEmail: resendWelcomeEmail.error,
     },
 
     // Mutations
     mutations: {
-      createClient,
-      updateClient,
-      deleteClients,
+      registerUser,
+      updateUser,
+      deleteUsers,
+      viewAsClient,
+      resendWelcomeEmail,
     },
   };
 };
