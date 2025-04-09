@@ -18,7 +18,7 @@ const ListUsersPage: React.FC = () => {
   const { notification, setNotification } = useNotificationStore();
 
   const handleCreate = (): void => {
-    navigate(webRoutes.admin.labels.create);
+    navigate(webRoutes.admin.users.create);
   };
 
   useNotificationCleanup();

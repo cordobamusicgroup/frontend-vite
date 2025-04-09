@@ -17,29 +17,29 @@ import { useLabelsAdmin } from '../hooks/useLabelsAdmin';
 import { LabelValidationSchema } from '../schemas/LabelValidationSchema';
 import LabelFormLayout from '../components/organisms/LabelFormLayout';
 
-type FormData = z.infer<typeof LabelValidationSchema>;
+type LabelFormData = z.infer<typeof LabelValidationSchema>;
 
 const CreateLabelPage: React.FC = () => {
   const theme = useTheme();
   const { createLabel, createLabelLoading } = useLabelsAdmin();
-  const { notification, setNotification, clearNotification } = useNotificationStore();
-  const [errorOpen, setErrorOpen] = useState(false);
+  const { notification: labelNotification, setNotification: setLabelNotification, clearNotification: clearLabelNotification } = useNotificationStore();
+  const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
 
   useNotificationCleanup();
 
-  const methods = useForm<FormData>({
+  const labelFormMethods = useForm<LabelFormData>({
     mode: 'all',
     resolver: zodResolver(LabelValidationSchema),
   });
 
   const {
-    handleSubmit: onSubmitForm,
-    formState: { errors },
-    reset,
-  } = methods;
+    handleSubmit: onSubmitLabelForm,
+    formState: { errors: labelFormErrors },
+    reset: resetLabelForm,
+  } = labelFormMethods;
 
-  const onSubmit: SubmitHandler<FormData> = async (formData) => {
-    const payload = {
+  const onSubmitLabel: SubmitHandler<LabelFormData> = async (formData) => {
+    const labelPayload = {
       clientId: formData.clientId,
       name: formData.labelName,
       status: formData.labelStatus,
@@ -50,40 +50,40 @@ const CreateLabelPage: React.FC = () => {
       beatportUrl: formData.beatportUrl,
       traxsourceUrl: formData.traxsourceUrl,
     };
-    createLabel.mutate(payload, {
+    createLabel.mutate(labelPayload, {
       onSuccess: () => {
-        scrollToTop();
-        setNotification({ message: 'Label created successfully', type: 'success' });
-        reset(); // Reset the form after successful submission
+        scrollToPageTop();
+        setLabelNotification({ message: 'Label created successfully', type: 'success' });
+        resetLabelForm(); // Reset the form after successful submission
       },
-      onError: (error: any) => {
-        scrollToTop();
-        setNotification({
-          message: error.messages,
+      onError: (labelError: any) => {
+        scrollToPageTop();
+        setLabelNotification({
+          message: labelError.messages,
           type: 'error',
         });
       },
     });
-    console.log('Create Client Form Submitted:', payload);
+    console.log('Create Label Form Submitted:', labelPayload);
   };
 
-  const handleFormSubmit = onSubmitForm(
-    (data) => {
-      console.log('Form data:', data); // Muestra los datos del formulario en la consola
-      onSubmit(data); // Llama a la función onSubmit si no hay errores
+  const handleLabelFormSubmit = onSubmitLabelForm(
+    (labelFormData) => {
+      console.log('Form data:', labelFormData);
+      onSubmitLabel(labelFormData);
     },
-    (errors) => {
-      if (Object.keys(errors).length > 0) {
-        setErrorOpen(true); // Abre el popup si hay errores
+    (validationErrors) => {
+      if (Object.keys(validationErrors).length > 0) {
+        setIsValidationErrorModalOpen(true);
       }
     },
   );
 
-  const scrollToTop = () => {
+  const scrollToPageTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleInputChange = () => clearNotification();
+  const handleInputChange = () => clearLabelNotification();
 
   const getErrorMessages = (errors: any): string[] => {
     let messages: string[] = [];
@@ -115,7 +115,7 @@ const CreateLabelPage: React.FC = () => {
           <BasicButton
             colorBackground="white"
             colorText={theme.palette.secondary.main}
-            onClick={handleFormSubmit}
+            onClick={handleLabelFormSubmit}
             color="primary"
             variant="contained"
             disabled={createLabelLoading}
@@ -127,16 +127,16 @@ const CreateLabelPage: React.FC = () => {
         </CustomPageHeader>
 
         <Box>
-          {notification?.type === 'success' && <SuccessBox>{notification.message}</SuccessBox>}
-          {notification?.type === 'error' && <ErrorBox>{notification.message}</ErrorBox>}
+          {labelNotification?.type === 'success' && <SuccessBox>{labelNotification.message}</SuccessBox>}
+          {labelNotification?.type === 'error' && <ErrorBox>{labelNotification.message}</ErrorBox>}
         </Box>
 
-        <FormProvider {...methods}>
-          <LabelFormLayout handleSubmit={handleFormSubmit} onChange={handleInputChange} />
+        <FormProvider {...labelFormMethods}>
+          <LabelFormLayout handleSubmit={handleLabelFormSubmit} onChange={handleInputChange} />
         </FormProvider>
-        <ErrorModal2 open={errorOpen} onClose={() => setErrorOpen(false)}>
+        <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
           <List sx={{ padding: 0, margin: 0 }}>
-            {getErrorMessages(errors).map((msg, index) => (
+            {getErrorMessages(labelFormErrors).map((msg, index) => (
               <ListItem key={index} disableGutters sx={{ padding: '1px 0' }}>
                 <ListItemText primary={`• ${msg}`} sx={{ margin: 0, padding: 0 }} />
               </ListItem>

@@ -22,26 +22,26 @@ type ClientFormData = z.infer<typeof ClientValidationSchema>;
 
 const CreateClientPage: React.FC = () => {
   const theme = useTheme();
-  const { createClient, createClientLoading } = useClientsAdmin();
-  const { notification, setNotification, clearNotification } = useNotificationStore();
-  const [errorOpen, setErrorOpen] = useState(false);
+  const { mutations: clientMutations, loading: clientOperationsLoading } = useClientsAdmin();
+  const { notification: clientNotification, setNotification: setClientNotification, clearNotification: clearClientNotification } = useNotificationStore();
+  const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
 
   useNotificationCleanup();
 
-  const methods = useForm<ClientFormData>({
+  const clientFormMethods = useForm<ClientFormData>({
     mode: 'all',
     resolver: zodResolver(ClientValidationSchema),
   });
 
   const {
     handleSubmit,
-    formState: { errors },
-    reset,
-  } = methods;
+    formState: { errors: clientFormErrors },
+    reset: resetClientForm,
+  } = clientFormMethods;
 
-  const onSubmit: SubmitHandler<ClientFormData> = async (formData) => {
+  const onSubmitClient: SubmitHandler<ClientFormData> = async (formData) => {
     const { client, contract, address, dmb } = formData;
-    const payload = {
+    const clientPayload = {
       clientName: client.clientName,
       firstName: client.firstName,
       lastName: client.lastName,
@@ -75,40 +75,40 @@ const CreateClientPage: React.FC = () => {
         username: dmb?.username,
       },
     };
-    createClient.mutate(payload, {
+    clientMutations.createClient.mutate(clientPayload, {
       onSuccess: () => {
-        scrollToTop();
-        setNotification({ message: 'Client created successfully', type: 'success' });
-        reset(); // Reset the form after successful submission
+        scrollToPageTop();
+        setClientNotification({ message: 'Client created successfully', type: 'success' });
+        resetClientForm(); // Reset the form after successful submission
       },
-      onError: (error: FormattedApiError) => {
-        scrollToTop();
-        setNotification({
-          message: error.messages,
+      onError: (clientApiError: FormattedApiError) => {
+        scrollToPageTop();
+        setClientNotification({
+          message: clientApiError.messages,
           type: 'error',
         });
       },
     });
-    console.log('Create Client Form Submitted:', payload);
+    console.log('Create Client Form Submitted:', clientPayload);
   };
 
-  const handleClientSubmit = handleSubmit(
-    (data) => {
-      console.log('Form data:', data); // Muestra los datos del formulario en la consola
-      onSubmit(data); // Llama a la función onSubmit si no hay errores
+  const handleClientFormSubmit = handleSubmit(
+    (clientFormData) => {
+      console.log('Form data:', clientFormData);
+      onSubmitClient(clientFormData);
     },
-    (errors) => {
-      if (Object.keys(errors).length > 0) {
-        setErrorOpen(true); // Abre el popup si hay errores
+    (validationErrors) => {
+      if (Object.keys(validationErrors).length > 0) {
+        setIsValidationErrorModalOpen(true);
       }
     },
   );
 
-  const scrollToTop = () => {
+  const scrollToPageTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleInputChange = () => clearNotification();
+  const handleInputChange = () => clearClientNotification();
 
   const getErrorMessages = (errors: any): string[] => {
     let messages: string[] = [];
@@ -140,28 +140,28 @@ const CreateClientPage: React.FC = () => {
           <BasicButton
             colorBackground="white"
             colorText={theme.palette.secondary.main}
-            onClick={handleClientSubmit}
+            onClick={handleClientFormSubmit}
             color="primary"
             variant="contained"
-            disabled={createClientLoading}
+            disabled={clientOperationsLoading.createClient}
             startIcon={<AddOutlinedIcon />}
-            loading={createClientLoading}
+            loading={clientOperationsLoading.createClient}
           >
             Create Client
           </BasicButton>
         </CustomPageHeader>
 
         <Box>
-          {notification?.type === 'success' && <SuccessBox>{notification.message}</SuccessBox>}
-          {notification?.type === 'error' && <ErrorBox>{notification.message}</ErrorBox>}
+          {clientNotification?.type === 'success' && <SuccessBox>{clientNotification.message}</SuccessBox>}
+          {clientNotification?.type === 'error' && <ErrorBox>{clientNotification.message}</ErrorBox>}
         </Box>
 
-        <FormProvider {...methods}>
-          <ClientFormLayout handleSubmit={handleClientSubmit} onChange={handleInputChange} />
+        <FormProvider {...clientFormMethods}>
+          <ClientFormLayout handleSubmit={handleClientFormSubmit} onChange={handleInputChange} />
         </FormProvider>
-        <ErrorModal2 open={errorOpen} onClose={() => setErrorOpen(false)}>
+        <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
           <List sx={{ padding: 0, margin: 0 }}>
-            {getErrorMessages(errors).map((msg, index) => (
+            {getErrorMessages(clientFormErrors).map((msg, index) => (
               <ListItem key={index} disableGutters sx={{ padding: '1px 0' }}>
                 <ListItemText primary={`• ${msg}`} sx={{ margin: 0, padding: 0 }} />
               </ListItem>

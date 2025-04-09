@@ -19,28 +19,28 @@ import { LabelValidationSchema } from '../schemas/LabelValidationSchema';
 import { useLabelsAdmin } from '../hooks/useLabelsAdmin';
 import LabelFormLayout from '../components/organisms/LabelFormLayout';
 
-type IFormData = z.infer<typeof LabelValidationSchema>;
+type LabelFormData = z.infer<typeof LabelValidationSchema>;
 
-const getUpdatedFields = (formData: any, originalData: any) => {
-  return Object.keys(formData).reduce((acc: any, key) => {
-    if (formData[key] !== originalData[key]) {
-      acc[key] = formData[key];
+const getModifiedFields = (currentFormData: any, initialData: any) => {
+  return Object.keys(currentFormData).reduce((changedFields: any, key) => {
+    if (currentFormData[key] !== initialData[key]) {
+      changedFields[key] = currentFormData[key];
     }
-    return acc;
+    return changedFields;
   }, {});
 };
 
 const UpdateLabelPage: React.FC = () => {
   const theme = useTheme();
   const { labelId } = useParams();
-  const { labelsData: label, labelFetchError, labelFetchLoading, updateLabel, updateLabelLoading } = useLabelsAdmin(labelId);
-  const { notification, setNotification, clearNotification } = useNotificationStore();
-  const [errorOpen, setErrorOpen] = useState(false);
+  const { labelsData: labelData, labelFetchError, labelFetchLoading, updateLabel, updateLabelLoading } = useLabelsAdmin(labelId);
+  const { notification: labelNotification, setNotification: setLabelNotification, clearNotification: clearLabelNotification } = useNotificationStore();
+  const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
 
-  // Reintroduce originalData state
-  const [originalData, setOriginalData] = useState<IFormData | null>(null);
+  // Store the initial data for comparison
+  const [initialLabelData, setInitialLabelData] = useState<LabelFormData | null>(null);
 
-  const methods = useForm<IFormData>({
+  const labelFormMethods = useForm<LabelFormData>({
     mode: 'onSubmit',
     resolver: zodResolver(LabelValidationSchema),
     reValidateMode: 'onChange',
@@ -48,33 +48,33 @@ const UpdateLabelPage: React.FC = () => {
 
   const {
     handleSubmit,
-    formState: { errors },
-    reset,
-  } = methods;
+    formState: { errors: labelFormErrors },
+    reset: resetLabelForm,
+  } = labelFormMethods;
 
-  const apiData = useMemo(() => {
-    if (!label) return null;
+  const formattedLabelData = useMemo(() => {
+    if (!labelData) return null;
 
     return {
-      labelId: label.id,
-      clientId: label.clientId,
-      labelName: label.name,
-      labelStatus: label.status,
-      labelWebsite: label.website,
-      countryId: label.countryId,
-      beatportStatus: label.beatportStatus,
-      traxsourceStatus: label.traxsourceStatus,
-      beatportUrl: label.beatportUrl,
-      traxsourceUrl: label.traxsourceUrl,
+      labelId: labelData.id,
+      clientId: labelData.clientId,
+      labelName: labelData.name,
+      labelStatus: labelData.status,
+      labelWebsite: labelData.website,
+      countryId: labelData.countryId,
+      beatportStatus: labelData.beatportStatus,
+      traxsourceStatus: labelData.traxsourceStatus,
+      beatportUrl: labelData.beatportUrl,
+      traxsourceUrl: labelData.traxsourceUrl,
     };
-  }, [label]);
+  }, [labelData]);
 
   useEffect(() => {
-    if (apiData) {
-      reset(apiData); // Reset form data unconditionally when apiData changes
-      setOriginalData(apiData); // Store the original data for comparison
+    if (formattedLabelData) {
+      resetLabelForm(formattedLabelData);
+      setInitialLabelData(formattedLabelData);
     }
-  }, [apiData, reset]);
+  }, [formattedLabelData, resetLabelForm]);
 
   if (labelFetchError) {
     return (
@@ -108,33 +108,33 @@ const UpdateLabelPage: React.FC = () => {
     );
   }
 
-  if (!labelFetchLoading && !label) {
+  if (!labelFetchLoading && !labelData) {
     return <SkeletonLoader />;
   }
 
-  const onSubmit: SubmitHandler<IFormData> = async (formData) => {
-    if (!originalData) return; // Ensure originalData is available
+  const onSubmitLabel: SubmitHandler<LabelFormData> = async (formData) => {
+    if (!initialLabelData) return;
 
-    const updatedFields = getUpdatedFields(formData, originalData);
+    const modifiedFields = getModifiedFields(formData, initialLabelData);
 
-    const mappedData = {
-      name: updatedFields.labelName,
-      clientId: updatedFields.clientId,
-      status: updatedFields.labelStatus,
-      website: updatedFields.labelWebsite,
-      countryId: updatedFields.countryId,
-      beatportStatus: updatedFields.beatportStatus,
-      traxsourceStatus: updatedFields.traxsourceStatus,
-      beatportUrl: updatedFields.beatportUrl,
-      traxsourceUrl: updatedFields.traxsourceUrl,
+    const labelUpdatePayload = {
+      name: modifiedFields.labelName,
+      clientId: modifiedFields.clientId,
+      status: modifiedFields.labelStatus,
+      website: modifiedFields.labelWebsite,
+      countryId: modifiedFields.countryId,
+      beatportStatus: modifiedFields.beatportStatus,
+      traxsourceStatus: modifiedFields.traxsourceStatus,
+      beatportUrl: modifiedFields.beatportUrl,
+      traxsourceUrl: modifiedFields.traxsourceUrl,
     };
-    updateLabel.mutate(mappedData, {
+    updateLabel.mutate(labelUpdatePayload, {
       onSuccess: () => {
-        setNotification({ message: 'Label updated successfully', type: 'success' });
+        setLabelNotification({ message: 'Label updated successfully', type: 'success' });
         scrollToTop();
       },
       onError: (error: any) => {
-        setNotification({
+        setLabelNotification({
           message: error.messages,
           type: 'error',
         });
@@ -145,11 +145,11 @@ const UpdateLabelPage: React.FC = () => {
 
   const onSubmitForm = handleSubmit(
     (data) => {
-      onSubmit(data); // Llama a la función onSubmit si no hay errores
+      onSubmitLabel(data); // Llama a la función onSubmit si no hay errores
     },
     (errors) => {
       if (Object.keys(errors).length > 0) {
-        setErrorOpen(true); // Abre el popup si hay errores
+        setIsValidationErrorModalOpen(true); // Abre el popup si hay errores
       }
     },
   );
@@ -158,7 +158,7 @@ const UpdateLabelPage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleInputChange = () => clearNotification();
+  const handleInputChange = () => clearLabelNotification();
 
   const getErrorMessages = (errors: any): string[] => {
     let messages: string[] = [];
@@ -181,11 +181,11 @@ const UpdateLabelPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>{`Update Label: ${label?.name ?? 'Unknown'} - Córdoba Music Group`}</title>
+        <title>{`Update Label: ${labelData?.name ?? 'Unknown'} - Córdoba Music Group`}</title>
       </Helmet>
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
-          <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Update Label: {label?.name ?? 'Unknown'}</Typography>
+          <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Update Label: {labelData?.name ?? 'Unknown'}</Typography>
           <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
           <BasicButton
             colorBackground="white"
@@ -201,16 +201,16 @@ const UpdateLabelPage: React.FC = () => {
         </CustomPageHeader>
 
         <Box>
-          {notification?.type === 'success' && <SuccessBox>{notification.message}</SuccessBox>}
-          {notification?.type === 'error' && <ErrorBox>{notification.message}</ErrorBox>}
+          {labelNotification?.type === 'success' && <SuccessBox>{labelNotification.message}</SuccessBox>}
+          {labelNotification?.type === 'error' && <ErrorBox>{labelNotification.message}</ErrorBox>}
         </Box>
 
-        <FormProvider {...methods}>
+        <FormProvider {...labelFormMethods}>
           <LabelFormLayout handleSubmit={onSubmitForm} onChange={handleInputChange} />
         </FormProvider>
-        <ErrorModal2 open={errorOpen} onClose={() => setErrorOpen(false)}>
+        <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
           <List sx={{ padding: 0, margin: 0 }}>
-            {getErrorMessages(errors).map((msg, index) => (
+            {getErrorMessages(labelFormErrors).map((msg, index) => (
               <ListItem key={index} disableGutters sx={{ padding: '1px 0' }}>
                 <ListItemText primary={`• ${msg}`} sx={{ margin: 0, padding: 0 }} />
               </ListItem>

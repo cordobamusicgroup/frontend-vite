@@ -11,6 +11,8 @@ import { useErrorStore } from '../../../stores/error.store';
 import webRoutes from '@/lib/web.routes';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServerStatus } from '@/context/ServerStatusContext';
+import { Box, Typography } from '@mui/material';
+import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
 
 // Remove hardcoded token expiration times since we'll get them from API
 
@@ -235,7 +237,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   // Current user query with Tanstack Query
-  useQuery({
+  const { isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['auth', 'user'],
     queryFn: async () => {
       try {
@@ -406,6 +408,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     resetPassword,
     validateToken,
   };
+
+  // Render loading state or error message while authenticating
+  if (isAuthenticated && isLoadingUser) {
+    return <CenteredLoader open={true} />;
+  }
+
+  if (isAuthenticated && userError) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          textAlign: 'center',
+        }}
+      >
+        <Typography color="error" variant="h6">
+          Error loading user data
+        </Typography>
+      </Box>
+    );
+  }
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };

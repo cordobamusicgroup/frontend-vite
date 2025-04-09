@@ -29,8 +29,8 @@ export default [
         ]),
         ...prefix('users', [
           index('modules/admin/users/pages/ListUsersPage.tsx'),
-          // route('create', 'modules/admin/users/pages/CreateUserPage.tsx'),
-          // route('edit/:userId', 'modules/admin/users/pages/EditUserPage.tsx'),
+          route('create', 'modules/admin/users/pages/CreateUserPage.tsx'),
+          route('edit/:userId', 'modules/admin/users/pages/UpdateUserPage.tsx'),
         ]),
         ...prefix('reports', [
           // route('unlinked', 'modules/admin/reports/pages/UnlinkedReportsPage.tsx')

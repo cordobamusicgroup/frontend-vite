@@ -28,7 +28,7 @@ export default function NotFound() {
           The page you are looking for doesn't exist or has been moved.
         </Typography>
 
-        <Button variant="contained" color="primary" onClick={() => navigate('/')} size="large">
+        <Button variant="contained" color="primary" onClick={() => navigate(-1)} size="large">
           Return to Home
         </Button>
       </Box>
