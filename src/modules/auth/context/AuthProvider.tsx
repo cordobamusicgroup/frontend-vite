@@ -13,6 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServerStatus } from '@/context/ServerStatusContext';
 import { Box, Typography } from '@mui/material';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
+import { formatApiError } from '@/lib/formatApiError.util';
 
 // Remove hardcoded token expiration times since we'll get them from API
 
@@ -247,10 +248,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
         setUserData(response);
         return response;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching user data:', error);
         refetchServerStatus(); // Refetch server status on error
-        throw error;
+        throw formatApiError(error); // Format error for better user experience
       }
     },
     enabled: isAuthenticated && !userData,
@@ -415,6 +416,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   if (isAuthenticated && userError) {
+    // Check for rate limit error (429 Too Many Requests)
+    const is429Error = (userError as any)?.statusCode === 429;
+
     return (
       <Box
         sx={{
@@ -423,10 +427,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           alignItems: 'center',
           height: '100vh',
           textAlign: 'center',
+          padding: 2,
         }}
       >
         <Typography color="error" variant="h6">
-          Error loading user data
+          {is429Error ? 'Too many requests. Please wait 60 seconds before trying again.' : (userError as any)?.messages || 'Failed to load user data.'}
         </Typography>
       </Box>
     );
