@@ -7,7 +7,7 @@ import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
 
 const LabelDetailsForm: React.FC = () => {
   const { setValue, watch } = useFormContext();
-  const { clientsData, clientFetchLoading } = useClientsAdmin();
+  const { clientsData, loading } = useClientsAdmin();
 
   const clientId = watch('clientId');
   const selectedClient = clientsData?.find((client: any) => client.id === clientId) || null;
@@ -38,14 +38,14 @@ const LabelDetailsForm: React.FC = () => {
       <Autocomplete
         options={clientsData}
         getOptionLabel={(option) => `[ID: ${option.id}] ${option.clientName} (${option.firstName} ${option.lastName}) `}
-        loading={clientFetchLoading}
+        loading={loading.clientFetch}
         onChange={(_, value) => setValue('clientId', value ? value.id : null)}
         value={selectedClient}
         isOptionEqualToValue={(option, value) => option.id === value.id}
         renderInput={(params) => <TextFieldForm {...params} required name="clientId" label="Client" />}
       />
 
-      <TextFieldForm name="labelName" label="Label Name" />
+      <TextFieldForm name="name" label="Label Name" />
 
       <TextFieldForm name="labelStatus" label="Label Status" select>
         {LabelStatus.map((option) => (

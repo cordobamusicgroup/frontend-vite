@@ -13,7 +13,7 @@ export default [
       index('modules/portal/pages/Overview.tsx'),
       ...prefix('financial', [
         // route('payments-operations', 'modules/financial/pages/PaymentsOperations.tsx'),
-        // route('reports', 'modules/financial/pages/ReportsPage.tsx'),
+        route('reports', 'modules/user/financial/reports/pages/ReportsUserPage.tsx'),
       ]),
       ...prefix('user', [route('profile', 'modules/user/profile/pages/UserProfilePage.tsx')]),
       ...prefix('admin', [

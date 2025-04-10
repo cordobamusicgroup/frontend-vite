@@ -58,7 +58,7 @@ const UpdateLabelPage: React.FC = () => {
     return {
       labelId: labelData.id,
       clientId: labelData.clientId,
-      labelName: labelData.name,
+      name: labelData.name,
       labelStatus: labelData.status,
       labelWebsite: labelData.website,
       countryId: labelData.countryId,
@@ -118,16 +118,21 @@ const UpdateLabelPage: React.FC = () => {
     const modifiedFields = getModifiedFields(formData, initialLabelData);
 
     const labelUpdatePayload = {
-      name: modifiedFields.labelName,
-      clientId: modifiedFields.clientId,
-      status: modifiedFields.labelStatus,
-      website: modifiedFields.labelWebsite,
-      countryId: modifiedFields.countryId,
-      beatportStatus: modifiedFields.beatportStatus,
-      traxsourceStatus: modifiedFields.traxsourceStatus,
-      beatportUrl: modifiedFields.beatportUrl,
-      traxsourceUrl: modifiedFields.traxsourceUrl,
+      ...modifiedFields,
     };
+
+    // const labelUpdatePayload = {
+    //   name: modifiedFields.labelName,
+    //   clientId: modifiedFields.clientId,
+    //   status: modifiedFields.labelStatus,
+    //   website: modifiedFields.labelWebsite,
+    //   countryId: modifiedFields.countryId,
+    //   beatportStatus: modifiedFields.beatportStatus,
+    //   traxsourceStatus: modifiedFields.traxsourceStatus,
+    //   beatportUrl: modifiedFields.beatportUrl,
+    //   traxsourceUrl: modifiedFields.traxsourceUrl,
+    // };
+
     updateLabel.mutate(labelUpdatePayload, {
       onSuccess: () => {
         setLabelNotification({ message: 'Label updated successfully', type: 'success' });

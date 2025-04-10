@@ -29,7 +29,7 @@ const ListUsersPage: React.FC = () => {
         <title>Users - Córdoba Music Group</title>
       </Helmet>
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
-        <CustomPageHeader background={'#24793B'} color={theme.palette.primary.contrastText}>
+        <CustomPageHeader background={'linear-gradient(58deg, rgba(0,51,102,1) 0%, rgba(0,102,204,1) 85%)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '16px' }}>Manage Users</Typography>
           <BasicButton colorBackground="white" colorText={'#164723'} onClick={handleCreate} color="primary" variant="contained" startIcon={<PersonAddIcon />}>
             Create User

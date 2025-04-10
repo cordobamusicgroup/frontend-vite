@@ -20,7 +20,7 @@ export const LabelValidationSchema = z
     clientId: z.any().refine((value) => value !== null && value !== undefined && value !== '', {
       message: 'Client is required',
     }),
-    labelName: z.string().min(1, 'Label Name is required'),
+    name: z.string().min(1, 'Label Name is required'),
     labelStatus: createEnumSchema(LabelStatus, 'Invalid status'),
     labelWebsite: z.string().optional().nullable(),
     countryId: z.number().optional().nullable(),

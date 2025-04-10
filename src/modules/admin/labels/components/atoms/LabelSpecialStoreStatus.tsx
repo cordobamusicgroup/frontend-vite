@@ -5,28 +5,35 @@ import PriorityHighOutlinedIcon from '@mui/icons-material/PriorityHighOutlined';
 import { Chip } from '@mui/material';
 
 interface LabelSpecialStoreStatusProps {
-  status: string;
+  status: 'NO_REGISTRATION' | 'PENDING' | 'ACTIVE' | 'REJECTED';
 }
+
+const statusConfig = {
+  NO_REGISTRATION: {
+    label: 'Unregistered',
+    color: 'default' as 'default',
+    icon: <CancelOutlinedIcon style={{ color: 'gray' }} />,
+  },
+  PENDING: {
+    label: 'Pending',
+    color: 'warning' as 'warning',
+    icon: <ScheduleOutlinedIcon />,
+  },
+  ACTIVE: {
+    label: 'Active',
+    color: 'success' as 'success',
+    icon: <CheckCircleOutlineIcon style={{ color: 'white' }} />,
+  },
+  REJECTED: {
+    label: 'Rejected',
+    color: 'error' as 'error',
+    icon: <PriorityHighOutlinedIcon style={{ color: 'white' }} />,
+  },
+};
+
 const LabelSpecialStoreStatus: React.FC<LabelSpecialStoreStatusProps> = ({ status }) => {
-  if (status === 'NO_REGISTRATION')
-    return (
-      <Chip label="Unregistered" color="default" icon={<CancelOutlinedIcon style={{ color: 'gray' }} />} size="small" />
-    ); // NO_REGISTRATION
-  if (status === 'PENDING')
-    return <Chip label="Pending" color="warning" icon={<ScheduleOutlinedIcon />} size="small" />; // pending
-  if (status === 'ACTIVE')
-    return (
-      <Chip label="Active" color="success" icon={<CheckCircleOutlineIcon style={{ color: 'white' }} />} size="small" />
-    );
-  if (status === 'REJECTED')
-    return (
-      <Chip
-        label="Rejected"
-        color="error"
-        icon={<PriorityHighOutlinedIcon style={{ color: 'white' }} />}
-        size="small"
-      />
-    );
+  const config = statusConfig[status];
+  return config ? <Chip label={config.label} color={config.color} icon={config.icon} size="small" /> : null;
 };
 
 export default LabelSpecialStoreStatus;

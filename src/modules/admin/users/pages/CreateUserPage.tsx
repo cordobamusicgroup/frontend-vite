@@ -103,7 +103,7 @@ const CreateUserPage: React.FC = () => {
         <title>Create User - Córdoba Music Group</title>
       </Helmet>
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
-        <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
+        <CustomPageHeader background={'linear-gradient(58deg, rgba(0,51,102,1) 0%, rgba(0,102,204,1) 85%)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Creating User</Typography>
           <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
           <BasicButton
