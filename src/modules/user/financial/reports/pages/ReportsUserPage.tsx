@@ -28,7 +28,7 @@ export default function ReportsPage() {
 
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'#0A5F33'} color={theme.palette.primary.contrastText}>
-          <Typography sx={{ fontSize: '18px' }}>Financial Reports</Typography>
+          <Typography sx={{ fontSize: '16px' }}>Financial Reports</Typography>
           {/* <BasicButton colorBackground="white" colorText={"#0A5F33"} color="primary" variant="contained" startIcon={<FileUpload />}>
           Export Reports
         </BasicButton> */}
