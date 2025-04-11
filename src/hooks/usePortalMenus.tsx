@@ -6,7 +6,6 @@ import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
 import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
 import ContactEmergencyIcon from '@mui/icons-material/ContactEmergency';
 import AssessmentIcon from '@mui/icons-material/Assessment';
-import InboxIcon from '@mui/icons-material/Inbox';
 
 export interface SubMenuType {
   text: string;

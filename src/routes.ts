@@ -12,7 +12,7 @@ export default [
     layout('components/layouts/BackofficeLayout.tsx', [
       index('modules/portal/pages/Overview.tsx'),
       ...prefix('financial', [
-        // route('payments-operations', 'modules/financial/pages/PaymentsOperations.tsx'),
+        route('payments-operations', 'modules/user/financial/payments-operations/pages/PaymentsUserPage.tsx'),
         route('reports', 'modules/user/financial/reports/pages/ReportsUserPage.tsx'),
       ]),
       ...prefix('user', [route('profile', 'modules/user/profile/pages/UserProfilePage.tsx')]),
