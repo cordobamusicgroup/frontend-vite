@@ -75,7 +75,7 @@ export default function ReportsPage() {
             </li>
             <li>
               <Typography variant="body2">
-                Payments are usually processed around the <b>15th of each month</b>, once we have received the funds. Occasionally, delays may occur due to banking or other external factors.
+                Payments are usually processed between the <b>15th and 30th of each month</b>, once we have received the funds. Occasionally, delays may occur due to banking or other external factors.
               </Typography>
             </li>
           </ul>
