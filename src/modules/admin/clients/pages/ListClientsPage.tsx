@@ -9,7 +9,6 @@ import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import ListClientsTable from '../components/organisms/ListClientsTable';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { Helmet } from 'react-helmet';
 
 const ClientListPage: React.FC = () => {
@@ -20,8 +19,6 @@ const ClientListPage: React.FC = () => {
   const handleCreateClient = (): void => {
     navigate(webRoutes.admin.clients.create);
   };
-
-  useNotificationCleanup();
 
   return (
     <>

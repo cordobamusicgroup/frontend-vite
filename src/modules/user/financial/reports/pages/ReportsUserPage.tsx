@@ -1,7 +1,6 @@
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
-import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { useNotificationStore } from '@/stores';
 import theme from '@/theme';
 import { Box, Typography, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel } from '@mui/material';
@@ -12,8 +11,6 @@ import ReportsTable from '../components/organisms/ReportsUserTable';
 export default function ReportsPage() {
   const { notification, setNotification } = useNotificationStore();
   const [selectedDistributor, setSelectedDistributor] = useState<string | null>(null);
-
-  useNotificationCleanup();
 
   const handleDistributorChange = (event: SelectChangeEvent<string>) => {
     const distributor = event.target.value;

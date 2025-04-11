@@ -13,7 +13,6 @@ import { UserValidationSchema } from '../schemas/UserValidationSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import { useNotificationStore } from '@/stores';
-import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { Helmet } from 'react-helmet';
 import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 
@@ -54,8 +53,6 @@ const ProfileUserPage: React.FC = () => {
   const { notification, setNotification, clearNotification } = useNotificationStore();
   const [originalData, setOriginalData] = useState<any>(null);
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
-
-  useNotificationCleanup();
 
   const methods = useForm({
     mode: 'onSubmit',

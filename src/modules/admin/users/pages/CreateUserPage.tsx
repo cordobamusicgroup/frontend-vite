@@ -6,7 +6,6 @@ import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { Helmet } from 'react-helmet';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
@@ -24,8 +23,6 @@ const CreateUserPage: React.FC = () => {
   const { mutations: userMutations, loading: userLoading } = useUsersAdmin();
   const { notification: userNotification, setNotification: setUserNotification, clearNotification: clearUserNotification } = useNotificationStore();
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
-
-  useNotificationCleanup();
 
   const userFormMethods = useForm<UserFormData>({
     mode: 'all',

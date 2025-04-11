@@ -6,7 +6,6 @@ import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { Helmet } from 'react-helmet';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
@@ -25,8 +24,6 @@ const CreateLabelPage: React.FC = () => {
   const { notification: labelNotification, setNotification: setLabelNotification, clearNotification: clearLabelNotification } = useNotificationStore();
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
 
-  useNotificationCleanup();
-
   const labelFormMethods = useForm<LabelFormData>({
     mode: 'all',
     resolver: zodResolver(LabelValidationSchema),
@@ -41,7 +38,7 @@ const CreateLabelPage: React.FC = () => {
   const onSubmitLabel: SubmitHandler<LabelFormData> = async (formData) => {
     const labelPayload = {
       clientId: formData.clientId,
-      name: formData.labelName,
+      name: formData.name,
       status: formData.labelStatus,
       website: formData.labelWebsite,
       countryId: formData.countryId,

@@ -32,6 +32,7 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
 };
 
 const UpdateClientPage: React.FC = () => {
+
   const theme = useTheme();
   const { clientId } = useParams();
   const { clientsData: clientData, mutations: clientMutations, loading: clientOperationsLoading, errors: clientApiErrors } = useClientsAdmin(clientId);

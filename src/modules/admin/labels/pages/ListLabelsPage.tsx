@@ -8,7 +8,6 @@ import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { Helmet } from 'react-helmet';
 import ListLabelsTable from '../components/organisms/ListLabelsTable';
 
@@ -20,8 +19,6 @@ const ListLabelsPage: React.FC = () => {
   const handleCreateLabel = (): void => {
     navigate(webRoutes.admin.labels.create);
   };
-
-  useNotificationCleanup();
 
   return (
     <>

@@ -7,7 +7,6 @@ import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { Helmet } from 'react-helmet';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
@@ -40,8 +39,6 @@ const UpdateUserPage: React.FC = () => {
 
   // Store the initial data for comparison
   const [initialUserData, setInitialUserData] = useState<UserFormData | null>(null);
-
-  useNotificationCleanup();
 
   const userFormMethods = useForm<UserFormData>({
     mode: 'all',

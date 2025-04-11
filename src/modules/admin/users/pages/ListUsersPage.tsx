@@ -8,7 +8,6 @@ import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { Helmet } from 'react-helmet';
 import ListUserTable from '../components/organisms/ListUsersTable';
 
@@ -20,8 +19,6 @@ const ListUsersPage: React.FC = () => {
   const handleCreate = (): void => {
     navigate(webRoutes.admin.users.create);
   };
-
-  useNotificationCleanup();
 
   return (
     <>

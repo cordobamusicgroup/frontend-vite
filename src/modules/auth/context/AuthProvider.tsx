@@ -59,7 +59,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { apiRequest } = useApiRequest();
   const { setLoading } = useLoaderStore();
-  const { userData, setUserData } = useUserStore();
+  const { setUserData } = useUserStore();
   const { setError: setGlobalError } = useErrorStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();

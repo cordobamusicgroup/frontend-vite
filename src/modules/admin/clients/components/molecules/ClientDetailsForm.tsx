@@ -1,16 +1,16 @@
-import { FormControlLabel, Input, MenuItem, Switch, TextField } from "@mui/material";
-import { Controller, useFormContext } from "react-hook-form";
-import { typeOptions, taxIdTypeOptions } from "@/constants/backend.enums";
-import TextFieldForm from "@/components/ui/atoms/TextFieldForm";
+import { FormControlLabel, MenuItem, Switch } from '@mui/material';
+import { Controller, useFormContext } from 'react-hook-form';
+import { typeOptions, taxIdTypeOptions } from '@/constants/backend.enums';
+import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
 
 const ClientDetailsForm: React.FC = () => {
   const { setValue, watch, control } = useFormContext();
-  const vatRegistered = watch("client.vatRegistered");
+  const vatRegistered = watch('client.vatRegistered');
 
   const handleVatToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValue("client.vatRegistered", event.target.checked);
+    setValue('client.vatRegistered', event.target.checked);
     if (!event.target.checked) {
-      setValue("client.vatId", "");
+      setValue('client.vatId', '');
     }
   };
 
@@ -40,7 +40,27 @@ const ClientDetailsForm: React.FC = () => {
 
       <TextFieldForm name="client.taxId" label="Tax ID" />
 
-      <Controller name="client.vatRegistered" control={control} defaultValue={false} render={({ field }) => <FormControlLabel control={<Switch checked={vatRegistered} onChange={handleVatToggle} color="primary" />} label="VAT Registered" />} />
+      <Controller
+        name="client.vatRegistered"
+        control={control}
+        defaultValue={false}
+        render={({ field }) => (
+          <FormControlLabel
+            control={
+              <Switch
+                {...field}
+                checked={vatRegistered}
+                onChange={(event) => {
+                  field.onChange(event);
+                  handleVatToggle(event);
+                }}
+                color="primary"
+              />
+            }
+            label="VAT Registered"
+          />
+        )}
+      />
 
       {vatRegistered && <TextFieldForm name="client.vatId" label="VAT ID" />}
     </>

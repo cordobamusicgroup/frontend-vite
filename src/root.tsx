@@ -1,6 +1,7 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
 import { AuthProvider } from './modules/auth/context/AuthProvider';
 import { ServerStatusProvider } from './context/ServerStatusContext';
+import { useNotificationCleanup } from './hooks/useNotificationCleanup';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -22,6 +23,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function Root() {
+  useNotificationCleanup();
+
   return (
     <ServerStatusProvider>
       <AuthProvider>

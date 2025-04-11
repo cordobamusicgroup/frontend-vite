@@ -1,12 +1,9 @@
-import React, { useEffect } from "react";
-import { MenuItem, InputAdornment, Box, FormControlLabel, Switch } from "@mui/material";
-import { Controller, set, useFormContext } from "react-hook-form";
+import { MenuItem, Box } from '@mui/material';
 
-import { AccessTypeDMB, StatusDMB } from "@/constants/backend.enums";
-import TextFieldForm from "@/components/ui/atoms/TextFieldForm";
+import { AccessTypeDMB, StatusDMB } from '@/constants/backend.enums';
+import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
 
 const DmbDetailsForm: React.FC = () => {
-
   return (
     <Box>
       <TextFieldForm required name="dmb.accessType" label="DMB Access Type" select>

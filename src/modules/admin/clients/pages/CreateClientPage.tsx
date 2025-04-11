@@ -6,7 +6,6 @@ import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { useNotificationCleanup } from '@/hooks/useNotificationCleanup';
 import { Helmet } from 'react-helmet';
 import { useClientsAdmin } from '../hooks/useClientsAdmin';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
@@ -25,8 +24,6 @@ const CreateClientPage: React.FC = () => {
   const { mutations: clientMutations, loading: clientOperationsLoading } = useClientsAdmin();
   const { notification: clientNotification, setNotification: setClientNotification, clearNotification: clearClientNotification } = useNotificationStore();
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
-
-  useNotificationCleanup();
 
   const clientFormMethods = useForm<ClientFormData>({
     mode: 'all',
