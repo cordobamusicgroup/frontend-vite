@@ -7,6 +7,7 @@ import theme from '@/theme';
 import { Box, Typography, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel } from '@mui/material';
 import { useState } from 'react';
 import { Helmet } from 'react-helmet';
+import ReportsTable from '../components/organisms/ReportsUserTable';
 
 export default function ReportsPage() {
   const { notification, setNotification } = useNotificationStore();
@@ -72,7 +73,11 @@ export default function ReportsPage() {
           </Typography>
         </Box>
 
-        {selectedDistributor && <Box sx={{ display: 'flex', height: '600px', width: '100%', justifyContent: 'center' }}>{/* <ReportsTable distributor={selectedDistributor} /> */}</Box>}
+        {selectedDistributor && (
+          <Box sx={{ display: 'flex', height: '600px', width: '100%', justifyContent: 'center' }}>
+            <ReportsTable distributor={selectedDistributor} />
+          </Box>
+        )}
       </Box>
     </>
   );
