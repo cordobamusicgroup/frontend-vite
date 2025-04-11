@@ -49,27 +49,38 @@ export default function ReportsPage() {
         </Box>
 
         <Box my={2} p={2} sx={{ backgroundColor: '#e3f2fd', color: '#1976d2', borderLeft: '6px solid #1976d2' }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            FAQ
-          </Typography>
-          <Typography variant="body2">
-            The page displays financial reports. The column <b>"Debit State"</b> indicates whether the report has been paid in the balance or not. If it says <b>"Paid"</b>, it means it was paid with
-            its corresponding date. However, older reports from 2024 may appear without a date as they were paid on the previous platform. <b>"Unpaid"</b> means the report's value has not yet impacted
-            your balance because we do not have the funds available on our side.
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 2 }}>
-            Below are approximate dates, which may vary:
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            This page displays your financial reports. The <b>"Debit State"</b> column indicates whether the report has been paid into your balance:
           </Typography>
           <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
             <li>
-              <Typography variant="body2">All reports are received between the 30th and the 1st of the following month, but this does not mean they are paid on those dates.</Typography>
+              <Typography variant="body2">
+                <b>Paid</b>: The amount has been credited, along with the corresponding payment date. Older reports from 2024 may not show a date, as they were processed through our previous platform.
+              </Typography>
             </li>
             <li>
-              <Typography variant="body2">Payments are made on the 15th of each month once the payment is received. In some cases, delays may occur due to banking or other issues.</Typography>
+              <Typography variant="body2">
+                <b>Unpaid</b>: The amount has not yet been credited to your balance because we have not received the corresponding funds.
+              </Typography>
+            </li>
+          </ul>
+          <Typography variant="body2" sx={{ mt: 2 }}>
+            Please note:
+          </Typography>
+          <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
+            <li>
+              <Typography variant="body2">
+                Reports are generally uploaded between the <b>30th of the current month</b> and the <b>1st of the following month</b>. This does <u>not</u> mean they are paid on those dates.
+              </Typography>
+            </li>
+            <li>
+              <Typography variant="body2">
+                Payments are usually processed around the <b>15th of each month</b>, once we have received the funds. Occasionally, delays may occur due to banking or other external factors.
+              </Typography>
             </li>
           </ul>
           <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>
-            * Dates are approximate and may vary. Please avoid contacting us frequently to inquire about when payments will be made or reports will arrive.
+            * All dates are estimates and subject to change. We kindly ask that you refrain from contacting support solely to inquire about payment or report arrival dates.
           </Typography>
         </Box>
 
