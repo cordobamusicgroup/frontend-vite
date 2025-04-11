@@ -1,6 +1,11 @@
-import { Roles } from "@/constants/roles";
-import routes from "@/lib/routes";
-import { Home as HomeIcon, AttachMoney as AttachMoneyIcon, LibraryMusic, SupervisedUserCircle, ContactEmergency, Assessment, Inbox } from "@mui/icons-material";
+import { Roles } from '@/constants/roles';
+import webRoutes from '@/lib/web.routes';
+import HomeIcon from '@mui/icons-material/Home';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
+import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
+import ContactEmergencyIcon from '@mui/icons-material/ContactEmergency';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 
 export interface SubMenuType {
   text: string;
@@ -20,60 +25,54 @@ export interface MenuItemType {
 export const usePortalMenus = (userRole: Roles): MenuItemType[] => {
   const allMenuItems: MenuItemType[] = [
     {
-      text: "Overview",
+      text: 'Overview',
       icon: <HomeIcon />,
       roles: [Roles.All],
-      path: routes.web.backoffice.overview,
+      path: webRoutes.backoffice.overview,
     },
     {
-      text: "Financial",
+      text: 'Financial',
       icon: <AttachMoneyIcon />,
       roles: [Roles.All],
       subMenuItems: [
         {
-          text: "Payments & Operations",
-          path: routes.web.backoffice.financial.payments,
+          text: 'Payments & Operations',
+          path: webRoutes.backoffice.financial.payments,
           roles: [Roles.All],
         },
         {
-          text: "Financial Reports",
-          path: routes.web.backoffice.financial.reports,
+          text: 'Financial Reports',
+          path: webRoutes.backoffice.financial.reports,
           roles: [Roles.All],
         },
       ],
     },
     {
-      text: "Workflow",
-      icon: <Inbox />,
+      text: 'Clients',
+      icon: <ContactEmergencyIcon />,
       roles: [Roles.Admin],
-      path: routes.web.admin.workflow.root,
+      path: webRoutes.admin.clients.root,
     },
     {
-      text: "Clients",
-      icon: <ContactEmergency />,
+      text: 'Labels',
+      icon: <LibraryMusicIcon />,
       roles: [Roles.Admin],
-      path: routes.web.admin.clients.root,
+      path: webRoutes.admin.labels.root,
     },
     {
-      text: "Labels",
-      icon: <LibraryMusic />,
+      text: 'Users',
+      icon: <SupervisedUserCircleIcon />,
       roles: [Roles.Admin],
-      path: routes.web.admin.labels.root,
+      path: webRoutes.admin.users.root,
     },
     {
-      text: "Users",
-      icon: <SupervisedUserCircle />,
-      roles: [Roles.Admin],
-      path: routes.web.admin.users.root,
-    },
-    {
-      text: "Reports",
-      icon: <Assessment />,
+      text: 'Reports',
+      icon: <AssessmentIcon />,
       roles: [Roles.Admin],
       subMenuItems: [
         {
-          text: "Link Missing Reports",
-          path: routes.web.admin.reports.unlinked.root,
+          text: 'Link Missing Reports',
+          path: webRoutes.admin.reports.unlinked.root,
           roles: [Roles.Admin],
         },
       ],

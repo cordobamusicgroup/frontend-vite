@@ -21,8 +21,9 @@ const TextFieldForm: React.FC<TextFieldFormProps> = ({ name, label, defaultValue
         <TextField
           {...field}
           // Convert null values to empty string to avoid React warnings
-          value={field.value === null ? "" : field.value}
+          variant="standard"
           {...props}
+          value={field.value === null ? "" : field.value}
           label={label}
           fullWidth
           sx={{ marginBottom: 2, marginTop: 2 }}

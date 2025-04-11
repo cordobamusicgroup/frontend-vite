@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { ListItemIcon, ListItemText, Collapse, List, Link, ListItemButton } from "@mui/material";
-import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ArrowForwardOutlinedIcon from "@mui/icons-material/ArrowForwardOutlined";
 import { MenuItemType, SubMenuType } from "@/hooks/usePortalMenus";
 import { useNavigate } from "react-router";
@@ -43,7 +44,7 @@ const MenuItemContent: React.FC<{
     {isOpen && <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: "14px" }} />}
 
     {/* Fixed undefined check */}
-    {isOpen && item.subMenuItems && item.subMenuItems.length > 0 && (isSubMenuOpen ? <ExpandLess /> : <ExpandMore />)}
+    {isOpen && item.subMenuItems && item.subMenuItems.length > 0 && (isSubMenuOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />)}
   </>
 );
 

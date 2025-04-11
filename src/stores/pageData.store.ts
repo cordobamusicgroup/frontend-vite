@@ -4,11 +4,9 @@ import { persist, devtools } from "zustand/middleware";
 interface PageDataState {
   openMenu: boolean;
   openSubMenu: string | null;
-  pageTitle: string | null;
   toggleMenu: () => void;
   setMenuOpen: (openMenu: boolean) => void;
   toggleSubMenu: (subMenu: string) => void;
-  setPageTitle: (pageTitle: string) => void;
 }
 
 // Almacenamiento persistente con localStorage
@@ -31,7 +29,6 @@ export const usePageDataStore = create<PageDataState>()(
       (set) => ({
         openMenu: false,
         openSubMenu: null,
-        pageTitle: null,
 
         toggleMenu: () => set((state) => ({ openMenu: !state.openMenu })),
         setMenuOpen: (openMenu) => set({ openMenu }),
@@ -40,7 +37,6 @@ export const usePageDataStore = create<PageDataState>()(
             openSubMenu: state.openSubMenu === subMenu ? null : subMenu,
             openMenu: state.openMenu || state.openSubMenu !== subMenu,
           })),
-        setPageTitle: (pageTitle) => set({ pageTitle }),
       }),
       {
         name: "page-data-store",

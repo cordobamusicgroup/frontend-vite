@@ -1,9 +1,10 @@
 import { usePageDataStore } from "@/stores";
 import { isMobile } from "@/theme";
 import { styled } from "@mui/material";
-import { Outlet } from "react-router";
+import { Outlet, useNavigation } from "react-router";
 import HeaderLayout from "./HeaderLayout";
 import VerticalMenu from "../ui/molecules/VerticalMenu";
+import SkeletonLoader from "../ui/molecules/SkeletonLoader";
 
 //TODO: Implement this layout
 // * Add HeaderLayout
@@ -42,15 +43,15 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{ 
 
 const BackofficeLayout: React.FC = () => {
   const isOpen = usePageDataStore().openMenu;
+  const navigation = useNavigation();
+  const isNavigating = Boolean(navigation.location);
 
   return (
     <div>
       <HeaderLayout />
       {!isMobile() && <VerticalMenu />}
       {isMobile() && isOpen && <VerticalMenu />}
-      <Main open={isOpen}>
-        <Outlet />
-      </Main>
+      <Main open={isOpen}>{isNavigating ? <SkeletonLoader /> : <Outlet />}</Main>
     </div>
   );
 };
