@@ -254,7 +254,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw formatApiError(error); // Format error for better user experience
       }
     },
-    enabled: isAuthenticated && !userData,
+    enabled: isAuthenticated,
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

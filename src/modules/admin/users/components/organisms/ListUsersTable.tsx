@@ -85,7 +85,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
   const columns: ColDef[] = [
     { field: 'id', headerName: 'ID', width: 100, flex: 0, sortable: true, sort: 'desc' },
     { field: 'username', headerName: 'Username', width: 200 },
-    { field: 'email', headerName: 'Email', width: 200 },
+    { field: 'email', headerName: 'Email', width: 300 },
     { field: 'fullName', headerName: 'Full Name', width: 200 },
     {
       field: 'client',
@@ -115,7 +115,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
   ];
 
   const rowData = usersData?.map((apiData: any) => {
-    const client = clientsData.find((client: any) => client.id === apiData.clientId);
+    const client = clientsData?.find((client: any) => client.id === apiData.clientId);
 
     return {
       id: apiData.id,

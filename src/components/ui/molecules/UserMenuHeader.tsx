@@ -2,17 +2,7 @@
 import React, { useState } from 'react';
 
 // MUI components
-import {
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-  Box,
-  Typography,
-  IconButton,
-  Divider,
-  Avatar,
-} from '@mui/material';
+import { Menu, MenuItem, ListItemIcon, ListItemText, Box, Typography, IconButton, Divider, Avatar } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
@@ -24,6 +14,7 @@ import { isMobile } from '@/theme';
 // Components
 import LoadingSpinner from '../atoms/LoadingSpinnert';
 import { useNavigate } from 'react-router';
+import { shallow } from 'zustand/shallow';
 
 /**
  * Component that displays a user menu with options for the current user.
@@ -37,7 +28,7 @@ const UserMenuHeader: React.FC = () => {
   const navigate = useNavigate();
 
   const theme = useTheme();
-  const { userData } = useUserStore();
+  const userData = useUserStore((state) => state.userData);
   const menuItems = useUserMenuItems(userData?.role || 'User');
 
   const isMobileView = isMobile();

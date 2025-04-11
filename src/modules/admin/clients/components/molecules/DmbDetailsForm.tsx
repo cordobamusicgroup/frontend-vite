@@ -6,7 +6,6 @@ import { AccessTypeDMB, StatusDMB } from "@/constants/backend.enums";
 import TextFieldForm from "@/components/ui/atoms/TextFieldForm";
 
 const DmbDetailsForm: React.FC = () => {
-  const { setValue, watch, getValues, control } = useFormContext();
 
   return (
     <Box>
