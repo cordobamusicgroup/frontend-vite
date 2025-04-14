@@ -10,15 +10,14 @@ import { useForm, type SubmitHandler, FormProvider } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { MetaFunction } from 'react-router';
-import ErrorModal from '@/components/ui/molecules/ErrorModal';
-import { useLoaderStore, useErrorStore } from '@/stores';
+import { useErrorStore } from '@/stores';
 import LoginFormFields from '../components/molecules/LoginFormFields';
-import { useAuth } from '../hooks/useAuth';
 import AuthLayout from '../layouts/AuthLayout';
 import { Helmet } from 'react-helmet';
 import { useState } from 'react';
 import ForgotPasswordPopup from './ForgotPasswordPopup';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
+import useAuthQueries from '../hooks/useAuthQueries';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Auth - Córdoba Music Group' }];
@@ -35,8 +34,7 @@ const schema = z.object({
 });
 
 function LoginPage() {
-  const { login } = useAuth();
-  const { loading } = useLoaderStore();
+  const { loginMutation } = useAuthQueries();
   const { error, openModal, clearError, closeModal } = useErrorStore();
   const [openPopUpForgot, setOpenPopUpForgot] = useState<boolean>(false);
 
@@ -47,14 +45,9 @@ function LoginPage() {
 
   const { handleSubmit } = methods;
 
-  const onSubmit: SubmitHandler<IFormInput> = async ({ username, password }) => {
+  const onSubmitLogin: SubmitHandler<IFormInput> = async ({ username, password }) => {
     clearError();
-    console.log('Form submitted with:', { username, password });
-    const success = await login({ username, password });
-    if (!success) {
-      // Handle login failure
-      console.error('Login failed');
-    }
+    loginMutation.mutateAsync({ username, password });
   };
 
   return (
@@ -65,20 +58,9 @@ function LoginPage() {
       </Helmet>
       <AuthLayout>
         <FormProvider {...methods}>
-          <Box
-            component="form"
-            onSubmit={handleSubmit(onSubmit)}
-            sx={{ mt: 3, width: '100%', maxWidth: '400px', mx: 'auto' }}
-          >
+          <Box component="form" onSubmit={handleSubmit(onSubmitLogin)} sx={{ mt: 3, width: '100%', maxWidth: '400px', mx: 'auto' }}>
             <LoginFormFields />
-            <Button
-              type="submit"
-              sx={{ mt: 3, mb: 2 }}
-              fullWidth
-              loading={loading}
-              loadingPosition="end"
-              variant="contained"
-            >
+            <Button type="submit" sx={{ mt: 3, mb: 2 }} fullWidth loading={loginMutation.isPending} loadingPosition="end" variant="contained">
               Sign In
             </Button>
           </Box>
@@ -92,10 +74,7 @@ function LoginPage() {
             </Grid>
           </Box>
         </FormProvider>
-        <ErrorModal2
-          open={openModal}
-          onClose={closeModal}
-        >
+        <ErrorModal2 open={openModal} onClose={closeModal}>
           <Typography>{error}</Typography>
         </ErrorModal2>
         <ForgotPasswordPopup open={openPopUpForgot} onClose={() => setOpenPopUpForgot(false)} />

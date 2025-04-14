@@ -81,7 +81,7 @@ const CreateClientPage: React.FC = () => {
       onError: (clientApiError: FormattedApiError) => {
         scrollToPageTop();
         setClientNotification({
-          message: clientApiError.messages,
+          message: clientApiError.message,
           type: 'error',
         });
       },
