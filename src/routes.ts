@@ -5,7 +5,7 @@ export default [
 
   route('*', 'modules/portal/pages/not-found.tsx'),
   // Auth routes
-  ...prefix('auth', [route('login', 'modules/auth/pages/LoginPage.tsx'), route('reset', 'modules/auth/pages/ResetPasswordPage.tsx')]),
+  ...prefix('auth', [layout('modules/auth/layouts/AuthLayout.tsx', [route('login', 'modules/auth/pages/LoginPage.tsx'), route('reset', 'modules/auth/pages/ResetPasswordPage.tsx')])]),
 
   // Backoffice routes
   ...prefix('/backoffice', [

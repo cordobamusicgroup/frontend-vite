@@ -56,29 +56,27 @@ function LoginPage() {
         <title>Auth - Córdoba Music Group</title>
         <meta name="description" content="Login page for Córdoba Music Group" />
       </Helmet>
-      <AuthLayout>
-        <FormProvider {...methods}>
-          <Box component="form" onSubmit={handleSubmit(onSubmitLogin)} sx={{ mt: 3, width: '100%', maxWidth: '400px', mx: 'auto' }}>
-            <LoginFormFields />
-            <Button type="submit" sx={{ mt: 3, mb: 2 }} fullWidth loading={loginMutation.isPending} loadingPosition="end" variant="contained">
-              Sign In
-            </Button>
-          </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-            <Grid container justifyContent="center" sx={{ mt: 2 }}>
-              <Grid>
-                <Link href="#" onClick={() => setOpenPopUpForgot(true)} variant="body2">
-                  Forgot password?
-                </Link>
-              </Grid>
+      <FormProvider {...methods}>
+        <Box component="form" onSubmit={handleSubmit(onSubmitLogin)} sx={{ mt: 3, width: '100%', maxWidth: '400px', mx: 'auto' }}>
+          <LoginFormFields />
+          <Button type="submit" sx={{ mt: 3, mb: 2 }} fullWidth loading={loginMutation.isPending} loadingPosition="end" variant="contained">
+            Sign In
+          </Button>
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+          <Grid container justifyContent="center" sx={{ mt: 2 }}>
+            <Grid>
+              <Link href="#" onClick={() => setOpenPopUpForgot(true)} variant="body2">
+                Forgot password?
+              </Link>
             </Grid>
-          </Box>
-        </FormProvider>
-        <ErrorModal2 open={openModal} onClose={closeModal}>
-          <Typography>{error}</Typography>
-        </ErrorModal2>
-        <ForgotPasswordPopup open={openPopUpForgot} onClose={() => setOpenPopUpForgot(false)} />
-      </AuthLayout>
+          </Grid>
+        </Box>
+      </FormProvider>
+      <ErrorModal2 open={openModal} onClose={closeModal}>
+        <Typography>{error}</Typography>
+      </ErrorModal2>
+      <ForgotPasswordPopup open={openPopUpForgot} onClose={() => setOpenPopUpForgot(false)} />
     </>
   );
 }
