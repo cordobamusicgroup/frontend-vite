@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { Box, Paper, Typography } from '@mui/material';
+import { useRef } from 'react';
+import { Box } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { AgGridReact } from 'ag-grid-react';
 import webRoutes from '@/lib/web.routes';
@@ -8,9 +8,10 @@ import GridTables from '@/components/ui/organisms/GridTables';
 import SearchBoxTable from '@/components/ui/organisms/SearchBoxTable';
 import { ColDef } from 'ag-grid-community';
 import { useClientsAdmin } from '@/modules/admin/clients/hooks/useClientsAdmin';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { useUsersAdmin } from '../../hooks/useUsersAdmin';
 import UserAdminActionButtons from '../molecules/UserAdminActionButtons';
+import TableSkeletonLoader from '@/components/ui/atoms/TableSkeletonLoader';
+import FailedToLoadData from '@/components/ui/molecules/FailedToLoadData';
 
 interface Props {
   setNotification: (notification: { message: string; type: 'success' | 'error' }) => void;
@@ -20,7 +21,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
   const navigate = useNavigate();
   const gridRef = useRef<AgGridReact>(null);
   const { usersData, loading, errors, mutations } = useUsersAdmin();
-  const { clientsData } = useClientsAdmin();
+  const { clientsData, loading: clientLoading, errors: clientErrors } = useClientsAdmin();
 
   const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter(gridRef);
 
@@ -28,36 +29,8 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
     navigate(`${webRoutes.admin.users.edit}/${user.id}`);
   };
 
-  if (errors.userFetch) {
-    return (
-      <Box
-        sx={{
-          width: '100%',
-          mx: 'auto',
-          mt: 1,
-          textAlign: 'center',
-        }}
-      >
-        <Paper
-          elevation={0}
-          sx={{
-            p: 5,
-            borderRadius: 3,
-            backgroundColor: (theme) => (theme.palette.mode === 'light' ? 'rgba(244, 67, 54, 0.05)' : 'rgba(244, 67, 54, 0.1)'),
-          }}
-        >
-          <ErrorOutlineIcon sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
-
-          <Typography variant="h5" color="error.main" gutterBottom>
-            Oops! Something went wrong
-          </Typography>
-
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            Failed to load data
-          </Typography>
-        </Paper>
-      </Box>
-    );
+  if (errors.userFetch || clientErrors.clientFetch) {
+    return <FailedToLoadData secondaryText="Failed to load users data" />;
   }
 
   const handleDelete = async (id: number): Promise<void> => {
@@ -83,7 +56,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
   };
 
   const columns: ColDef[] = [
-    { field: 'id', headerName: 'ID', width: 100, flex: 0, sortable: true, sort: 'desc' },
+    { field: 'id', headerName: 'ID', width: 100, sortable: true, sort: 'desc' },
     { field: 'username', headerName: 'Username', width: 200 },
     { field: 'email', headerName: 'Email', width: 300 },
     { field: 'fullName', headerName: 'Full Name', width: 200 },
@@ -91,13 +64,30 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
       field: 'client',
       headerName: 'Client',
       width: 300,
-      valueGetter: (params: any) => params.data.clientName,
+      valueGetter: (params: any) => {
+        // Si los datos están cargando, devuelve un texto temporal
+        if (clientLoading.clientFetch) {
+          return 'Loading...';
+        }
+
+        const client = clientsData?.find((c: any) => c.id === params.data.clientId);
+        return client ? `${client.clientName} (${client.id})` : 'Unknown Client';
+      },
+      cellRenderer: (params: any) => {
+        // Renderiza un spinner o el valor final en la celda
+        if (clientLoading.clientFetch) {
+          return <TableSkeletonLoader />;
+        }
+
+        return params.value; // Usa el valor calculado por valueGetter
+      },
     },
     { field: 'role', headerName: 'Role', width: 150 },
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 150,
+      width: 200,
+      minWidth: 200,
       flex: 1,
       sortable: false,
       filter: false,
@@ -115,8 +105,6 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
   ];
 
   const rowData = usersData?.map((apiData: any) => {
-    const client = clientsData?.find((client: any) => client.id === apiData.clientId);
-
     return {
       id: apiData.id,
       username: apiData.username,
@@ -124,7 +112,6 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
       fullName: apiData.fullName,
       role: apiData.role,
       clientId: apiData.clientId,
-      clientName: client ? `${client.clientName} (${client.id})` : 'No client found',
     };
   });
 

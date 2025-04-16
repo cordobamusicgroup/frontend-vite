@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, type ReactNode } from 'react';
 import Cookies from 'js-cookie';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { jwtDecode } from 'jwt-decode';
 import { useApiRequest } from '../../../hooks/useApiRequest';
 import { apiRoutes } from '../../../lib/api.routes';
@@ -42,6 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const queryClient = useQueryClient();
   const { refetchServerStatus } = useServerStatus(); // Assuming this is a function to refetch server status
   const { setAuthenticated, isAuthenticated } = useAuthStore();
+  const location = useLocation(); // Get the current location
 
   /**
    * Handles invalid or expired tokens by clearing credentials and redirecting to login
@@ -59,6 +60,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * @returns {boolean} Whether the token is valid
    */
   const validateToken = () => {
+    const currentPath = location.pathname;
+
+    // Skip token validation for routes starting with /auth/
+    if (currentPath.startsWith('/auth/')) {
+      return true;
+    }
+
     const token = Cookies.get('access_token');
     if (!token) {
       handleInvalidToken();
