@@ -13,6 +13,7 @@
     "@cloudflare/workers-types": "^4.20250321.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@fontsource-variable/roboto": "^5.2.5",
     "@fontsource/roboto": "^5.2.5",
     "@hookform/resolvers": "^4.1.3",
     "@mui/icons-material": "^7.0.0",

@@ -1,24 +1,21 @@
-import { Box } from "@mui/material";
-import LoginLogo from "../components/atoms/LoginLogo";
-import type { ReactNode } from "react";
+import { Box } from '@mui/material';
+import LoginLogo from '../components/atoms/LoginLogo';
+import { Outlet } from 'react-router';
 
-interface AuthLayoutProps {
-  children: ReactNode;
-}
-const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
+const AuthLayout: React.FC = () => {
   return (
     <Box
       sx={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
         padding: 3,
       }}
     >
       <LoginLogo />
-      {children}
+      <Outlet />
     </Box>
   );
 };

@@ -1,5 +1,5 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
-import { AuthProvider } from './modules/auth/context/AuthProvider';
+import { AuthProvider } from './modules/auth/context/AuthContext';
 import { ServerStatusProvider } from './context/ServerStatusContext';
 import { useNotificationCleanup } from './hooks/useNotificationCleanup';
 

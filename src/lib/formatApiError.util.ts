@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 
 type ErrorResponse = {
   message?: string | string[];
@@ -7,24 +7,33 @@ type ErrorResponse = {
 };
 
 export type FormattedApiError = {
-  messages: string[]; // siempre un array, aunque haya un solo mensaje
+  message: string[]; // siempre un array, aunque haya un solo mensaje
   statusCode?: number;
   error?: string;
 };
 
-export const formatApiError = (error: unknown): FormattedApiError => {
+/**
+ * @deprecated Use `formatError` instead.
+ */
+export const formatApiError = (error: any): FormattedApiError => {
   const err = error as AxiosError<ErrorResponse>;
 
   const rawMessage = err.response?.data?.message;
-  const messages: string[] = Array.isArray(rawMessage)
-    ? rawMessage
-    : rawMessage
-    ? [rawMessage]
-    : [err.message || 'An unexpected error occurred'];
+  const message: string[] = Array.isArray(rawMessage) ? rawMessage : rawMessage ? [rawMessage] : [err.message || 'An unexpected error occurred'];
+  console.log('Formatted API Error:', err);
 
   return {
-    messages,
+    message: message,
     statusCode: err.response?.data?.statusCode,
     error: err.response?.data?.error,
+  };
+};
+
+export const formatError = (error: any) => {
+  if (axios.isAxiosError(error)) {
+    return error as AxiosError;
+  }
+  return {
+    error: error.message || 'An unexpected error occurred',
   };
 };
