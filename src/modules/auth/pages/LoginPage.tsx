@@ -35,7 +35,7 @@ const schema = z.object({
 
 function LoginPage() {
   const { loginMutation } = useAuthQueries();
-  const { error, openModal, clearError, closeModal } = useErrorStore();
+  const { error, openModal, closeModal } = useErrorStore();
   const [openPopUpForgot, setOpenPopUpForgot] = useState<boolean>(false);
 
   const methods = useForm({
@@ -46,7 +46,6 @@ function LoginPage() {
   const { handleSubmit } = methods;
 
   const onSubmitLogin: SubmitHandler<IFormInput> = async ({ username, password }) => {
-    clearError();
     loginMutation.mutateAsync({ username, password });
   };
 

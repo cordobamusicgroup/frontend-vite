@@ -56,14 +56,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   /**
+   * Valida si la ruta actual es pública según la configuración de rutas protegidas
+   */
+  const isPublicRoute = (currentPath: string) => {
+    return webRoutes.protected.find((route: any) => route.path === currentPath && route.public === true) !== undefined;
+  };
+
+  /**
    * Validates the current auth token
    * @returns {boolean} Whether the token is valid
    */
   const validateToken = () => {
     const currentPath = location.pathname;
 
-    // Skip token validation for routes starting with /auth/
-    if (currentPath.startsWith('/auth/')) {
+    // Omitir validación de token si la ruta es pública
+    if (isPublicRoute(currentPath)) {
       return true;
     }
 
@@ -79,18 +86,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // If token is expired
       if (decoded.exp < currentTime) {
-        // Token refresh will be implemented in the future
-        // For now, just handle invalid token
         handleInvalidToken();
         return false;
       }
-
-      // Token refresh for near-expiration will be implemented later
-      /* 
-      if (decoded.exp - currentTime < 300) {
-        refreshToken();
-      }
-      */
 
       setAuthenticated(true);
       return true;

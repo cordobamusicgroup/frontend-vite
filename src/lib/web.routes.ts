@@ -2,7 +2,8 @@ import { Roles } from '@/constants/roles';
 
 export interface ProtectedRouteConfig {
   path: string;
-  roles: Roles[] | Roles.All;
+  roles?: Roles[] | Roles.All; // roles ahora es opcional
+  public?: boolean; // nueva propiedad para rutas públicas
 }
 
 interface RouteValue {
@@ -77,7 +78,8 @@ const prefixedRoutes = prefixRoutes(BACKOFFICE_BASE_URL, baseRoutes);
 // Función para crear rutas protegidas
 function createProtectedRoutes(): ProtectedRouteConfig[] {
   return [
-    { path: '/auth/login', roles: [Roles.All] },
+    { path: '/auth/login', public: true },
+    { path: '/auth/reset', public: true },
     { path: prefixedRoutes.admin.root as string, roles: [Roles.Admin] },
     { path: prefixedRoutes.backoffice.user.root as string, roles: [Roles.User, Roles.Admin] },
     { path: prefixedRoutes.backoffice.financial.invoices as string, roles: [Roles.All] },
