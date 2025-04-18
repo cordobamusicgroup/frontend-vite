@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { useLocation } from 'react-router';
 import useAuthQueries from '../hooks/useAuthQueries';
 import { z } from 'zod';
@@ -7,10 +8,12 @@ import { Box, Button, InputAdornment, IconButton, Typography } from '@mui/materi
 import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
 import { Check, Close, Visibility, VisibilityOff } from '@mui/icons-material';
 import FailedToLoadData from '@/components/ui/molecules/FailedToLoadData';
-import { useState } from 'react';
 import { useErrorStore } from '@/stores';
 import { AxiosError } from 'axios';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
+import SuccessModal from '@/components/ui/molecules/SucessModal';
+import { useNavigate } from 'react-router';
+import webRoutes from '@/lib/web.routes';
 
 interface IResetPasswordForm {
   newPassword: string;
@@ -59,6 +62,9 @@ export default function ResetPasswordPage() {
   const { error, openModal, closeModal, setError } = useErrorStore();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [countdown, setCountdown] = useState(3);
 
   if (!resetToken) {
     console.error('Reset token is missing');
@@ -70,7 +76,6 @@ export default function ResetPasswordPage() {
   }
 
   const onSubmitForm = handleSubmit(async (data: IResetPasswordForm) => {
-
     if (data.newPassword !== data.confirmPassword) {
       methods.setError('confirmPassword', { type: 'manual', message: 'Passwords do not match' });
     }
@@ -79,7 +84,8 @@ export default function ResetPasswordPage() {
       { token: resetToken, newPassword: data.newPassword },
       {
         onSuccess: () => {
-          // Handle success (e.g., redirect to login page)
+          setShowSuccess(true);
+          setCountdown(3);
         },
         onError: (e: unknown) => {
           console.log('Error resetting password:', e);
@@ -89,6 +95,19 @@ export default function ResetPasswordPage() {
       },
     );
   });
+
+  // Cuenta regresiva y redirección al login
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
+    if (showSuccess && countdown > 0) {
+      timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    } else if (showSuccess && countdown === 0) {
+      navigate(webRoutes.login);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [showSuccess, countdown, navigate]);
 
   const passwordCriteria = {
     isLengthValid: {
@@ -164,6 +183,13 @@ export default function ResetPasswordPage() {
         <ErrorModal2 open={openModal} onClose={closeModal}>
           <Typography>{error}</Typography>
         </ErrorModal2>
+        <SuccessModal
+          open={showSuccess}
+          onClose={() => {}}
+          title="Password Reset Successful"
+          message={`Your password has been reset successfully. You will be redirected to the login page in ${countdown} seconds.`}
+          showCloseButton={false}
+        />
       </FormProvider>
     </>
   );
