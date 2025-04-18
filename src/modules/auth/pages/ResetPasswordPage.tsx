@@ -11,7 +11,6 @@ import { useState } from 'react';
 import { useErrorStore } from '@/stores';
 import { AxiosError } from 'axios';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
-import { error } from 'console';
 
 interface IResetPasswordForm {
   newPassword: string;

@@ -12,7 +12,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { MetaFunction } from 'react-router';
 import { useErrorStore } from '@/stores';
 import LoginFormFields from '../components/molecules/LoginFormFields';
-import AuthLayout from '../layouts/AuthLayout';
 import { Helmet } from 'react-helmet';
 import { useState } from 'react';
 import ForgotPasswordPopup from './ForgotPasswordPopup';
