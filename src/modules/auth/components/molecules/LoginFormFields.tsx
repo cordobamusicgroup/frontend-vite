@@ -1,11 +1,11 @@
-import React from "react";
-import TextFieldForm from "../../../../components/ui/atoms/TextFieldForm";
+import React from 'react';
+import TextFieldForm from '../../../../components/ui/atoms/TextFieldForm';
 
 const LoginFormFields: React.FC = () => {
   return (
     <>
-      <TextFieldForm fullWidth name="username" label="Username / Email" />
-      <TextFieldForm fullWidth name="password" label="Password" type="password" />
+      <TextFieldForm fullWidth name="username" label="Username / Email" variant="outlined" />
+      <TextFieldForm fullWidth name="password" label="Password" type="password" variant="outlined" />
     </>
   );
 };

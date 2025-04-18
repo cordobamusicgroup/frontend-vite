@@ -12,7 +12,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { MetaFunction } from 'react-router';
 import { useErrorStore } from '@/stores';
 import LoginFormFields from '../components/molecules/LoginFormFields';
-import AuthLayout from '../layouts/AuthLayout';
 import { Helmet } from 'react-helmet';
 import { useState } from 'react';
 import ForgotPasswordPopup from './ForgotPasswordPopup';
@@ -35,7 +34,7 @@ const schema = z.object({
 
 function LoginPage() {
   const { loginMutation } = useAuthQueries();
-  const { error, openModal, clearError, closeModal } = useErrorStore();
+  const { error, openModal, closeModal } = useErrorStore();
   const [openPopUpForgot, setOpenPopUpForgot] = useState<boolean>(false);
 
   const methods = useForm({
@@ -46,7 +45,6 @@ function LoginPage() {
   const { handleSubmit } = methods;
 
   const onSubmitLogin: SubmitHandler<IFormInput> = async ({ username, password }) => {
-    clearError();
     loginMutation.mutateAsync({ username, password });
   };
 

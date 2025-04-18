@@ -3,13 +3,14 @@ import useAuthQueries from '../hooks/useAuthQueries';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm } from 'react-hook-form';
-import { Box, Button, List, ListItem, ListItemText, InputAdornment, IconButton } from '@mui/material';
+import { Box, Button, InputAdornment, IconButton, Typography } from '@mui/material';
 import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
 import { Check, Close, Visibility, VisibilityOff } from '@mui/icons-material';
 import FailedToLoadData from '@/components/ui/molecules/FailedToLoadData';
-import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import { useState } from 'react';
 import { useErrorStore } from '@/stores';
+import { AxiosError } from 'axios';
+import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 
 interface IResetPasswordForm {
   newPassword: string;
@@ -51,29 +52,13 @@ export default function ResetPasswordPage() {
   const {
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: { isValid },
   } = methods;
 
   const password = watch('newPassword', '');
-  // const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
-  // Estados para mostrar/ocultar contraseña
+  const { error, openModal, closeModal, setError } = useErrorStore();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { setOpenModal, openModal, clearError } = useErrorStore();
-
-  const getErrorMessages = (errors: any): string[] => {
-    const messages: string[] = [];
-    const iterate = (errObj: any) => {
-      if (errObj?.message) messages.push(errObj.message);
-      if (errObj && typeof errObj === 'object') {
-        for (const key in errObj) {
-          if (typeof errObj[key] === 'object') iterate(errObj[key]);
-        }
-      }
-    };
-    iterate(errors);
-    return messages;
-  };
 
   if (!resetToken) {
     console.error('Reset token is missing');
@@ -84,28 +69,26 @@ export default function ResetPasswordPage() {
     );
   }
 
-  const onSubmitForm = handleSubmit(
-    async (data: IResetPasswordForm) => {
-      if (data.newPassword !== data.confirmPassword) {
-        methods.setError('confirmPassword', { type: 'manual', message: 'Passwords do not match' });
-      }
+  const onSubmitForm = handleSubmit(async (data: IResetPasswordForm) => {
 
-      resetPasswordMutation.mutateAsync(
-        { token: resetToken, newPassword: data.newPassword },
-        {
-          onSuccess: () => {
-            // Handle success (e.g., redirect to login page)
-          },
-          onError: () => {
-            // Handle error (e.g., show error message)
-          },
+    if (data.newPassword !== data.confirmPassword) {
+      methods.setError('confirmPassword', { type: 'manual', message: 'Passwords do not match' });
+    }
+
+    resetPasswordMutation.mutateAsync(
+      { token: resetToken, newPassword: data.newPassword },
+      {
+        onSuccess: () => {
+          // Handle success (e.g., redirect to login page)
         },
-      );
-    },
-    (errors) => {
-      if (Object.keys(errors).length > 0) setOpenModal(true);
-    },
-  );
+        onError: (e: unknown) => {
+          console.log('Error resetting password:', e);
+          const error = e as AxiosError<{ message?: string }>;
+          setError(error.response?.data?.message || 'An error occurred while resetting the password');
+        },
+      },
+    );
+  });
 
   const passwordCriteria = {
     isLengthValid: {
@@ -173,25 +156,13 @@ export default function ResetPasswordPage() {
                 </Box>
               </Box>
             ))}
-            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }} loading={resetPasswordMutation.isPending}>
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }} loading={resetPasswordMutation.isPending} disabled={!isValid || resetPasswordMutation.isPending}>
               {resetPasswordMutation.isPending ? 'Resetting...' : 'Reset Password'}
             </Button>
           </Box>
         </Box>
-        <ErrorModal2
-          open={openModal}
-          onClose={() => {
-            setOpenModal(false);
-            clearError();
-          }}
-        >
-          <List sx={{ padding: 0, margin: 0 }}>
-            {getErrorMessages(methods.formState.errors).map((msg, idx) => (
-              <ListItem key={idx} disableGutters sx={{ padding: '1px 0' }}>
-                <ListItemText primary={`• ${msg}`} sx={{ margin: 0, padding: 0 }} />
-              </ListItem>
-            ))}
-          </List>
+        <ErrorModal2 open={openModal} onClose={closeModal}>
+          <Typography>{error}</Typography>
         </ErrorModal2>
       </FormProvider>
     </>
