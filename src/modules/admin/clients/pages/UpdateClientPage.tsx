@@ -32,7 +32,6 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
 };
 
 const UpdateClientPage: React.FC = () => {
-
   const theme = useTheme();
   const { clientId } = useParams();
   const { clientsData: clientData, mutations: clientMutations, loading: clientOperationsLoading, errors: clientApiErrors } = useClientsAdmin(clientId);
@@ -81,9 +80,9 @@ const UpdateClientPage: React.FC = () => {
         type: clientData.contract.type,
         status: clientData.contract.status,
         startDate: dayjs(clientData.contract.startDate),
-        endDate: dayjs(clientData.contract.endDate),
+        endDate: clientData.contract.endDate ? dayjs(clientData.contract.endDate) : null,
         signedBy: clientData.contract.signedBy,
-        signedAt: dayjs(clientData.contract.signedAt),
+        signedAt: clientData.contract.signedAt ? dayjs(clientData.contract.signedAt) : null,
         ppd: parseFloat(clientData.contract.ppd),
         docUrl: clientData.contract.docUrl,
       },

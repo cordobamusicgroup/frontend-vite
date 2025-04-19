@@ -12,7 +12,7 @@ import { useUserStore } from '@/stores';
 import { isMobile } from '@/theme';
 
 // Components
-import LoadingSpinner from '../atoms/LoadingSpinnert';
+import LoadingSpinner from '../atoms/LoadingSpinner';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
 
