@@ -108,7 +108,7 @@ const UpdateLabelPage: React.FC = () => {
     );
   }
 
-  if (!labelFetchLoading && !labelData) {
+  if (!labelFetchLoading || !labelData) {
     return <SkeletonLoader />;
   }
 

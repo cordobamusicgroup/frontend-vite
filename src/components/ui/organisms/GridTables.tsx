@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 import { ClientSideRowModelModule, DateFilterModule, ModuleRegistry, NumberFilterModule, PaginationModule, QuickFilterModule, TextFilterModule } from 'ag-grid-community';
 import { AgGridReact, AgGridReactProps } from 'ag-grid-react';
 import { Box } from '@mui/material';
-import LoadingSpinner from '../atoms/LoadingSpinnert';
+import LoadingSpinner from '../atoms/LoadingSpinner';
 import { cmgThemeGrid } from '@/styles/grid-royalties';
 
 interface GridTablesProps extends AgGridReactProps {
