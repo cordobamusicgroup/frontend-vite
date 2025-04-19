@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { MenuItem, InputAdornment, Box, FormControlLabel, Switch } from '@mui/material';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { contractStatusOptions, CreateClientContractType } from '@/constants/backend.enums';
@@ -6,11 +6,12 @@ import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
 import DatePickerForm from '@/components/ui/atoms/DatePickerForm';
 
 const ContractDetailsForm: React.FC = () => {
-  const { setValue, getValues, control } = useFormContext();
+  const { setValue, control } = useFormContext();
 
   // Observamos los campos necesarios
   const status: string = useWatch({ name: 'contract.status' });
   const signed: boolean = useWatch({ name: 'contract.signed' });
+  const startDate = useWatch({ name: 'contract.startDate' });
 
   // Determinar si es DRAFT
   const isDraft = !status || status === 'DRAFT';
@@ -54,8 +55,10 @@ const ContractDetailsForm: React.FC = () => {
             {...field}
             label="Published Price to Dealer"
             type="number"
-            InputProps={{
-              startAdornment: <InputAdornment position="start">%</InputAdornment>,
+            slotProps={{
+              input: {
+                startAdornment: <InputAdornment position="start">%</InputAdornment>,
+              },
             }}
             onChange={(e) => field.onChange(parseFloat(e.target.value))}
           />
@@ -64,17 +67,12 @@ const ContractDetailsForm: React.FC = () => {
       <TextFieldForm name="contract.docUrl" label="Document URL" />
       <Box sx={{ display: 'flex', gap: 5 }}>
         <DatePickerForm name="contract.startDate" label="Start Date" />
-        <DatePickerForm name="contract.endDate" label="End Date" minDate={getValues('contract.startDate')} />
+        <DatePickerForm name="contract.endDate" label="End Date" minDate={startDate && startDate.isValid && startDate.isValid() ? startDate.add(1, 'day') : undefined} />
       </Box>
       <Controller
         name="contract.signed"
         control={control}
-        render={({ field }) => (
-          <FormControlLabel
-            control={<Switch checked={field.value} name="contractSigned" color="primary" disabled />}
-            label="Contract Signed"
-          />
-        )}
+        render={({ field }) => <FormControlLabel control={<Switch checked={field.value} name="contractSigned" color="primary" disabled />} label="Contract Signed" />}
       />
       {!isDraft && (
         <>

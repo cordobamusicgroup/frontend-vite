@@ -1,13 +1,8 @@
 import { z } from 'zod';
 import dayjs from 'dayjs';
-import {
-  typeOptions,
-  taxIdTypeOptions,
-  contractTypeOptions,
-  contractStatusOptions,
-  AccessTypeDMB,
-  StatusDMB,
-} from '@/constants/backend.enums';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+dayjs.extend(isSameOrBefore);
+import { typeOptions, taxIdTypeOptions, contractTypeOptions, contractStatusOptions, AccessTypeDMB, StatusDMB } from '@/constants/backend.enums';
 import 'dayjs/plugin/isSameOrBefore';
 
 import { oneOfOptions, transformDate, isValidDayjs, isNotEmpty, isFutureDate } from '@/lib/zod.util';
@@ -101,19 +96,19 @@ export const ClientValidationSchema = BaseSchema.superRefine((data, ctx) => {
     });
   }
 
-  // Validación de fecha de finalización
-  if (isTerminated) {
-    if (!contract.endDate?.isValid()) {
+  // Validación de fecha de finalización SIEMPRE que exista endDate
+  if (contract.endDate) {
+    if (!contract.endDate.isValid()) {
       ctx.addIssue({
         path: ['contract', 'endDate'],
         code: z.ZodIssueCode.custom,
         message: 'End date is required or invalid',
       });
-    } else if (contract.endDate.isSameOrBefore(contract.startDate)) {
+    } else if (!contract.startDate || !contract.startDate.isValid() || !contract.endDate.isAfter(contract.startDate)) {
       ctx.addIssue({
         path: ['contract', 'endDate'],
         code: z.ZodIssueCode.custom,
-        message: 'End date must be after start date',
+        message: 'End date must be at least one day after start date',
       });
     } else if (!isFutureDate(contract.endDate)) {
       ctx.addIssue({
