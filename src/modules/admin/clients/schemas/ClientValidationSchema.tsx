@@ -110,12 +110,6 @@ export const ClientValidationSchema = BaseSchema.superRefine((data, ctx) => {
         code: z.ZodIssueCode.custom,
         message: 'End date must be at least one day after start date',
       });
-    } else if (!isFutureDate(contract.endDate)) {
-      ctx.addIssue({
-        path: ['contract', 'endDate'],
-        code: z.ZodIssueCode.custom,
-        message: 'End date cannot be in the past',
-      });
     }
   }
 
