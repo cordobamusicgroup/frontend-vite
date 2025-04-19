@@ -5,7 +5,7 @@ dayjs.extend(isSameOrBefore);
 import { typeOptions, taxIdTypeOptions, contractTypeOptions, contractStatusOptions, AccessTypeDMB, StatusDMB } from '@/constants/backend.enums';
 import 'dayjs/plugin/isSameOrBefore';
 
-import { oneOfOptions, transformDate, isValidDayjs, isNotEmpty, isFutureDate } from '@/lib/zod.util';
+import { oneOfOptions, transformDate, isValidDayjs, isNotEmpty } from '@/lib/zod.util';
 
 // 📦 Utilidad para evitar repetir lógica
 const isEmpty = (val?: string | null) => !val?.trim();
@@ -104,17 +104,17 @@ export const ClientValidationSchema = BaseSchema.superRefine((data, ctx) => {
         code: z.ZodIssueCode.custom,
         message: 'End date is required or invalid',
       });
-    } else if (!contract.startDate || !contract.startDate.isValid() || !contract.endDate.isAfter(contract.startDate)) {
+    } else if (!contract.startDate || !contract.startDate.isValid()) {
+      ctx.addIssue({
+        path: ['contract', 'endDate'],
+        code: z.ZodIssueCode.custom,
+        message: 'Valid start date is required to validate end date',
+      });
+    } else if (!contract.endDate.isAfter(contract.startDate)) {
       ctx.addIssue({
         path: ['contract', 'endDate'],
         code: z.ZodIssueCode.custom,
         message: 'End date must be at least one day after start date',
-      });
-    } else if (!isFutureDate(contract.endDate)) {
-      ctx.addIssue({
-        path: ['contract', 'endDate'],
-        code: z.ZodIssueCode.custom,
-        message: 'End date cannot be in the past',
       });
     }
   }
