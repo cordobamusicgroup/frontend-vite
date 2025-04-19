@@ -104,7 +104,13 @@ export const ClientValidationSchema = BaseSchema.superRefine((data, ctx) => {
         code: z.ZodIssueCode.custom,
         message: 'End date is required or invalid',
       });
-    } else if (!contract.startDate || !contract.startDate.isValid() || !contract.endDate.isAfter(contract.startDate)) {
+    } else if (!contract.startDate || !contract.startDate.isValid()) {
+      ctx.addIssue({
+        path: ['contract', 'endDate'],
+        code: z.ZodIssueCode.custom,
+        message: 'Valid start date is required to validate end date',
+      });
+    } else if (!contract.endDate.isAfter(contract.startDate)) {
       ctx.addIssue({
         path: ['contract', 'endDate'],
         code: z.ZodIssueCode.custom,
