@@ -5,7 +5,7 @@ dayjs.extend(isSameOrBefore);
 import { typeOptions, taxIdTypeOptions, contractTypeOptions, contractStatusOptions, AccessTypeDMB, StatusDMB } from '@/constants/backend.enums';
 import 'dayjs/plugin/isSameOrBefore';
 
-import { oneOfOptions, transformDate, isValidDayjs, isNotEmpty, isFutureDate } from '@/lib/zod.util';
+import { oneOfOptions, transformDate, isValidDayjs, isNotEmpty } from '@/lib/zod.util';
 
 // 📦 Utilidad para evitar repetir lógica
 const isEmpty = (val?: string | null) => !val?.trim();
