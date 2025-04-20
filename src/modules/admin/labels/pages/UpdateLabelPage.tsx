@@ -101,14 +101,14 @@ const UpdateLabelPage: React.FC = () => {
           </Typography>
 
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            {labelFetchError.message || 'Failed to load label data.'}
+            Failed to load label data
           </Typography>
         </Paper>
       </Box>
     );
   }
 
-  if (!labelFetchLoading || !labelData) {
+  if (labelFetchLoading || !labelData) {
     return <SkeletonLoader />;
   }
 

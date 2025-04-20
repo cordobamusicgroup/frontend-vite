@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRoutes } from '@/lib/api.routes';
 import { useApiRequest } from '@/hooks/useApiRequest';
-import { formatApiError } from '@/lib/formatApiError.util';
+import { formatError } from '@/lib/formatApiError.util';
 
 /**
  * Hook to manage fetching and mutating clients.
@@ -32,7 +32,7 @@ export const useLabelsAdmin = (labelId?: string) => {
         requireAuth: true,
       });
     } catch (error) {
-      throw formatApiError(error);
+      throw formatError(error);
     }
   };
 
@@ -52,7 +52,7 @@ export const useLabelsAdmin = (labelId?: string) => {
           requireAuth: true,
         });
       } catch (error) {
-        throw formatApiError(error);
+        throw formatError(error);
       }
     },
 
@@ -73,7 +73,7 @@ export const useLabelsAdmin = (labelId?: string) => {
           requireAuth: true,
         });
       } catch (error) {
-        throw formatApiError(error);
+        throw formatError(error);
       }
     },
     onSuccess: () => {
@@ -93,7 +93,7 @@ export const useLabelsAdmin = (labelId?: string) => {
           data: { ids: labelsIds },
         });
       } catch (error) {
-        throw formatApiError(error);
+        throw formatError(error);
       }
     },
     onSuccess: () => {
