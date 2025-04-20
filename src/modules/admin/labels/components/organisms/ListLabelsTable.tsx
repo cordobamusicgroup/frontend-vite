@@ -14,6 +14,7 @@ import ActionButtonsLabels from '../atoms/ActionButtonsLabels';
 import LabelStatusChip from '../atoms/LabelStatusChip';
 import LabelSpecialStoreStatus from '../atoms/LabelSpecialStoreStatus';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { AxiosError } from 'axios';
 
 interface Props {
   setNotification: (notification: { message: string; type: 'success' | 'error' }) => void;
@@ -31,7 +32,7 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
   const { labelsData, labelFetchLoading, labelFetchError, deleteLabels } = useLabelsAdmin();
   const gridRef = useRef<AgGridReact>(null);
 
-  const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter(gridRef);
+  const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter();
 
   const handleEdit = (label: any): void => {
     navigate(`${webRoutes.admin.labels.edit}/${label.id}`);
@@ -74,8 +75,10 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
       onSuccess: () => {
         setNotification({ message: 'Label deleted successfully', type: 'success' });
       },
-      onError: (error: any) => {
-        setNotification({ message: `Error deleting label: ${error.messages}`, type: 'error' });
+      onError: (e: unknown) => {
+        const error = e as AxiosError<{ message?: string }>;
+
+        setNotification({ message: error.response?.data.message ?? 'An error occurred', type: 'error' });
       },
     });
   };

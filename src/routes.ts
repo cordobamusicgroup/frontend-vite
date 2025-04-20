@@ -32,9 +32,7 @@ export default [
           route('create', 'modules/admin/users/pages/CreateUserPage.tsx'),
           route('edit/:userId', 'modules/admin/users/pages/UpdateUserPage.tsx'),
         ]),
-        ...prefix('reports', [
-          // route('unlinked', 'modules/admin/reports/pages/UnlinkedReportsPage.tsx')
-        ]),
+        ...prefix('reports', [route('unlinked', 'modules/admin/financial/reports/unlinked/pages/UnlinkedReportsPage.tsx')]),
       ]),
     ]),
   ]),
