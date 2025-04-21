@@ -3,6 +3,12 @@ import { useApiRequest } from '@/hooks/useApiRequest';
 import { apiRoutes } from '@/lib/api.routes';
 import { formatApiError } from '@/lib/formatApiError.util';
 
+/**
+ * Hook to fetch the user's financial transactions for a given currency.
+ *
+ * @param currency The currency to fetch transactions for
+ * @returns Object with transactions data, loading, and error states
+ */
 export const useTransactionsUser = (currency: string) => {
   const { apiRequest } = useApiRequest();
 

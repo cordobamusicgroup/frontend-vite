@@ -4,12 +4,11 @@ import { useApiRequest } from '@/hooks/useApiRequest';
 import { formatApiError, FormattedApiError } from '@/lib/formatApiError.util';
 
 /**
- * Hook to manage fetching and mutating clients.
- * If a `clientId` is provided, fetches a single client;
- * otherwise, fetches all clients.
+ * Hook to manage fetching and mutating clients (admin).
+ * If a clientId is provided, fetches a single client; otherwise, fetches all clients.
  *
- * @param {string} [clientId] - ID of the client to fetch (optional).
- * @returns {object} Object with data, loading/error states, and mutation functions.
+ * @param clientId Optional client ID to fetch a specific client
+ * @returns Object with data, loading/error states, and mutation functions
  */
 export const useClientsAdmin = (clientId?: string) => {
   const { apiRequest } = useApiRequest();

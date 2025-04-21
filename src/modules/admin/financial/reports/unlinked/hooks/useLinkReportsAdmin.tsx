@@ -4,8 +4,11 @@ import { useApiRequest } from '@/hooks/useApiRequest';
 import { formatError } from '@/lib/formatApiError.util';
 
 /**
- * Hook para obtener y vincular reportes no enlazados.
- * Si se pasa un ID, trae solo ese reporte; si no, trae todos.
+ * Hook to fetch and link unlinked financial reports (admin).
+ * If an unlinkedId is provided, fetches a single report; otherwise, fetches all unlinked reports.
+ *
+ * @param unlinkedId Optional report ID to fetch a specific unlinked report
+ * @returns Object with data, loading/error states, mutation functions, and refetch
  */
 export const useUnlinkedReportsAdmin = (unlinkedId?: number) => {
   const { apiRequest } = useApiRequest();
