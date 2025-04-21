@@ -7,6 +7,7 @@ import { Box, Typography, Select, MenuItem, SelectChangeEvent, FormControl, Inpu
 import { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import ReportsTable from '../components/organisms/ReportsUserTable';
+import InformativeBox from '@/components/ui/molecules/InformativeBox';
 
 export default function ReportsPage() {
   const { notification, setNotification } = useNotificationStore();
@@ -45,7 +46,7 @@ export default function ReportsPage() {
           {notification?.type === 'error' && <ErrorBox>{notification.message}</ErrorBox>}
         </Box>
 
-        <Box my={2} p={2} sx={{ backgroundColor: '#e3f2fd', color: '#1976d2', borderLeft: '6px solid #1976d2' }}>
+        <InformativeBox>
           <Typography variant="body2" sx={{ mb: 1 }}>
             This page displays your financial reports. The <b>"Debit State"</b> column indicates whether the report has been paid into your balance:
           </Typography>
@@ -79,7 +80,7 @@ export default function ReportsPage() {
           <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>
             * All dates are estimates and subject to change. We kindly ask that you refrain from contacting support solely to inquire about payment or report arrival dates.
           </Typography>
-        </Box>
+        </InformativeBox>
 
         {selectedDistributor && (
           <Box sx={{ display: 'flex', height: '600px', width: '100%', justifyContent: 'center' }}>

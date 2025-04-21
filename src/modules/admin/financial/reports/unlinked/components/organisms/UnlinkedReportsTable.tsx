@@ -1,62 +1,68 @@
 import React, { useRef, useState } from 'react';
 import { Box, Button } from '@mui/material';
 import { Refresh } from '@mui/icons-material';
-import '@/styles/ag-grid.css'; // Add this line to import the CSS file
+import '@/styles/ag-grid.css';
 import SearchBoxTable from '@/components/ui/organisms/SearchBoxTable';
 import GridTables from '@/components/ui/organisms/GridTables';
 import LinkReportDialog from '../molecules/LinkReportDialog';
 import useQuickFilter from '@/hooks/useQuickFilter';
 import { useUnlinkedReportsAdmin } from '../../hooks/useLinkReportsAdmin';
 import { AgGridReact } from 'ag-grid-react';
+import { ColDef } from 'ag-grid-community';
 
 const UnlinkedReportsTable: React.FC = () => {
-  const { unlinkedReportsData, loading } = useUnlinkedReportsAdmin();
+  const { unlinkedReportsData, loading, refetch } = useUnlinkedReportsAdmin();
   const gridRef = useRef<AgGridReact>(null);
-
   const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter();
   const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
   const [openLinkDialog, setOpenLinkDialog] = useState(false);
-  const [selectedReportData, setSelectedReportData] = useState<any>(null);
 
-  const handleOpenLinkDialog = (report: any) => {
-    setSelectedReportId(report.id);
-    setSelectedReportData(report);
+  // Column definitions
+  const columns: ColDef[] = [
+    { field: 'id', headerName: 'ID', width: 80 },
+    { field: 'labelName', headerName: 'Label Name', width: 400 },
+    { field: 'distributor', headerName: 'Distributor', width: 200 },
+    { field: 'reportingMonth', headerName: 'Reporting Month', width: 200 },
+    { field: 'count', headerName: 'Count', width: 100 },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 150,
+      flex: 1,
+      sortable: false,
+      cellRenderer: (params: any) => <Button onClick={() => handleOpenLinkDialog(params.data.id)}>Link</Button>,
+    },
+  ];
+
+  const rowData = unlinkedReportsData?.map((apiData: any) => ({
+    id: apiData.id,
+    labelName: apiData.labelName,
+    distributor: apiData.distributor,
+    reportingMonth: apiData.reportingMonth,
+    count: apiData.count,
+  }));
+  // Dialog handlers
+  const handleOpenLinkDialog = (reportId: number) => {
+    setSelectedReportId(reportId);
     setOpenLinkDialog(true);
   };
 
   const handleCloseLinkDialog = () => {
     setOpenLinkDialog(false);
     setSelectedReportId(null);
-    setSelectedReportData(null);
   };
 
-  const columns = [
-    { field: 'id', headerName: 'ID', width: 80, sortable: false, filter: false, resizable: false, cellStyle: { textAlign: 'center' }, headerClass: 'center-header' },
-    { field: 'labelName', headerName: 'Label Name', width: 200, cellStyle: { textAlign: 'center' }, headerClass: 'center-header' },
-    { field: 'distributor', headerName: 'Distributor', width: 150, cellStyle: { textAlign: 'center' }, headerClass: 'center-header' },
-    { field: 'reportingMonth', headerName: 'Reporting Month', width: 150, cellStyle: { textAlign: 'center' }, headerClass: 'center-header' },
-    { field: 'count', headerName: 'Count', width: 100, cellStyle: { textAlign: 'center' }, headerClass: 'center-header' },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      width: 150,
-      cellRenderer: (params: any) => <Button onClick={() => handleOpenLinkDialog(params.data)}>Link</Button>,
-      cellStyle: { textAlign: 'center' },
-      headerClass: 'center-header',
-    },
-  ];
-
-  const rowData =
-    unlinkedReportsData?.map((report: any) => ({
-      id: report.id,
-      labelName: report.labelName,
-      distributor: report.distributor,
-      reportingMonth: report.reportingMonth,
-      count: report.count,
-    })) || [];
-
+  // Refresh logic (to be implemented with React Query if needed)
   const handleRefresh = () => {
-    // TODO : Implement refresh logic
+    refetch(); // Simple fallback, ideally usar React Query para refetch
+  };
+
+  const defaultColDef: ColDef = {
+    wrapText: true,
+    autoHeight: true,
+    filter: false,
+    sortable: true,
+    resizable: false,
   };
 
   return (
@@ -70,16 +76,11 @@ const UnlinkedReportsTable: React.FC = () => {
             Refresh
           </Button>
         </Box>
-        <GridTables
-          ref={gridRef}
-          columns={columns}
-          rowData={rowData}
-          loading={loading.unlinkedReportsFetch}
-          quickFilterText={quickFilterText}
-          defaultColDef={{ filter: true, headerClass: 'center-header', flex: 1 }}
-        />
+        <GridTables ref={gridRef} columns={columns} rowData={rowData} loading={loading.unlinkedReportsFetch} quickFilterText={quickFilterText} defaultColDef={defaultColDef} />
       </Box>
-      <LinkReportDialog open={openLinkDialog} onClose={handleCloseLinkDialog} reportId={selectedReportId} reportData={selectedReportData} />
+      {selectedReportId !== null && (
+        <LinkReportDialog open={openLinkDialog} onClose={handleCloseLinkDialog} reportId={selectedReportId} />
+      )}
     </>
   );
 };
