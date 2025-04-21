@@ -114,6 +114,11 @@ export const useUsersAdmin = (userId?: string) => {
         throw formatError(error);
       }
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: ['balances'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
   });
 
   const resendWelcomeEmail = useMutation({
