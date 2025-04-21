@@ -23,6 +23,11 @@ const createMenuItem = (text: string, icon: React.ReactNode, roles: Roles[], onC
   path,
 });
 
+/**
+ * Hook that generates the user menu items based on the user's role and provides actions such as logout and navigation.
+ * @param userRole The user's role
+ * @returns MenuItemType[] with available user menu options
+ */
 export const useUserMenuItems = (userRole: Roles): MenuItemType[] => {
   const { logoutMutation } = useAuthQueries();
   const navigate = useNavigate();

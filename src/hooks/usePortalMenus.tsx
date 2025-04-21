@@ -22,6 +22,11 @@ export interface MenuItemType {
   // Remove the onClick property as it should use path instead
 }
 
+/**
+ * Hook that generates the navigation menu based on the user's role.
+ * @param userRole The user's role
+ * @returns MenuItemType[] with the available menu options for the user
+ */
 export const usePortalMenus = (userRole: Roles): MenuItemType[] => {
   const allMenuItems: MenuItemType[] = [
     {
