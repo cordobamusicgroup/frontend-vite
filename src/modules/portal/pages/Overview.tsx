@@ -1,10 +1,7 @@
-import TimelineIcon from "@mui/icons-material/Timeline";
-import PaymentsIcon from "@mui/icons-material/Payments";
-import WorkIcon from "@mui/icons-material/Work";
 import HelpIcon from "@mui/icons-material/Help";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-import { Container, Box, Typography, Paper, Divider, Accordion, AccordionSummary, AccordionDetails, List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
+import { Container, Box, Typography, Paper, Divider, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import { Helmet } from "react-helmet";
 
 const PageOverview: React.FC = () => {
@@ -69,36 +66,6 @@ const PageOverview: React.FC = () => {
                 This FAQ section will be updated periodically with more questions and answers.
               </Typography>
             </Box>
-          </Paper>
-
-          <Paper elevation={3} sx={{ p: 4, my: 4, bgcolor: "background.paper", borderRadius: 2 }}>
-            <Box display="flex" alignItems="center" mb={2}>
-              <TimelineIcon color="primary" sx={{ mr: 1 }} />
-              <Typography variant="h5" component="h2" sx={{ fontWeight: "bold", color: "primary.main" }}>
-                Development Roadmap
-              </Typography>
-            </Box>
-            <Divider sx={{ mb: 3 }} />
-
-            <List>
-              <ListItem alignItems="flex-start" sx={{ mb: 2 }}>
-                <ListItemIcon>
-                  <PaymentsIcon color="secondary" />
-                </ListItemIcon>
-                <ListItemText primary="Payment Features" secondary="Currently working on payment request functions, banking details setup, and related administrative features to streamline financial operations." primaryTypographyProps={{ fontWeight: "bold" }} />
-              </ListItem>
-
-              <ListItem alignItems="flex-start">
-                <ListItemIcon>
-                  <WorkIcon color="secondary" />
-                </ListItemIcon>
-                <ListItemText primary="Administration Workflow System" secondary="Developing a workflow system initially targeting payment requests. Future phases will migrate manual validation requests that are assigned to specific users with special permissions." primaryTypographyProps={{ fontWeight: "bold" }} />
-              </ListItem>
-            </List>
-
-            <Typography variant="body1" sx={{ fontStyle: "italic", mt: 3, color: "text.secondary" }}>
-              Coming soon: News section and personalized user information dashboard
-            </Typography>
           </Paper>
 
           <Box mt={3} textAlign="center">
