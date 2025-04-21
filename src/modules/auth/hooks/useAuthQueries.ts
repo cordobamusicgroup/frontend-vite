@@ -12,6 +12,11 @@ interface LoginCredentials {
   password: string;
 }
 
+/**
+ * Hook to handle authentication-related mutations: login, logout, forgot password, and reset password.
+ *
+ * @returns Object with authentication mutation functions
+ */
 const useAuthQueries = () => {
   const queryClient = useQueryClient();
   const { apiRequest } = useApiRequest();

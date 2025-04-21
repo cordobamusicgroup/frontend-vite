@@ -1,10 +1,8 @@
-// React imports
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 // MUI components
 import { Menu, MenuItem, ListItemIcon, ListItemText, Box, Typography, IconButton, Divider, Avatar } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import useMediaQuery from '@mui/material/useMediaQuery';
 
 // Custom hooks and utilities
 import { useUserMenuItems } from '@/hooks/userMenuItems';
@@ -14,17 +12,17 @@ import { isMobile } from '@/theme';
 // Components
 import LoadingSpinner from '../atoms/LoadingSpinner';
 import { useNavigate } from 'react-router';
-import { shallow } from 'zustand/shallow';
 
 /**
  * Component that displays a user menu with options for the current user.
  * Shows "Profile" label on desktop next to the icon.
  * User information is displayed within the dropdown menu for both mobile and desktop.
- *
+ *S
  * @returns {React.FC} The UserMenuHeader component
  */
 const UserMenuHeader: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuWidth, setMenuWidth] = useState<number | undefined>(undefined);
   const navigate = useNavigate();
 
   const theme = useTheme();
@@ -43,6 +41,7 @@ const UserMenuHeader: React.FC = () => {
    */
   const handleOpenMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
+    setMenuWidth(event.currentTarget.offsetWidth);
   };
 
   /**
@@ -50,6 +49,7 @@ const UserMenuHeader: React.FC = () => {
    */
   const handleCloseMenu = () => {
     setAnchorEl(null);
+    // No limpiar menuWidth para mantener el ancho consistente
   };
 
   /**
@@ -117,10 +117,12 @@ const UserMenuHeader: React.FC = () => {
           vertical: 'top',
           horizontal: 'right',
         }}
+        disableScrollLock={true}
         slotProps={{
           paper: {
             style: {
               maxHeight: '300px',
+              minWidth: menuWidth ? `${menuWidth}px` : undefined, // Usa el ancho guardado
               [theme.breakpoints.down('sm')]: {
                 maxHeight: '200px',
               },

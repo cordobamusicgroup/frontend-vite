@@ -82,3 +82,8 @@ export const useProfileUser = () => {
     },
   };
 };
+/**
+ * Hook to manage fetching and editing the current user's profile.
+ *
+ * @returns Object with profile data, loading/error states, and mutation for editing the profile
+ */

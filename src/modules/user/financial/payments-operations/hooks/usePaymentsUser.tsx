@@ -3,6 +3,11 @@ import { useApiRequest } from '@/hooks/useApiRequest';
 import { apiRoutes } from '@/lib/api.routes';
 import { formatApiError } from '@/lib/formatApiError.util';
 
+/**
+ * Hook to check if the user is authorized for withdrawals.
+ *
+ * @returns Object with withdrawal data, loading, and error states
+ */
 export const usePaymentsUser = () => {
   const { apiRequest } = useApiRequest();
 

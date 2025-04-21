@@ -3,6 +3,11 @@ import { useApiRequest } from '@/hooks/useApiRequest';
 import { apiRoutes } from '@/lib/api.routes';
 import { formatApiError } from '@/lib/formatApiError.util';
 
+/**
+ * Hook to fetch the user's financial balances.
+ *
+ * @returns Object with balances data, loading, and error states
+ */
 export const useBalancesUser = () => {
   const { apiRequest } = useApiRequest();
 

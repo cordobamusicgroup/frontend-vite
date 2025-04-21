@@ -4,12 +4,11 @@ import { useApiRequest } from '@/hooks/useApiRequest';
 import { formatError } from '@/lib/formatApiError.util';
 
 /**
- * Hook to manage fetching and mutating clients.
- * If a `clientId` is provided, fetches a single client;
- * otherwise, fetches all clients.
+ * Hook to manage fetching and mutating labels (admin).
+ * If a labelId is provided, fetches a single label; otherwise, fetches all labels.
  *
- * @param {string} [labelId] - ID of the client to fetch (optional).
- * @returns {object} Object with data, loading/error states, and mutation functions.
+ * @param labelId Optional label ID to fetch a specific label
+ * @returns Object with data, loading/error states, and mutation functions
  */
 export const useLabelsAdmin = (labelId?: string) => {
   const { apiRequest } = useApiRequest();

@@ -1,15 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRoutes } from '@/lib/api.routes';
 import { useApiRequest } from '@/hooks/useApiRequest';
-import { formatApiError } from '@/lib/formatApiError.util';
-
+import { formatApiError, formatError } from '@/lib/formatApiError.util';
 /**
- * Hook to manage fetching and mutating clients.
- * If a `clientId` is provided, fetches a single client;
- * otherwise, fetches all clients.
+ * Hook to manage fetching and mutating users (admin).
+ * If a userId is provided, fetches a single user; otherwise, fetches all users.
  *
- * @param {string} [userId] - ID of the client to fetch (optional).
- * @returns {object} Object with data, loading/error states, and mutation functions.
+ * @param userId Optional user ID to fetch a specific user
+ * @returns Object with data, loading/error states, and mutation functions
  */
 export const useUsersAdmin = (userId?: string) => {
   const { apiRequest } = useApiRequest();
@@ -113,8 +111,13 @@ export const useUsersAdmin = (userId?: string) => {
           data: { clientId },
         });
       } catch (error) {
-        throw formatApiError(error);
+        throw formatError(error);
       }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: ['balances'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
   });
 

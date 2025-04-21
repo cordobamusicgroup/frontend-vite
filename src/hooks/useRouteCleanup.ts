@@ -3,8 +3,8 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 
 /**
- * Hook que limpia notificaciones y errores al cambiar de ruta o desmontar el componente.
- * Útil para evitar mensajes persistentes entre páginas.
+ * Hook that clears notifications and errors automatically when the route changes or the component unmounts.
+ * Useful to avoid persistent messages between pages.
  */
 export const useRouteCleanup = () => {
   const { clearNotification } = useNotificationStore();

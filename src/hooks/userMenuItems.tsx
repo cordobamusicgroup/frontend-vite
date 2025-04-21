@@ -3,9 +3,11 @@
 import webRoutes from '@/lib/web.routes';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate } from 'react-router';
 import { Roles } from '@/constants/roles';
 import useAuthQueries from '@/modules/auth/hooks/useAuthQueries';
+import { eventBus } from '@/eventBus';
 
 interface MenuItemType {
   text: string;
@@ -23,12 +25,21 @@ const createMenuItem = (text: string, icon: React.ReactNode, roles: Roles[], onC
   path,
 });
 
+/**
+ * Hook that generates the user menu items based on the user's role and provides actions such as logout and navigation.
+ * @param userRole The user's role
+ * @returns MenuItemType[] with available user menu options
+ */
 export const useUserMenuItems = (userRole: Roles): MenuItemType[] => {
   const { logoutMutation } = useAuthQueries();
   const navigate = useNavigate();
 
   const allMenuItems: MenuItemType[] = [
     createMenuItem('Profile', <AccountCircleIcon fontSize="small" />, [Roles.All], () => navigate(webRoutes.backoffice.user.profile), webRoutes.backoffice.user.profile),
+    // Solo para admin
+    createMenuItem('View as Client', <VisibilityIcon fontSize="small" />, [Roles.Admin], () => {
+      eventBus.emit('openViewAsClientDialog');
+    }),
     createMenuItem('Logout', <ExitToAppIcon fontSize="small" />, [Roles.All], () => logoutMutation.mutateAsync()),
   ];
 

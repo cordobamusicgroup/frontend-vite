@@ -19,6 +19,10 @@ interface ApiParams {
   timeout?: number;
 }
 
+/**
+ * Hook for making centralized HTTP requests using Axios, with support for cancellation, authentication, and token management.
+ * Returns an apiRequest function for making HTTP requests.
+ */
 export const useApiRequest = () => {
   const cancelTokenRef = useRef<CancelTokenSource | null>(null);
 
@@ -29,16 +33,7 @@ export const useApiRequest = () => {
   }, []);
 
   const apiRequest = useCallback(async <T = any, E = any>(params: ApiParams): Promise<T> => {
-    const {
-      url,
-      method,
-      data,
-      params: query,
-      headers,
-      isFormData = false,
-      requireAuth = true,
-      timeout = 30000,
-    } = params;
+    const { url, method, data, params: query, headers, isFormData = false, requireAuth = true, timeout = 30000 } = params;
 
     const token = requireAuth ? Cookies.get('access_token') : null;
     cancelTokenRef.current = axios.CancelToken.source();

@@ -4,10 +4,10 @@ import { apiRoutes } from '@/lib/api.routes';
 import { formatApiError } from '@/lib/formatApiError.util';
 
 /**
- * Hook to manage fetching and downloading reports for a user.
+ * Hook to fetch and download financial reports for the user.
  *
- * @param {string} distributor - Distributor identifier.
- * @returns {object} Object with data, loading/error states, and mutation functions.
+ * @param distributor Distributor identifier
+ * @returns Object with report data, loading/error states, and mutation for downloading reports
  */
 export const useReportsUser = (distributor: string) => {
   const { apiRequest } = useApiRequest();
