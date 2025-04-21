@@ -40,7 +40,8 @@ export const apiRoutes = {
       },
       admin: {
         unlinked: {
-          get: '/financial/reports/admin/unlinked',
+          getAll: '/financial/reports/admin/unlinked',
+          getById: (id: number) => `/financial/reports/admin/unlinked/${id}`,
           linkMissing: '/financial/reports/admin/link-missing',
         },
       },

@@ -4,33 +4,20 @@ import { useApiRequest } from '@/hooks/useApiRequest';
 import { formatError } from '@/lib/formatApiError.util';
 
 /**
- * Hook to manage fetching and mutating clients.
- * If a `clientId` is provided, fetches a single client;
- * otherwise, fetches all clients.
- *
- * @param {string} [clientId] - ID of the client to fetch (optional).
- * @returns {object} Object with data, loading/error states, and mutation functions.
+ * Hook para obtener y vincular reportes no enlazados.
+ * Si se pasa un ID, trae solo ese reporte; si no, trae todos.
  */
-export const useUnlinkedReportsAdmin = () => {
+export const useUnlinkedReportsAdmin = (unlinkedId?: number) => {
   const { apiRequest } = useApiRequest();
   const queryClient = useQueryClient();
 
-  // Determine the query key based on whether a single client or all clients are needed
-  const queryKey = ['unlinked-reports'];
+  const queryKey = unlinkedId ? ['unlinked-report', unlinkedId] : ['unlinked-reports'];
 
-  /**
-   * Function to fetch clients.
-   * If `clientId` is provided, fetches the client by ID; otherwise, fetches all clients.
-   */
+  // Fetcher único, decide endpoint según si hay ID
   const fetchUnlinkedReports = async () => {
+    const url = unlinkedId ? apiRoutes.financial.reports.admin.unlinked.getById(unlinkedId) : apiRoutes.financial.reports.admin.unlinked.getAll;
     try {
-      const url = apiRoutes.financial.reports.admin.unlinked.get;
-
-      return await apiRequest({
-        url,
-        method: 'get',
-        requireAuth: true,
-      });
+      return await apiRequest({ url, method: 'get', requireAuth: true });
     } catch (error) {
       throw formatError(error);
     }
@@ -42,6 +29,7 @@ export const useUnlinkedReportsAdmin = () => {
     retry: false,
   });
 
+  // Mutación para vincular reporte
   const linkReport = useMutation({
     mutationFn: async ({ unlinkedReportId, labelId }: { unlinkedReportId: number; labelId: number }) => {
       try {
@@ -55,33 +43,25 @@ export const useUnlinkedReportsAdmin = () => {
         throw formatError(error);
       }
     },
-
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['unlinked-reports'],
-      });
+      queryClient.invalidateQueries({ queryKey: ['unlinked-reports'] });
+      if (unlinkedId) queryClient.invalidateQueries({ queryKey: ['unlinked-report', unlinkedId] });
     },
   });
 
   return {
-    // Data
     unlinkedReportsData: query.data,
-
-    // Loading states
     loading: {
-      unlinkedReportsFetch: query.isLoading,
+      unlinkedReportsFetch: query.isFetching,
       linkReport: linkReport.isPending,
     },
-
-    // Error states
     errors: {
       unlinkedReportsFetch: query.error,
       linkReport: linkReport.error,
     },
-
-    // Mutations
     mutations: {
       linkReport,
     },
+    refetch: query.refetch,
   };
 };
