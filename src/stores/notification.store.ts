@@ -4,6 +4,7 @@ import { devtools } from 'zustand/middleware';
 interface NotificationPayload {
   message: string | string[]; // puede ser string o array
   type: 'success' | 'error';
+  key?: string; // clave opcional para identificar la notificación
 }
 
 interface NotificationState {

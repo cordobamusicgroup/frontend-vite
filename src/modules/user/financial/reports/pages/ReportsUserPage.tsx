@@ -46,7 +46,7 @@ export default function ReportsPage() {
           {notification?.type === 'error' && <ErrorBox>{notification.message}</ErrorBox>}
         </Box>
 
-        <InformativeBox>
+        <InformativeBox collapsible>
           <Typography variant="body2" sx={{ mb: 1 }}>
             This page displays your financial reports. The <b>"Debit State"</b> column indicates whether the report has been paid into your balance:
           </Typography>

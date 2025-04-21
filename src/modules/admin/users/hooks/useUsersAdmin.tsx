@@ -1,8 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRoutes } from '@/lib/api.routes';
 import { useApiRequest } from '@/hooks/useApiRequest';
-import { formatApiError } from '@/lib/formatApiError.util';
-
+import { formatApiError, formatError } from '@/lib/formatApiError.util';
 /**
  * Hook to manage fetching and mutating users (admin).
  * If a userId is provided, fetches a single user; otherwise, fetches all users.
@@ -112,7 +111,7 @@ export const useUsersAdmin = (userId?: string) => {
           data: { clientId },
         });
       } catch (error) {
-        throw formatApiError(error);
+        throw formatError(error);
       }
     },
   });

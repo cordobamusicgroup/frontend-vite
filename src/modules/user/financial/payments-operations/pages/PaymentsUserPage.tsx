@@ -40,7 +40,7 @@ export default function PaymentsUserPage() {
           </Select>
         </FormControl>
 
-        <InformativeBox>
+        <InformativeBox collapsible>
           <Typography variant="body2" sx={{ mb: 1 }}>
             On this page you can view your <b>balances</b> and the history of <b>payments and transactions</b> in your account:
           </Typography>

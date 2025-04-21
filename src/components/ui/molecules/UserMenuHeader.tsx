@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router';
  * Component that displays a user menu with options for the current user.
  * Shows "Profile" label on desktop next to the icon.
  * User information is displayed within the dropdown menu for both mobile and desktop.
- *
+ *S
  * @returns {React.FC} The UserMenuHeader component
  */
 const UserMenuHeader: React.FC = () => {

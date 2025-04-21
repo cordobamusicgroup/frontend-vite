@@ -6,7 +6,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { ReactNode, useState } from 'react';
 
-export type InformativeBoxVariant = 'info' | 'warning' | 'error';
+export type InformativeBoxVariant = 'info' | 'warning' | 'error' | 'success';
 
 const variantStyles = {
   info: {
@@ -27,6 +27,12 @@ const variantStyles = {
     borderLeft: '6px solid #d32f2f',
     icon: <ErrorOutlineOutlinedIcon sx={{ mr: 1 }} />,
   },
+  success: {
+    backgroundColor: '#e7f5e9',
+    color: '#2e7d32',
+    borderLeft: '6px solid #2e7d32',
+    icon: <InfoOutlinedIcon sx={{ mr: 1, color: '#2e7d32' }} />,
+  },
 };
 
 interface InformativeBoxProps {
@@ -34,28 +40,37 @@ interface InformativeBoxProps {
   children: ReactNode;
   variant?: InformativeBoxVariant;
   defaultOpen?: boolean;
+  collapsible?: boolean; // Nuevo prop para controlar si es colapsable
 }
 
-export default function InformativeBox({ title = 'Information', children, variant = 'info', defaultOpen = true }: InformativeBoxProps) {
+export default function InformativeBox({ title = 'Information', children, variant = 'info', defaultOpen = true, collapsible = false }: InformativeBoxProps) {
   const [open, setOpen] = useState(defaultOpen);
   const styles = variantStyles[variant];
 
   return (
     <Box my={2} sx={{ backgroundColor: styles.backgroundColor, color: styles.color, borderLeft: styles.borderLeft, borderRadius: 2, boxShadow: 0.5 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', minHeight: 48, px: 2 }} onClick={() => setOpen((prev) => !prev)}>
+      <Box sx={{ display: 'flex', alignItems: 'center', cursor: collapsible ? 'pointer' : 'default', minHeight: 48, px: 2 }} onClick={collapsible ? () => setOpen((prev) => !prev) : undefined}>
         {styles.icon}
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, flexGrow: 1 }}>
+        <Typography variant="subtitle1" sx={{ fontSize: "15px" ,fontWeight: 600, flexGrow: 1, textTransform: 'uppercase' }}>
           {title}
         </Typography>
-        <IconButton size="small" sx={{ color: styles.color }}>
-          {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </IconButton>
+        {collapsible && (
+          <IconButton size="small" sx={{ color: styles.color }}>
+            {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </IconButton>
+        )}
       </Box>
-      <Collapse in={open} timeout="auto" unmountOnExit>
-        <Box px={2} pb={2} pt={1}>
+      {collapsible ? (
+        <Collapse in={open} timeout="auto" unmountOnExit>
+          <Box px={2} pb={1}>
+            {children}
+          </Box>
+        </Collapse>
+      ) : (
+        <Box px={2} pb={2}>
           {children}
         </Box>
-      </Collapse>
+      )}
     </Box>
   );
 }
