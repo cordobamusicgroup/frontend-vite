@@ -22,13 +22,14 @@ const viewAsClientFormSchema = z.object({
     .refine((val) => Number(val) > 0, 'Client ID must be a positive number'),
 });
 
-const ViewAsClientDialog: React.FC<ViewAsClientDialogProps> = ({ onClose }) => {
+const ViewAsClientDialog: React.FC<ViewAsClientDialogProps> = () => {
   const [open, setOpen] = useState(false);
   const methods = useForm<{ clientId: string }>({ mode: 'onChange', resolver: zodResolver(viewAsClientFormSchema) });
   const { handleSubmit, reset } = methods;
   const { mutations, loading } = useUsersAdmin();
   const setNotification = useNotificationStore((s) => s.setNotification);
   const notification = useNotificationStore((s) => s.notification);
+  const { clearNotification } = useNotificationStore();
 
   useEffect(() => {
     const handler = () => setOpen(true);
@@ -52,9 +53,9 @@ const ViewAsClientDialog: React.FC<ViewAsClientDialogProps> = ({ onClose }) => {
   const showError = notification && notification.type === 'error' && notification.key === 'viewAsClientDialog';
 
   const handleClose = () => {
-    reset();
     setOpen(false);
-    onClose && onClose();
+    clearNotification(); // Clear notification when the dialog opens
+    reset();
   };
 
   return (
