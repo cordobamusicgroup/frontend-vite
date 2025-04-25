@@ -42,32 +42,34 @@ export default function PaymentsUserPage() {
 
         <InformativeBox collapsible>
           <Typography variant="body2" sx={{ mb: 1 }}>
-            On this page you can view your <b>balances</b> and the history of <b>payments and transactions</b> in your account:
+            On this page, you can monitor your <b>account balances</b> and review the complete history of <b>payments and transactions</b> associated with your account:
           </Typography>
           <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
             <li>
               <Typography variant="body2">
-                <b>Balance</b>: Shows the total amount credited in the selected currency. Balances are updated once payments have been processed and credited to your account.
+                <b>Balance</b>: Displays the total amount currently available in the selected currency. Balances are updated after payments are processed and successfully credited to your account.
               </Typography>
             </li>
             <li>
               <Typography variant="body2">
-                <b>Transactions</b>: Here you will see all credits and debits associated with your account, including received payments, withdrawals, and other adjustments.
+                <b>Transactions</b>: Shows all credits and debits, including received payments, withdrawals, adjustments, and any other account activity.
               </Typography>
             </li>
           </ul>
           <Typography variant="body2" sx={{ mt: 2 }}>
-            Please note:
+            Important information:
           </Typography>
           <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
             <li>
               <Typography variant="body2">
-                Payments are usually credited between the <b>15th and 30th of each month</b>, depending on the receipt of funds and banking processes. Delays may occur due to external factors.
+                Payments are typically credited to your account between the <b>15th and 30th of each month</b>, depending on when funds are received and processed by our banking partners. Please note
+                that external factors may occasionally cause delays.
               </Typography>
             </li>
           </ul>
           <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>
-            * Dates and amounts are estimates and may vary. Please avoid contacting support solely to inquire about credit dates or recent transactions.
+            * All dates and amounts are approximate and subject to change. We kindly ask that you do not contact support solely to inquire about payment dates or recent transactions unless there is an
+            urgent issue.
           </Typography>
         </InformativeBox>
 
