@@ -14,7 +14,7 @@ interface TransactionsTableProps {
 
 const TransactionsTable: React.FC<TransactionsTableProps> = ({ currency }) => {
   const gridRef = useRef<AgGridReact>(null);
-  const { transactionsData, transactionsFetchLoading } = useTransactionsUser(currency)
+  const { transactionsData, transactionsFetchLoading } = useTransactionsUser(currency);
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 80, filter: false },
@@ -36,7 +36,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ currency }) => {
         );
       },
     },
-    { field: 'description', headerName: 'Description', width: 350 },
+    { field: 'description', headerName: 'Description', width: 400, flex: 1 },
     {
       field: 'amount',
       headerName: 'Operations',
