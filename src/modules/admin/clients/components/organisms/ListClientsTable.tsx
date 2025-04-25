@@ -32,7 +32,7 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
   const gridRef = useRef<AgGridReact>(null);
   const { setNotification } = useNotificationStore();
 
-  const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter(gridRef);
+  const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter();
   const handleEdit = (client: any): void => {
     navigate(`${webRoutes.admin.clients.edit}/${client.id}`);
   };
@@ -93,6 +93,7 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
     {
       headerName: 'Client Status',
       width: 200,
+      valueFormatter: (params: any) => (params.data.isBlocked ? 'Blocked' : 'Active'),
       cellRenderer: (params: any) => <IsBlockedChip isBlocked={Boolean(params.data.isBlocked)} />,
     },
     { field: 'firstName', headerName: 'First Name', width: 200 },
