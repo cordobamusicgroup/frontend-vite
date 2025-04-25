@@ -48,17 +48,18 @@ export default function ReportsPage() {
 
         <InformativeBox collapsible>
           <Typography variant="body2" sx={{ mb: 1 }}>
-            This page displays your financial reports. The <b>"Debit State"</b> column indicates whether the report has been paid into your balance:
+            Here you can view your financial reports. The <b>"Debit State"</b> column shows whether the report amount has already been credited to your balance:
           </Typography>
           <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
             <li>
               <Typography variant="body2">
-                <b>Paid</b>: The amount has been credited, along with the corresponding payment date. Older reports from 2024 may not show a date, as they were processed through our previous platform.
+                <b>Paid</b>: The amount has been credited to your balance, and the corresponding payment date is shown. Older reports (prior to 2024) may not display a date, as they were processed on
+                our previous platform.
               </Typography>
             </li>
             <li>
               <Typography variant="body2">
-                <b>Unpaid</b>: The amount has not yet been credited to your balance because we have not received the corresponding funds.
+                <b>Unpaid</b>: The amount has not yet been credited to your balance because we have not received the corresponding funds from the distributor.
               </Typography>
             </li>
           </ul>
@@ -68,17 +69,18 @@ export default function ReportsPage() {
           <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
             <li>
               <Typography variant="body2">
-                Reports are generally uploaded between the <b>30th of the current month</b> and the <b>1st of the following month</b>. This does <u>not</u> mean they are paid on those dates.
+                Reports are usually uploaded between the <b>30th of each month</b> and the <b>1st of the following month</b>. <u>This does not mean they are paid on those dates</u>; it only means they
+                are available for review.
               </Typography>
             </li>
             <li>
               <Typography variant="body2">
-                Payments are usually processed between the <b>15th and 30th of each month</b>, once we have received the funds. Occasionally, delays may occur due to banking or other external factors.
+                <b>Each report is credited to your balance at the end of the month in which it was uploaded.</b> For example: if a report is uploaded on April 1st, it will be paid around April 30th.
               </Typography>
             </li>
           </ul>
           <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>
-            * All dates are estimates and subject to change. We kindly ask that you refrain from contacting support solely to inquire about payment or report arrival dates.
+            * All dates are approximate and subject to change. Please do not contact support solely to inquire about payment or report arrival dates.
           </Typography>
         </InformativeBox>
 
