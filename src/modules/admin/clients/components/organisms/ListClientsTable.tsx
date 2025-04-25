@@ -93,7 +93,7 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
     {
       headerName: 'Client Status',
       width: 200,
-      valueFormatter: (params: any) => (params.data.isBlocked ? 'Blocked' : 'Active'),
+      valueGetter: (params: any) => (params.data.isBlocked ? 'Blocked' : 'Active'),
       cellRenderer: (params: any) => <IsBlockedChip isBlocked={Boolean(params.data.isBlocked)} />,
     },
     { field: 'firstName', headerName: 'First Name', width: 200 },
