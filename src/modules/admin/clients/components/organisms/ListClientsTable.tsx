@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Box, Paper, Typography } from '@mui/material';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { useNavigate } from 'react-router';
@@ -116,8 +116,6 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
       width: 150,
       cellRenderer: (params: any) => <DMBStatusChip status={params.data.dmb?.status || ''} />,
     },
-    // Nueva columna para isBlocked
-
     {
       field: 'balanceUsd',
       headerName: 'Balance USD',
@@ -125,8 +123,20 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
       valueFormatter: (params: any) => formatCurrency('$', params.value),
     },
     {
+      field: 'balanceUsdRetain',
+      headerName: 'Retained USD',
+      width: 180,
+      valueFormatter: (params: any) => formatCurrency('$', params.value),
+    },
+    {
       field: 'balanceEur',
       headerName: 'Balance EUR',
+      width: 180,
+      valueFormatter: (params: any) => formatCurrency('€', params.value),
+    },
+    {
+      field: 'balanceEurRetain',
+      headerName: 'Retained EUR',
       width: 180,
       valueFormatter: (params: any) => formatCurrency('€', params.value),
     },
@@ -151,7 +161,9 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
       type: apiData.type,
       dmb: apiData.dmb, // objeto dmb con accessType, subclientName y status
       balanceUsd: apiData.balances?.find((b: any) => b.currency === 'USD')?.amount ?? 0,
+      balanceUsdRetain: apiData.balances?.find((b: any) => b.currency === 'USD' && b.retain)?.amount ?? 0,
       balanceEur: apiData.balances?.find((b: any) => b.currency === 'EUR')?.amount ?? 0,
+      balanceEurRetain: apiData.balances?.find((b: any) => b.currency === 'EUR' && b.retain)?.amount ?? 0,
       status: apiData.status, // nuevo campo desde la API
     })) || [];
 
