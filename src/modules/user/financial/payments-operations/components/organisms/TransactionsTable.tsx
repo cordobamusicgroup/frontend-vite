@@ -36,7 +36,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ currency }) => {
         );
       },
     },
-    { field: 'description', headerName: 'Description', width: 400, flex: 1 },
+    { field: 'description', headerName: 'Description', minWidth: 400, flex: 1 },
     {
       field: 'amount',
       headerName: 'Operations',

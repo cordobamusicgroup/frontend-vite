@@ -1,7 +1,6 @@
 import theme from '@/theme';
 import { Box, Typography, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel } from '@mui/material';
 import { useState } from 'react';
-import { useBalancesUser } from '../hooks/useBalancesUser';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import ErrorBox from '@/components/ui/molecules/ErrorBox';
@@ -11,7 +10,6 @@ import InformativeBox from '@/components/ui/molecules/InformativeBox';
 
 export default function PaymentsUserPage() {
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const { balancesData, balancesFetchError } = useBalancesUser();
   const [selectedCurrency, setSelectedCurrency] = useState<'USD' | 'EUR' | null>(null);
 
   const handleBalanceChange = (event: SelectChangeEvent<string>) => {
@@ -75,13 +73,11 @@ export default function PaymentsUserPage() {
 
         {selectedCurrency && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {balancesData && <BalancesBlock balance={balancesData.find((balance: any) => balance.currency === selectedCurrency)?.total} currency={selectedCurrency} />}
+            <BalancesBlock currency={selectedCurrency} />
             <TransactionsTable setNotification={setNotification} currency={selectedCurrency} />
           </Box>
         )}
       </>
-
-      {balancesFetchError && <ErrorBox>{balancesFetchError.message}</ErrorBox>}
     </Box>
   );
 }

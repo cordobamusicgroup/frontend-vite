@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router';
 import { AgGridReact } from 'ag-grid-react';
 import webRoutes from '@/lib/web.routes';
 import useQuickFilter from '@/hooks/useQuickFilter';
-import IsBlockedChip from '../atoms/IsBlockedChip';
+import ClientStatusChip from '../atoms/ClientStatusChip';
 import GridTables from '@/components/ui/organisms/GridTables';
 import SearchBoxTable from '@/components/ui/organisms/SearchBoxTable';
 import DMBStatusChip from '../atoms/DMBStatusChip';
@@ -93,8 +93,9 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
     {
       headerName: 'Client Status',
       width: 200,
-      valueGetter: (params: any) => (params.data.isBlocked ? 'Blocked' : 'Active'),
-      cellRenderer: (params: any) => <IsBlockedChip isBlocked={Boolean(params.data.isBlocked)} />,
+      field: 'status',
+      valueGetter: (params: any) => params.data.status,
+      cellRenderer: (params: any) => <ClientStatusChip status={params.data.status} />,
     },
     { field: 'firstName', headerName: 'First Name', width: 200 },
     { field: 'lastName', headerName: 'Last Name', width: 200 },
@@ -151,7 +152,7 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
       dmb: apiData.dmb, // objeto dmb con accessType, subclientName y status
       balanceUsd: apiData.balances?.find((b: any) => b.currency === 'USD')?.amount ?? 0,
       balanceEur: apiData.balances?.find((b: any) => b.currency === 'EUR')?.amount ?? 0,
-      isBlocked: apiData.isBlocked, // propiedad boolean isBlocked
+      clientStatus: apiData.clientStatus, // nuevo campo desde la API
     })) || [];
 
   const defaultColDef: ColDef = {

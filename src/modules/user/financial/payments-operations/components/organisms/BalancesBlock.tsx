@@ -6,10 +6,10 @@ import { useState } from 'react';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { usePaymentsUser } from '../../hooks/usePaymentsUser';
 import BasicButton from '@/components/ui/atoms/BasicButton';
+import { useBalancesUser } from '../../hooks/useBalancesUser';
 
 interface BalancesBlockProps {
   paymentMethod?: string;
-  balance?: number;
   currency?: 'USD' | 'EUR';
 }
 
@@ -24,14 +24,17 @@ const DisabledButton = styled(BasicButton)({
   },
 });
 
-export default function BalancesBlock({ paymentMethod = 'N/A', balance = 0.0, currency = 'EUR' }: BalancesBlockProps) {
+export default function BalancesBlock({ paymentMethod = 'N/A', currency = 'EUR' }: BalancesBlockProps) {
   const [open, setOpen] = useState(false);
   const date = dayjs().format('DD MMMM YYYY');
   const currencySymbol = currency === 'USD' ? '$' : '€';
   const { withdrawalData } = usePaymentsUser();
+  const { balancesData } = useBalancesUser();
 
-  // Ensure balance is a number
-  const numericBalance = typeof balance === 'number' ? balance : parseFloat(balance);
+  // Buscar el balance y retained para la currency seleccionada
+  const balanceObj = Array.isArray(balancesData) ? balancesData.find((b: any) => b.currency === currency) : null;
+  const numericBalance = typeof balanceObj?.total === 'number' ? balanceObj.total : parseFloat(balanceObj?.total || 0);
+  const retained = typeof balanceObj?.retained === 'number' ? balanceObj.retained : parseFloat(balanceObj?.retained || 0);
 
   const isBlocked = withdrawalData?.isBlocked;
   const isPaymentInProgress = withdrawalData?.isPaymentInProgress;
@@ -132,13 +135,21 @@ export default function BalancesBlock({ paymentMethod = 'N/A', balance = 0.0, cu
           <Typography color={'#1E73BE'} id="current_balance" sx={{ fontSize: '30px', fontWeight: '600' }}>
             {currencySymbol} {numericBalance.toFixed(2)}
           </Typography>
+          <Typography color={'#888'} sx={{ fontSize: '16px', fontWeight: 400, mt: 1 }}>
+            Retained: {currencySymbol} {retained.toFixed(2)}
+          </Typography>
         </Box>
       </Box>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Request Payment</DialogTitle>
         <DialogContent>
           <DialogContentText>To request your payment, please fill out the following form:</DialogContentText>
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLScKjR0OVMgo0qIHn8kF_-MPJ1FdI8lEG5oTzK6sRQLzPAGBFQ/viewform?usp=sf_link" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLScKjR0OVMgo0qIHn8kF_-MPJ1FdI8lEG5oTzK6sRQLzPAGBFQ/viewform?usp=sf_link"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ textDecoration: 'none' }}
+          >
             <BasicButton sx={{ marginTop: 2 }}>Open Payment Request Form</BasicButton>
           </a>
         </DialogContent>
