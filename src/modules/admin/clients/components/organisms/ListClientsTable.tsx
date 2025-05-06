@@ -152,7 +152,7 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
       dmb: apiData.dmb, // objeto dmb con accessType, subclientName y status
       balanceUsd: apiData.balances?.find((b: any) => b.currency === 'USD')?.amount ?? 0,
       balanceEur: apiData.balances?.find((b: any) => b.currency === 'EUR')?.amount ?? 0,
-      clientStatus: apiData.clientStatus, // nuevo campo desde la API
+      status: apiData.status, // nuevo campo desde la API
     })) || [];
 
   const defaultColDef: ColDef = {
