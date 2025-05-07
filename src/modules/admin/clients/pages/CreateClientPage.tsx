@@ -16,8 +16,49 @@ import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ClientFormLayout from '../components/organisms/ClientFormLayout';
 import { FormattedApiError } from '@/lib/formatApiError.util';
+import dayjs from 'dayjs';
+import { buildClientPayload } from '../utils/buildClientPayload.util';
 
 type ClientFormData = z.infer<typeof ClientValidationSchema>;
+
+const defaultClientFormData: ClientFormData = {
+  client: {
+    clientId: undefined,
+    clientName: 'Test Client',
+    firstName: 'John',
+    lastName: 'Doe',
+    type: 'PERSON',
+    taxIdType: 'NATIONAL_ID',
+    taxId: '12345678',
+    vatRegistered: true,
+    vatId: 'VAT-1234',
+  },
+  address: {
+    street: 'Test Street 123',
+    city: 'Test City',
+    state: 'Test State',
+    countryId: 1,
+    zip: '1000',
+  },
+  contract: {
+    uuid: undefined,
+    type: 'DISTRIBUTION_NONEXCLUSIVE',
+    status: 'ACTIVE',
+    ppd: 20,
+    docUrl: 'http://test.com/doc.pdf',
+    startDate: dayjs('2025-05-01'),
+    endDate: dayjs('2025-06-01'),
+    signed: true,
+    signedBy: 'Admin',
+    signedAt: dayjs('2025-05-02'),
+  },
+  dmb: {
+    accessType: 'STANDARD',
+    status: 'ACTIVE',
+    subclientName: 'Test Subclient',
+    username: 'testuser',
+  },
+};
 
 const CreateClientPage: React.FC = () => {
   const theme = useTheme();
@@ -28,6 +69,7 @@ const CreateClientPage: React.FC = () => {
   const clientFormMethods = useForm<ClientFormData>({
     mode: 'all',
     resolver: zodResolver(ClientValidationSchema),
+    defaultValues: defaultClientFormData,
   });
 
   const {
@@ -37,41 +79,7 @@ const CreateClientPage: React.FC = () => {
   } = clientFormMethods;
 
   const onSubmitClient: SubmitHandler<ClientFormData> = async (formData) => {
-    const { client, contract, address, dmb } = formData;
-    const clientPayload = {
-      clientName: client.clientName,
-      firstName: client.firstName,
-      lastName: client.lastName,
-      type: client.type,
-      taxIdType: client.taxIdType,
-      taxId: client.taxId,
-      vatRegistered: client.vatRegistered,
-      vatId: client.vatId,
-      address: {
-        street: address.street,
-        city: address.city,
-        state: address.state,
-        countryId: address.countryId,
-        zip: address.zip,
-      },
-      contract: {
-        type: contract.type,
-        status: contract.status,
-        signed: contract.signed,
-        signedBy: contract.signedBy,
-        signedAt: contract.signedAt,
-        startDate: contract.startDate,
-        endDate: contract.endDate,
-        ppd: contract.ppd,
-        docUrl: contract.docUrl,
-      },
-      dmb: {
-        accessType: dmb?.accessType,
-        status: dmb?.status,
-        subclientName: dmb?.subclientName,
-        username: dmb?.username,
-      },
-    };
+    const clientPayload = buildClientPayload(formData);
     clientMutations.createClient.mutate(clientPayload, {
       onSuccess: () => {
         scrollToPageTop();

@@ -20,13 +20,13 @@ const DatePickerForm: React.FC<DatePickerFormProps> = ({ name, label, defaultVal
       <Controller
         name={name}
         control={control}
-        defaultValue={defaultValue ? dayjs(defaultValue) : null}
+        defaultValue={defaultValue ? dayjs(defaultValue) : undefined}
         rules={rules}
         render={({ field: { onChange, value }, fieldState: { error } }) => (
           <DatePicker
             {...props}
             label={label}
-            value={value ? dayjs(value) : null} // <-- Asegura que sea Dayjs o null
+            value={value ? dayjs(value) : undefined} // undefined si no hay valor
             onChange={(newValue) => {
               onChange(newValue);
             }}

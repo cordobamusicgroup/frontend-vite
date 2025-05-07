@@ -19,6 +19,7 @@ import ClientFormLayout from '../components/organisms/ClientFormLayout';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import dayjs from 'dayjs';
 import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
+import { buildClientPayload } from '../utils/buildClientPayload.util';
 
 type ClientFormData = z.infer<typeof ClientValidationSchema>;
 
@@ -80,9 +81,9 @@ const UpdateClientPage: React.FC = () => {
         type: clientData.contract.type,
         status: clientData.contract.status,
         startDate: dayjs(clientData.contract.startDate),
-        endDate: clientData.contract.endDate ? dayjs(clientData.contract.endDate) : null,
+        endDate: clientData.contract.endDate ? dayjs(clientData.contract.endDate) : undefined,
         signedBy: clientData.contract.signedBy,
-        signedAt: clientData.contract.signedAt ? dayjs(clientData.contract.signedAt) : null,
+        signedAt: clientData.contract.signedAt ? dayjs(clientData.contract.signedAt) : undefined,
         ppd: parseFloat(clientData.contract.ppd),
         docUrl: clientData.contract.docUrl,
       },
@@ -138,45 +139,11 @@ const UpdateClientPage: React.FC = () => {
     return <SkeletonLoader />;
   }
 
+
   const onSubmitClientUpdate: SubmitHandler<ClientFormData> = async (formData) => {
     if (!initialClientData) return;
-
     const modifiedFields = getModifiedFields(formData, initialClientData);
-
-    const clientUpdatePayload = {
-      clientName: modifiedFields.client.clientName,
-      firstName: modifiedFields.client.firstName,
-      lastName: modifiedFields.client.lastName,
-      type: modifiedFields.client.type,
-      taxIdType: modifiedFields.client.taxIdType,
-      taxId: modifiedFields.client.taxId,
-      vatRegistered: modifiedFields.client.vatRegistered,
-      vatId: modifiedFields.client.vatId,
-      address: {
-        street: modifiedFields.address.street,
-        city: modifiedFields.address.city,
-        state: modifiedFields.address.state,
-        countryId: modifiedFields.address.countryId,
-        zip: modifiedFields.address.zip,
-      },
-      contract: {
-        type: modifiedFields.contract.type,
-        status: modifiedFields.contract.status,
-        startDate: modifiedFields.contract.startDate,
-        endDate: modifiedFields.contract.endDate,
-        signed: modifiedFields.contract.signed,
-        signedBy: modifiedFields.contract.signedBy,
-        signedAt: modifiedFields.contract.signedAt,
-        ppd: modifiedFields.contract.ppd,
-        docUrl: modifiedFields.contract.docUrl,
-      },
-      dmb: {
-        accessType: modifiedFields.dmb.accessType,
-        status: modifiedFields.dmb.status,
-        subclientName: modifiedFields.dmb.subclientName,
-        username: modifiedFields.dmb.username,
-      },
-    };
+    const clientUpdatePayload = buildClientPayload(modifiedFields);
     clientMutations.updateClient.mutate(clientUpdatePayload, {
       onSuccess: () => {
         setClientNotification({ message: 'Client updated successfully', type: 'success' });
