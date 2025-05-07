@@ -34,9 +34,9 @@ export const isFutureDate = (value: any) => {
  * @returns {Dayjs|null} - Returns a valid Dayjs object if possible, otherwise null.
  */
 export const transformDate = (value: any) => {
-  if (!value || value === '') return null;
+  if (!value || value === '') return undefined;
   const parsedDate = dayjs(value);
-  return parsedDate.isValid() ? parsedDate : null;
+  return parsedDate.isValid() ? parsedDate : undefined;
 };
 
 // Removed: dateAfterField, dateBeforeField, requireIf –

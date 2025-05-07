@@ -46,10 +46,10 @@ const ContractSchema = z.object({
     .optional(),
   docUrl: z.string().nullable(),
   startDate: z.preprocess(transformDate, z.custom<dayjs.Dayjs>(isValidDayjs, 'Invalid date')),
-  endDate: z.preprocess(transformDate, z.union([z.custom<dayjs.Dayjs>(isValidDayjs), z.null()])),
+  endDate: z.preprocess(transformDate, z.union([z.custom<dayjs.Dayjs>(isValidDayjs), z.undefined()])),
   signed: z.boolean().optional(),
   signedBy: z.string().nullable(),
-  signedAt: z.preprocess(transformDate, z.union([z.custom<dayjs.Dayjs>(isValidDayjs), z.null()])),
+  signedAt: z.preprocess(transformDate, z.union([z.custom<dayjs.Dayjs>(isValidDayjs), z.undefined()])),
 });
 
 // 🧩 Esquema de DMB
