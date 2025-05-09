@@ -52,29 +52,37 @@ const PageOverview: React.FC = () => {
           <Paper elevation={3} sx={{ p: 4, my: 4, bgcolor: 'background.paper', borderRadius: 2 }}>
             <Box display="flex" alignItems="center" mb={2}>
               <HelpIcon color="primary" sx={{ mr: 1 }} />
-              <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+              <Typography variant="h5" component="h2" sx={{ color: 'primary.main' }}>
                 Frequently Asked Questions
               </Typography>
             </Box>
             <Divider sx={{ mb: 3 }} />
 
-            <Accordion>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="faq-balance-content" id="faq-balance-header" sx={{ backgroundColor: 'action.hover' }}>
-                <Box display="flex" alignItems="center">
-                  <AttachMoneyIcon sx={{ mr: 1, color: 'secondary.main' }} />
-                  <Typography variant="subtitle1" fontWeight="bold">
-                    Why do I have two balances in USD and EUR?
-                  </Typography>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Typography variant="body1" paragraph>
-                  As many of you know, we have migrated from Believe distribution to Kontor New Media. Until Believe royalties stop coming in, we have separated the royalties: Believe payments in the
-                  USD balance and Kontor payments in the EUR balance.
-                </Typography>
-                <Typography variant="body1">Once Believe stops reporting royalties, our plan is to combine everything into the EUR balance.</Typography>
-              </AccordionDetails>
-            </Accordion>
+            {[
+              {
+                icon: <AttachMoneyIcon sx={{ mr: 1, color: 'secondary.main' }} />,
+                question: 'Why do I have two balances in USD and EUR?',
+                answer: (
+                  <>
+                    <Typography variant="body1" paragraph>
+                      As many of you know, we have migrated from Believe distribution to Kontor New Media. Until Believe royalties stop coming in, we have separated the royalties: Believe payments in
+                      the USD balance and Kontor payments in the EUR balance.
+                    </Typography>
+                    <Typography variant="body1">Once Believe stops reporting royalties, our plan is to combine everything into the EUR balance.</Typography>
+                  </>
+                ),
+              },
+            ].map((faq, idx) => (
+              <Accordion key={idx}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls={`faq-content-${idx}`} id={`faq-header-${idx}`} sx={{ backgroundColor: 'action.hover' }}>
+                  <Box display="flex" alignItems="center">
+                    {faq.icon}
+                    <Typography variant="subtitle1">{faq.question}</Typography>
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails>{faq.answer}</AccordionDetails>
+              </Accordion>
+            ))}
 
             <Box mt={2} pl={1}>
               <Typography variant="caption" color="text.secondary" fontStyle="italic">
