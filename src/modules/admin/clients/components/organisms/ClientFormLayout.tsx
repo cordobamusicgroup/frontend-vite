@@ -1,4 +1,4 @@
-import { Grid, Paper, Typography } from "@mui/material";
+import { Grid, Typography } from "@mui/material";
 import AddressDetailsForm from "../molecules/AddressDetailsForm";
 import ClientDetailsForm from "../molecules/ClientDetailsForm";
 import ContractDetailsForm from "../molecules/ContractDetailsForm";

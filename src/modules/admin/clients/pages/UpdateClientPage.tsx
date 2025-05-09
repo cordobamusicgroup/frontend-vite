@@ -22,7 +22,6 @@ import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 import { buildClientPayload } from '../utils/buildClientPayload.util';
 import webRoutes from '@/lib/web.routes';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import HelpIcon from '@mui/icons-material/Help';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
