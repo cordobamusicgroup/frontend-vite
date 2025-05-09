@@ -38,6 +38,75 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
   }, {});
 };
 
+const AccordionTitle = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
+  <Box display="flex" alignItems="center">
+    {icon}
+    <Typography variant="subtitle1" sx={{ fontSize: '16px', ml: 1 }}>
+      {text}
+    </Typography>
+  </Box>
+);
+
+function BalancesBlock({ balances }: { balances: any[] }) {
+  const usd = balances?.find((b: any) => b.currency === 'USD') || {};
+  const eur = balances?.find((b: any) => b.currency === 'EUR') || {};
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center', mb: 1 }}>
+      <Box>
+        <Typography variant="subtitle2" color="text.secondary">
+          USD
+        </Typography>
+        <Typography variant="h6">$ {Number(usd.amount ?? 0).toFixed(2)}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Retained: $ {Number(usd.retained ?? 0).toFixed(2)}
+        </Typography>
+      </Box>
+      <Box>
+        <Typography variant="subtitle2" color="text.secondary">
+          EUR
+        </Typography>
+        <Typography variant="h6">€ {Number(eur.amount ?? 0).toFixed(2)}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Retained: € {Number(eur.retained ?? 0).toFixed(2)}
+        </Typography>
+      </Box>
+    </Box>
+  );
+}
+
+function UsersTable({ users, onEdit }: { users: any[]; onEdit: (id: number) => void }) {
+  return (
+    <Table size="small" sx={{ minWidth: 300, borderCollapse: 'separate', borderSpacing: 0 }}>
+      <TableHead>
+        <TableRow>
+          <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Username</TableCell>
+          <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Email</TableCell>
+          <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Full Name</TableCell>
+          <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Role</TableCell>
+          <TableCell align="center" sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>
+            Actions
+          </TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {users.map((user: any, idx: number) => (
+          <TableRow key={user.id} sx={{ backgroundColor: idx % 2 === 0 ? '#fafbfc' : 'white' }}>
+            <TableCell>{user.username}</TableCell>
+            <TableCell>{user.email}</TableCell>
+            <TableCell>{user.fullName}</TableCell>
+            <TableCell>{user.role}</TableCell>
+            <TableCell align="center">
+              <Button variant="outlined" size="small" onClick={() => onEdit(user.id)} sx={{ minWidth: 80 }}>
+                Edit
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
 const UpdateClientPage: React.FC = () => {
   const theme = useTheme();
   const { clientId } = useParams();
@@ -230,12 +299,7 @@ const UpdateClientPage: React.FC = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: 500 }}>
           <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Box display="flex" alignItems="center">
-                <PersonIcon sx={{ mr: 1, color: 'primary.main' }} />
-                <Typography variant="subtitle1" sx={{ fontSize: '16px', fontWeight: '500' }}>
-                  Client Form
-                </Typography>
-              </Box>
+              <AccordionTitle icon={<PersonIcon sx={{ color: 'primary.main' }} />} text="Client Form" />
             </AccordionSummary>
             <AccordionDetails sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 1 }}>
               <FormProvider {...clientFormMethods}>
@@ -245,79 +309,19 @@ const UpdateClientPage: React.FC = () => {
           </Accordion>
           <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Box display="flex" alignItems="center">
-                <AttachMoneyIcon sx={{ mr: 1, color: 'secondary.main' }} />
-                <Typography variant="subtitle1" sx={{ fontSize: '16px', fontWeight: '500' }}>
-                  Balances
-                </Typography>
-              </Box>
+              <AccordionTitle icon={<AttachMoneyIcon sx={{ color: 'secondary.main' }} />} text="Balances" />
             </AccordionSummary>
             <AccordionDetails sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
-              <Box sx={{ paddingX: 0, paddingY: 0 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center', mb: 1 }}>
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      USD
-                    </Typography>
-                    <Typography variant="h6">$ {Number(clientData.balances?.find((b: any) => b.currency === 'USD')?.amount ?? 0).toFixed(2)}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Retained: $ {Number(clientData.balances?.find((b: any) => b.currency === 'USD')?.retained ?? 0).toFixed(2)}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      EUR
-                    </Typography>
-                    <Typography variant="h6">€ {Number(clientData.balances?.find((b: any) => b.currency === 'EUR')?.amount ?? 0).toFixed(2)}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Retained: € {Number(clientData.balances?.find((b: any) => b.currency === 'EUR')?.retained ?? 0).toFixed(2)}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
+              <BalancesBlock balances={clientData.balances} />
             </AccordionDetails>
           </Accordion>
           {Array.isArray(clientData.users) && clientData.users.length > 0 && (
             <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Box display="flex" alignItems="center">
-                  <GroupIcon sx={{ mr: 1, color: 'primary.main' }} />
-                  <Typography variant="subtitle1" sx={{ fontSize: '16px', fontWeight: '500' }}>
-                    Users
-                  </Typography>
-                </Box>
+                <AccordionTitle icon={<GroupIcon sx={{ color: 'primary.main' }} />} text="Users" />
               </AccordionSummary>
               <AccordionDetails sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
-                <Box sx={{ paddingX: 0, paddingY: 0 }}>
-                  <Table size="small" sx={{ minWidth: 300, borderCollapse: 'separate', borderSpacing: 0 }}>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Username</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Email</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Full Name</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Role</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>
-                          Actions
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {clientData.users.map((user: any, idx: number) => (
-                        <TableRow key={user.id} sx={{ backgroundColor: idx % 2 === 0 ? '#fafbfc' : 'white' }}>
-                          <TableCell>{user.username}</TableCell>
-                          <TableCell>{user.email}</TableCell>
-                          <TableCell>{user.fullName}</TableCell>
-                          <TableCell>{user.role}</TableCell>
-                          <TableCell align="center">
-                            <Button variant="outlined" size="small" onClick={() => navigate(`${webRoutes.admin.users.edit}/${user.id}`)} sx={{ minWidth: 80 }}>
-                              Edit
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </Box>
+                <UsersTable users={clientData.users} onEdit={(id) => navigate(`${webRoutes.admin.users.edit}/${id}`)} />
               </AccordionDetails>
             </Accordion>
           )}
