@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Box, List, ListItem, ListItemText, Paper, Typography, useTheme, Table, TableHead, TableRow, TableCell, TableBody, Button } from '@mui/material';
+import { Box, List, ListItem, ListItemText, Paper, Typography, useTheme, Table, TableHead, TableRow, TableCell, TableBody, Button, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { useParams, useNavigate } from 'react-router';
 import BasicButton from '@/components/ui/atoms/BasicButton';
@@ -21,6 +21,11 @@ import dayjs from 'dayjs';
 import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 import { buildClientPayload } from '../utils/buildClientPayload.util';
 import webRoutes from '@/lib/web.routes';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import HelpIcon from '@mui/icons-material/Help';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import GroupIcon from '@mui/icons-material/Group';
+import PersonIcon from '@mui/icons-material/Person';
 
 type ClientFormData = z.infer<typeof ClientValidationSchema>;
 
@@ -222,77 +227,100 @@ const UpdateClientPage: React.FC = () => {
           {clientNotification?.type === 'error' && <ErrorBox>{clientNotification.message}</ErrorBox>}
         </Box>
 
-        <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-          <Paper variant="outlined" square={false} sx={{ paddingX: 2, paddingY: 3, mb: 3 }}>
-            <FormProvider {...clientFormMethods}>
-              <ClientFormLayout handleSubmit={handleClientFormSubmit} onChange={handleInputChange} />
-            </FormProvider>
-          </Paper>
-        </Box>
-
-        {/* Segunda fila: Users y Balances uno al lado del otro */}
-        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4 }}>
-          {/* USERS */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: 500 }}>
+          <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Box display="flex" alignItems="center">
+                <PersonIcon sx={{ mr: 1, color: 'primary.main' }} />
+                <Typography variant="subtitle1" sx={{ fontSize: '16px', fontWeight: '500' }}>
+                  Client Form
+                </Typography>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 1 }}>
+              <FormProvider {...clientFormMethods}>
+                <ClientFormLayout handleSubmit={handleClientFormSubmit} onChange={handleInputChange} />
+              </FormProvider>
+            </AccordionDetails>
+          </Accordion>
+          <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Box display="flex" alignItems="center">
+                <AttachMoneyIcon sx={{ mr: 1, color: 'secondary.main' }} />
+                <Typography variant="subtitle1" sx={{ fontSize: '16px', fontWeight: '500' }}>
+                  Balances
+                </Typography>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
+              <Box sx={{ paddingX: 0, paddingY: 0 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center', mb: 1 }}>
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      USD
+                    </Typography>
+                    <Typography variant="h6">$ {Number(clientData.balances?.find((b: any) => b.currency === 'USD')?.amount ?? 0).toFixed(2)}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Retained: $ {Number(clientData.balances?.find((b: any) => b.currency === 'USD')?.retained ?? 0).toFixed(2)}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      EUR
+                    </Typography>
+                    <Typography variant="h6">€ {Number(clientData.balances?.find((b: any) => b.currency === 'EUR')?.amount ?? 0).toFixed(2)}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Retained: € {Number(clientData.balances?.find((b: any) => b.currency === 'EUR')?.retained ?? 0).toFixed(2)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </AccordionDetails>
+          </Accordion>
           {Array.isArray(clientData.users) && clientData.users.length > 0 && (
-            <Paper elevation={1} variant="outlined" square={false} sx={{ paddingX: 2, paddingY: 3, flex: 1, minWidth: 350 }}>
-              <Typography variant="h6" mb={2}>
-                Users related to this client
-              </Typography>
-              <Table size="small" sx={{ minWidth: 300, borderCollapse: 'separate', borderSpacing: 0 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Username</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Email</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Full Name</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Role</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>
-                      Actions
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {clientData.users.map((user: any, idx: number) => (
-                    <TableRow key={user.id} sx={{ backgroundColor: idx % 2 === 0 ? '#fafbfc' : 'white' }}>
-                      <TableCell>{user.username}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.fullName}</TableCell>
-                      <TableCell>{user.role}</TableCell>
-                      <TableCell align="center">
-                        <Button variant="outlined" size="small" onClick={() => navigate(`${webRoutes.admin.users.edit}/${user.id}`)} sx={{ minWidth: 80 }}>
-                          Edit
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Paper>
+            <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Box display="flex" alignItems="center">
+                  <GroupIcon sx={{ mr: 1, color: 'primary.main' }} />
+                  <Typography variant="subtitle1" sx={{ fontSize: '16px', fontWeight: '500' }}>
+                    Users
+                  </Typography>
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
+                <Box sx={{ paddingX: 0, paddingY: 0 }}>
+                  <Table size="small" sx={{ minWidth: 300, borderCollapse: 'separate', borderSpacing: 0 }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Username</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Email</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Full Name</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Role</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>
+                          Actions
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {clientData.users.map((user: any, idx: number) => (
+                        <TableRow key={user.id} sx={{ backgroundColor: idx % 2 === 0 ? '#fafbfc' : 'white' }}>
+                          <TableCell>{user.username}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>{user.fullName}</TableCell>
+                          <TableCell>{user.role}</TableCell>
+                          <TableCell align="center">
+                            <Button variant="outlined" size="small" onClick={() => navigate(`${webRoutes.admin.users.edit}/${user.id}`)} sx={{ minWidth: 80 }}>
+                              Edit
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Box>
+              </AccordionDetails>
+            </Accordion>
           )}
-
-          {/* BALANCES */}
-          <Paper elevation={1} variant="outlined" square={false} sx={{ paddingX: 2, paddingY: 3, flex: 1, minWidth: 220, maxWidth: 350 }}>
-            <Typography variant="h6" mb={2}>
-              Balances
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center', mb: 1 }}>
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  USD
-                </Typography>
-                <Typography variant="h6">
-                  $ {Number(clientData.balances?.find((b: any) => b.currency === 'USD')?.amount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  EUR
-                </Typography>
-                <Typography variant="h6">
-                  € {Number(clientData.balances?.find((b: any) => b.currency === 'EUR')?.amount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </Typography>
-              </Box>
-            </Box>
-          </Paper>
         </Box>
 
         <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
