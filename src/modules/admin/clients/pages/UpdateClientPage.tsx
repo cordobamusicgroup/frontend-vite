@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Box, List, ListItem, ListItemText, Paper, Typography, useTheme } from '@mui/material';
+import { Box, List, ListItem, ListItemText, Paper, Typography, useTheme, Table, TableHead, TableRow, TableCell, TableBody, Button } from '@mui/material';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
-import { useParams } from 'react-router';
+import { useParams, useNavigate } from 'react-router';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
@@ -20,6 +20,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import dayjs from 'dayjs';
 import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 import { buildClientPayload } from '../utils/buildClientPayload.util';
+import webRoutes from '@/lib/web.routes';
 
 type ClientFormData = z.infer<typeof ClientValidationSchema>;
 
@@ -35,6 +36,7 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
 const UpdateClientPage: React.FC = () => {
   const theme = useTheme();
   const { clientId } = useParams();
+  const navigate = useNavigate();
   const { clientsData: clientData, mutations: clientMutations, loading: clientOperationsLoading, errors: clientApiErrors } = useClientsAdmin(clientId);
   const { notification: clientNotification, setNotification: setClientNotification, clearNotification: clearClientNotification } = useNotificationStore();
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
@@ -139,7 +141,6 @@ const UpdateClientPage: React.FC = () => {
     return <SkeletonLoader />;
   }
 
-
   const onSubmitClientUpdate: SubmitHandler<ClientFormData> = async (formData) => {
     if (!initialClientData) return;
     const modifiedFields = getModifiedFields(formData, initialClientData);
@@ -221,9 +222,79 @@ const UpdateClientPage: React.FC = () => {
           {clientNotification?.type === 'error' && <ErrorBox>{clientNotification.message}</ErrorBox>}
         </Box>
 
-        <FormProvider {...clientFormMethods}>
-          <ClientFormLayout handleSubmit={handleClientFormSubmit} onChange={handleInputChange} />
-        </FormProvider>
+        <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+          <Paper variant="outlined" square={false} sx={{ paddingX: 2, paddingY: 3, mb: 3 }}>
+            <FormProvider {...clientFormMethods}>
+              <ClientFormLayout handleSubmit={handleClientFormSubmit} onChange={handleInputChange} />
+            </FormProvider>
+          </Paper>
+        </Box>
+
+        {/* Segunda fila: Users y Balances uno al lado del otro */}
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4 }}>
+          {/* USERS */}
+          {Array.isArray(clientData.users) && clientData.users.length > 0 && (
+            <Paper elevation={1} variant="outlined" square={false} sx={{ paddingX: 2, paddingY: 3, flex: 1, minWidth: 350 }}>
+              <Typography variant="h6" mb={2}>
+                Users related to this client
+              </Typography>
+              <Table size="small" sx={{ minWidth: 300, borderCollapse: 'separate', borderSpacing: 0 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Username</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Email</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Full Name</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Role</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>
+                      Actions
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {clientData.users.map((user: any, idx: number) => (
+                    <TableRow key={user.id} sx={{ backgroundColor: idx % 2 === 0 ? '#fafbfc' : 'white' }}>
+                      <TableCell>{user.username}</TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>{user.fullName}</TableCell>
+                      <TableCell>{user.role}</TableCell>
+                      <TableCell align="center">
+                        <Button variant="outlined" size="small" onClick={() => navigate(`${webRoutes.admin.users.edit}/${user.id}`)} sx={{ minWidth: 80 }}>
+                          Edit
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Paper>
+          )}
+
+          {/* BALANCES */}
+          <Paper elevation={1} variant="outlined" square={false} sx={{ paddingX: 2, paddingY: 3, flex: 1, minWidth: 220, maxWidth: 350 }}>
+            <Typography variant="h6" mb={2}>
+              Balances
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center', mb: 1 }}>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  USD
+                </Typography>
+                <Typography variant="h6">
+                  $ {Number(clientData.balances?.find((b: any) => b.currency === 'USD')?.amount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  EUR
+                </Typography>
+                <Typography variant="h6">
+                  € {Number(clientData.balances?.find((b: any) => b.currency === 'EUR')?.amount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>
+        </Box>
+
         <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
           <List sx={{ padding: 0, margin: 0 }}>
             {getErrorMessages(clientFormErrors).map((msg, index) => (

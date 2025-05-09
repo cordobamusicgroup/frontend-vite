@@ -3,47 +3,12 @@ import { ClientValidationSchema } from '../schemas/ClientValidationSchema';
 
 export type ClientFormData = z.infer<typeof ClientValidationSchema>;
 
-// Helper para Dayjs
-const isDateOrDayjs = (d: any): boolean => {
-  return d && (d instanceof Date || typeof d.toDate === 'function');
-};
-
 // Helper para limpiar valores null, undefined y strings vacíos
 function cleanValue(value: any) {
   if (value === null || value === undefined || value === '') {
     return undefined;
   }
   return value;
-}
-
-// Función para limpiar el payload eliminando nulls, undefined y strings vacíos
-function sanitizePayloadRecursive(data: any): any {
-  if (Array.isArray(data)) {
-    const sanitizedArray = data.map(sanitizePayloadRecursive).filter((item) => item !== undefined);
-    return sanitizedArray.length > 0 ? sanitizedArray : undefined;
-  } else if (data && typeof data === 'object' && !isDateOrDayjs(data)) {
-    const result: { [key: string]: any } = {};
-    let hasValidFields = false;
-    for (const key in data) {
-      if (Object.prototype.hasOwnProperty.call(data, key)) {
-        const value = data[key];
-        if (value === undefined || value === null || value === '') {
-          continue;
-        }
-        const sanitizedValue = sanitizePayloadRecursive(value);
-        if (sanitizedValue !== undefined) {
-          result[key] = sanitizedValue;
-          hasValidFields = true;
-        }
-      }
-    }
-    return hasValidFields ? result : undefined;
-  }
-
-  if (data === '' || data === null) {
-    return undefined;
-  }
-  return data;
 }
 
 /**
