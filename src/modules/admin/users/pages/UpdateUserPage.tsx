@@ -18,6 +18,7 @@ import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 import { useUsersAdmin } from '../hooks/useUsersAdmin';
 import { UsersValidationSchema } from '../schemas/UsersAdminValidationSchema';
 import UsersFormLayout from '../components/organisms/UsersFormLayout';
+import { useUsersQuery } from '../hooks/useUsersQuery';
 
 type UserFormData = z.infer<typeof UsersValidationSchema>;
 
@@ -33,7 +34,10 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
 const UpdateUserPage: React.FC = () => {
   const theme = useTheme();
   const { userId } = useParams();
-  const { usersData: userData, loading, errors, mutations } = useUsersAdmin(userId);
+  const { mutations } = useUsersAdmin();
+  const { updateUser } = mutations;
+  const { data: userData, error: userFetchError, isPending: userFetchLoading } = useUsersQuery(userId);
+
   const { notification: userNotification, setNotification: setUserNotification, clearNotification: clearUserNotification } = useNotificationStore();
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
 
@@ -71,7 +75,7 @@ const UpdateUserPage: React.FC = () => {
     }
   }, [formattedUserData, resetUserForm]);
 
-  if (errors.userFetch) {
+  if (userFetchError) {
     return (
       <Box
         sx={{
@@ -96,14 +100,14 @@ const UpdateUserPage: React.FC = () => {
           </Typography>
 
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            {errors.userFetch.message || 'Failed to load user data.'}
+            {userFetchError.message || 'Failed to load user data.'}
           </Typography>
         </Paper>
       </Box>
     );
   }
 
-  if (loading.userFetch || !userData) {
+  if (userFetchLoading || !userData) {
     return <SkeletonLoader />;
   }
 
@@ -181,9 +185,9 @@ const UpdateUserPage: React.FC = () => {
             onClick={submitUserForm}
             color="primary"
             variant="contained"
-            disabled={loading.updateUser}
+            disabled={updateUser.isPending}
             startIcon={<AddOutlinedIcon />}
-            loading={loading.updateUser}
+            loading={updateUser.isPending}
           >
             Update User
           </BasicButton>

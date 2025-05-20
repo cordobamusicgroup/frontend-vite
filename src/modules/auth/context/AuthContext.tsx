@@ -1,10 +1,9 @@
 import React, { createContext, useContext, useEffect, type ReactNode } from 'react';
-import Cookies from 'js-cookie';
 import { useNavigate, useLocation } from 'react-router';
 import { jwtDecode } from 'jwt-decode';
-import { useApiRequest } from '../../../hooks/useApiRequest';
-import { apiRoutes } from '../../../lib/api.routes';
-import { useAuthStore, useUserStore } from '../../../stores';
+import { useApiRequest } from '@/hooks/useApiRequest';
+import { apiRoutes } from '@/lib/api.routes';
+import { useAuthStore, useUserStore } from '@/stores';
 import webRoutes from '@/lib/web.routes';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useServerStatus } from '@/context/ServerStatusContext';
@@ -31,63 +30,58 @@ interface AuthProviderProps {
 
 export const AuthContext = createContext(null);
 
-/**
- * Authentication provider component
- * Handles user authentication, token management, and related API calls
- */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { apiRequest } = useApiRequest();
   const { setUserData } = useUserStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
-  const { refetchServerStatus } = useServerStatus(); // Assuming this is a function to refetch server status
-  const { setAuthenticated, isAuthenticated } = useAuthStore();
-  const location = useLocation(); // Get the current location
+  const { refetchServerStatus } = useServerStatus();
 
-  /**
-   * Handles invalid or expired tokens by clearing credentials and redirecting to login
-   */
+  const { setAuthenticated, isAuthenticated, token, setToken, clearAuthentication } = useAuthStore();
+
   const handleInvalidToken = () => {
-    Cookies.remove('access_token');
-    Cookies.remove('refresh_token');
-    setAuthenticated(false);
-    queryClient.clear(); // Clear all caches on logout
+    clearAuthentication();
+    queryClient.clear();
     navigate(webRoutes.login);
   };
 
-  /**
-   * Valida si la ruta actual es pública según la configuración de rutas protegidas
-   */
   const isPublicRoute = (currentPath: string) => {
     return webRoutes.protected.find((route: any) => route.path === currentPath && route.public === true) !== undefined;
   };
 
-  /**
-   * Validates the current auth token
-   * @returns {boolean} Whether the token is valid
-   */
-  const validateToken = () => {
+  const validateToken = async (): Promise<boolean> => {
     const currentPath = location.pathname;
+    if (isPublicRoute(currentPath)) return true;
 
-    // Omitir validación de token si la ruta es pública
-    if (isPublicRoute(currentPath)) {
-      return true;
-    }
+    let currentToken = useAuthStore.getState().token;
+    const currentTime = Date.now() / 1000;
 
-    const token = Cookies.get('access_token');
-    if (!token) {
-      handleInvalidToken();
-      return false;
-    }
+    // No token → intentar refresh
+    if (!currentToken) {
+      try {
+        const refreshRes = await apiRequest<{ access_token: string }>({
+          url: apiRoutes.auth.refresh,
+          method: 'post',
+          requireAuth: false,
+        });
 
-    try {
-      const decoded = jwtDecode<JWTPayload>(token);
-      const currentTime = Date.now() / 1000;
-
-      // If token is expired
-      if (decoded.exp < currentTime) {
+        if (refreshRes?.access_token) {
+          setToken(refreshRes.access_token);
+          setAuthenticated(true);
+          return true;
+        }
+      } catch (error) {
         handleInvalidToken();
         return false;
+      }
+    }
+
+    // Validar token actual
+    try {
+      const decoded = jwtDecode<JWTPayload>(currentToken!);
+      if (decoded.exp < currentTime) {
+        return await validateToken(); // intentar refresh si está vencido
       }
 
       setAuthenticated(true);
@@ -99,7 +93,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Current user query with Tanstack Query
   const { isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['auth', 'user'],
     queryFn: async () => {
@@ -112,34 +105,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return response;
       } catch (error: any) {
         console.error('Error fetching user data:', error);
-        refetchServerStatus(); // Refetch server status on error
-        throw formatApiError(error); // Format error for better user experience
+        refetchServerStatus();
+        throw formatApiError(error);
       }
     },
     enabled: isAuthenticated,
     retry: 1,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Set up token validation check on component mount
   useEffect(() => {
     validateToken();
 
-    // Set up periodic token validation
     const tokenCheckInterval = setInterval(() => {
       validateToken();
-    }, 60000); // Check token every minute
+    }, 60000); // cada 60 segundos
 
     return () => clearInterval(tokenCheckInterval);
   }, []);
 
-  // Render loading state or error message while authenticating
   if (isAuthenticated && isLoadingUser) {
     return <CenteredLoader open={true} />;
   }
 
   if (isAuthenticated && userError) {
-    // Check for rate limit error (429 Too Many Requests)
     const is429Error = (userError as any)?.statusCode === 429;
 
     return (
@@ -166,7 +155,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 export const useAuthContext = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth debe usarse dentro de un AuthProvider');
+    throw new Error('useAuthContext debe usarse dentro de un AuthProvider');
   }
   return context;
 };

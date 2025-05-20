@@ -2,7 +2,7 @@ import { useApiRequest } from '@/hooks/useApiRequest';
 import { apiRoutes } from '@/lib/api.routes';
 import webRoutes from '@/lib/web.routes';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { AuthErrorMessages, AuthErrorCode, setCookies, clearCookies } from '../utils/auth.utils';
+import { AuthErrorMessages, AuthErrorCode } from '../utils/auth.utils';
 import { useNavigate } from 'react-router';
 import { useAuthStore, useErrorStore } from '@/stores';
 import { AxiosError } from 'axios';
@@ -22,7 +22,7 @@ const useAuthQueries = () => {
   const { apiRequest } = useApiRequest();
   const navigate = useNavigate();
   const { setError } = useErrorStore();
-  const { setAuthenticated } = useAuthStore(); // Assuming this is a function to set authentication state
+  const { clearAuthentication, setToken, setAuthenticated } = useAuthStore(); // Assuming this is a function to set authentication state
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
@@ -40,17 +40,36 @@ const useAuthQueries = () => {
       }
     },
     onSuccess: (data) => {
-      if (data && data.access_token && data.refresh_token && data.expires_in && data.refresh_expires_in) {
-        setCookies(data.access_token, data.refresh_token, data.expires_in, data.refresh_expires_in);
-        queryClient.invalidateQueries({ queryKey: ['auth', 'user'] }).then(() => {
-          navigate(webRoutes.backoffice.overview);
-        });
-      }
+      setToken(data.access_token);
+      queryClient.invalidateQueries({ queryKey: ['auth', 'user'] }).then(() => {
+        navigate(webRoutes.backoffice.overview);
+      });
+
       setAuthenticated(true);
     },
     onError: (error: string) => {
       console.log('Login error:', error);
       setError(error);
+    },
+  });
+
+  const refreshTokenMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest<{ access_token: string; expires_in: number }>({
+        url: apiRoutes.auth.refresh,
+        method: 'post',
+        requireAuth: false,
+      });
+      return response;
+    },
+    onSuccess: (data) => {
+      setToken(data.access_token);
+      console.log('[Auth] Nuevo access_token seteado:', data.access_token);
+      // NO setees setAuthenticated acá, SOLO en /auth/me!
+    },
+    onError: (error) => {
+      console.error('[Auth] ERROR en refresh mutation', error);
+      clearAuthentication();
     },
   });
 
@@ -69,8 +88,7 @@ const useAuthQueries = () => {
     },
     onSuccess: () => {
       queryClient.clear();
-      setAuthenticated(false);
-      clearCookies();
+      clearAuthentication();
       navigate(webRoutes.login);
     },
   });
@@ -108,7 +126,7 @@ const useAuthQueries = () => {
     },
   });
 
-  return { loginMutation, logoutMutation, forgotPasswordMutation, resetPasswordMutation };
+  return { loginMutation, refreshTokenMutation, logoutMutation, forgotPasswordMutation, resetPasswordMutation };
 };
 
 export default useAuthQueries;
