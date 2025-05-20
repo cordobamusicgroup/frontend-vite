@@ -24,6 +24,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
   const { mutations } = useUsersAdmin();
   const { data, error: fetchError, isPending: userFetchLoading } = useUsersQuery();
   const { clientsData, loading: clientLoading, errors: clientErrors } = useClientsAdmin();
+  console.log('🟣 ListUserTable rendered');
 
   const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter();
 

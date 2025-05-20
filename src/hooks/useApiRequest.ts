@@ -26,11 +26,6 @@ interface ApiParams {
 export const useApiRequest = () => {
   const cancelTokenRef = useRef<CancelTokenSource | null>(null);
 
-  useEffect(() => {
-    return () => {
-      cancelTokenRef.current?.cancel('Request cancelled on unmount');
-    };
-  }, []);
 
   const apiRequest = useCallback(async <T = any, E = any>(params: ApiParams): Promise<T> => {
     const { url, method, data, params: query, headers, isFormData = false, requireAuth = true, timeout = 30000 } = params;

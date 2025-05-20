@@ -16,6 +16,9 @@ import ViewAsClientDialog from '../ui/molecules/ViewAsClientDialog';
  * Represents the main content component.
  * @component
  */
+
+console.log('BackofficeLayout rendered');
+
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{ open?: boolean }>(({ theme, open }) => {
   const mobile = isMobile();
   return {

@@ -1,4 +1,7 @@
-import ReactDOM from 'react-dom/client';
-import App from './App';
+import { startTransition } from 'react';
+import { hydrateRoot } from 'react-dom/client';
+import { HydratedRouter } from 'react-router/dom';
 
-ReactDOM.hydrateRoot(document, <App />);
+startTransition(() => {
+  hydrateRoot(document, <HydratedRouter />);
+});

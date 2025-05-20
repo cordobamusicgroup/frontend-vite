@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { jwtDecode } from 'jwt-decode';
 import { useApiRequest } from '@/hooks/useApiRequest';
@@ -6,7 +6,6 @@ import { apiRoutes } from '@/lib/api.routes';
 import { useAuthStore, useUserStore } from '@/stores';
 import webRoutes from '@/lib/web.routes';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useServerStatus } from '@/context/ServerStatusContext';
 import { Box, Typography } from '@mui/material';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
 import useAuthQueries from '../hooks/useAuthQueries';
@@ -25,27 +24,42 @@ interface AuthProviderProps {
 export const AuthContext = createContext(null);
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  // LOG MOUNT/UNMOUNT
+  useEffect(() => {
+    console.log('[AuthProvider] mounted');
+    return () => console.log('[AuthProvider] unmounted');
+  }, []);
+
   const { apiRequest } = useApiRequest();
   const { setUserData } = useUserStore();
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const { refetchServerStatus } = useServerStatus();
   const { setAuthenticated, isAuthenticated, clearAuthentication } = useAuthStore();
 
   const { refreshTokenMutation } = useAuthQueries();
   const [tokenChecked, setTokenChecked] = useState(false);
 
-  // Helper para rutas públicas
+  // Bloquea ejecuciones dobles en StrictMode
+  const hasCheckedTokenRef = useRef(false);
+
+  // Rutas públicas
   const isPublicRoute = (currentPath: string) => {
     return webRoutes.protected.find((route: any) => route.path === currentPath && route.public === true) !== undefined;
   };
 
   // Validación y refresh de token
   const checkToken = async () => {
+    if (hasCheckedTokenRef.current) {
+      // Solo para debug, puedes quitarlo luego
+      console.log('[AuthProvider] Token check SKIPPED (already running)');
+      return;
+    }
+    hasCheckedTokenRef.current = true;
     const currentPath = location.pathname;
     if (isPublicRoute(currentPath)) {
       setTokenChecked(true);
+      hasCheckedTokenRef.current = false;
       return;
     }
 
@@ -53,15 +67,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const currentTime = Date.now() / 1000;
 
     if (!currentToken) {
-      // Intentar refresh con la mutación
+      // Intentar refresh
       try {
+        console.log('[AuthProvider] No token, refreshing...');
         await refreshTokenMutation.mutateAsync();
         setTokenChecked(true);
-      } catch {
+        console.log('[AuthProvider] Token refreshed, auth ready');
+      } catch (err) {
+        console.log('[AuthProvider] Refresh failed, clearing auth');
         clearAuthentication();
         queryClient.clear();
-        navigate(webRoutes.login);
+        // Solo navega si no estás ya en login, para evitar bucle infinito
+        if (location.pathname !== webRoutes.login) {
+          navigate(webRoutes.login, { replace: true });
+        }
         setTokenChecked(true);
+      } finally {
+        hasCheckedTokenRef.current = false;
       }
       return;
     }
@@ -70,30 +92,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const decoded = jwtDecode<JWTPayload>(currentToken!);
       if (decoded.exp < currentTime) {
-        // Intentar refresh
+        // Expirado: intentar refresh
         try {
+          console.log('[AuthProvider] Token expired, refreshing...');
           await refreshTokenMutation.mutateAsync();
           setTokenChecked(true);
-        } catch {
+          console.log('[AuthProvider] Token refreshed after expire, auth ready');
+        } catch (err) {
+          console.log('[AuthProvider] Refresh after expire failed, clearing auth');
           clearAuthentication();
           queryClient.clear();
-          navigate(webRoutes.login);
+          if (location.pathname !== webRoutes.login) {
+            navigate(webRoutes.login, { replace: true });
+          }
           setTokenChecked(true);
+        } finally {
+          hasCheckedTokenRef.current = false;
         }
         return;
       }
       // Token válido
       setTokenChecked(true);
+      console.log('[AuthProvider] Token valid, auth ready');
+      hasCheckedTokenRef.current = false;
     } catch (err) {
+      console.log('[AuthProvider] Token decode failed, clearing auth');
       clearAuthentication();
       queryClient.clear();
-      navigate(webRoutes.login);
+      if (location.pathname !== webRoutes.login) {
+        navigate(webRoutes.login, { replace: true });
+      }
       setTokenChecked(true);
+      hasCheckedTokenRef.current = false;
     }
   };
 
   useEffect(() => {
     setTokenChecked(false);
+    hasCheckedTokenRef.current = false;
     checkToken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
@@ -115,18 +151,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Manejo del error vía useEffect
-  useEffect(() => {
-    if (userError) {
-      refetchServerStatus();
-    }
-  }, [userError, refetchServerStatus]);
-
-  // 👇 Aquí la clave: SOLO renderizar children si está listo el auth/check de token.
-  if (!tokenChecked || refreshTokenMutation.isPending || (tokenChecked && isAuthenticated && isLoadingUser)) {
+  // Loader si aún no está listo el token o refrescando
+  if (!tokenChecked || refreshTokenMutation.isPending) {
+    console.log('[AuthProvider] Loading...', { tokenChecked, isPending: refreshTokenMutation.isPending });
     return <CenteredLoader open={true} />;
   }
 
+  // Loader mientras carga el usuario (pero solo después del token)
+  if (tokenChecked && isAuthenticated && isLoadingUser) {
+    return <CenteredLoader open={true} />;
+  }
+
+  // Error cargando user (demasiadas requests, etc)
   if (isAuthenticated && userError) {
     const is429Error = (userError as any)?.statusCode === 429;
     return (
@@ -147,7 +183,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     );
   }
 
-  // Solo cuando esté listo, renderiza los children. Nada debajo del provider se monta antes.
+  // Si está todo bien, renderiza los hijos
   return <AuthContext.Provider value={null}>{children}</AuthContext.Provider>;
 };
 
