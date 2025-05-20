@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, type ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { jwtDecode } from 'jwt-decode';
 import { useApiRequest } from '@/hooks/useApiRequest';
@@ -9,11 +9,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useServerStatus } from '@/context/ServerStatusContext';
 import { Box, Typography } from '@mui/material';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
-import { formatApiError } from '@/lib/formatApiError.util';
+import useAuthQueries from '../hooks/useAuthQueries';
 
-/**
- * JWT payload structure
- */
 interface JWTPayload {
   sub: string;
   email: string;
@@ -21,9 +18,6 @@ interface JWTPayload {
   exp: number;
 }
 
-/**
- * Auth provider props
- */
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -37,100 +31,104 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const location = useLocation();
   const queryClient = useQueryClient();
   const { refetchServerStatus } = useServerStatus();
+  const { setAuthenticated, isAuthenticated, clearAuthentication } = useAuthStore();
 
-  const { setAuthenticated, isAuthenticated, token, setToken, clearAuthentication } = useAuthStore();
+  const { refreshTokenMutation } = useAuthQueries();
+  const [tokenChecked, setTokenChecked] = useState(false);
 
-  const handleInvalidToken = () => {
-    clearAuthentication();
-    queryClient.clear();
-    navigate(webRoutes.login);
-  };
-
+  // Helper para rutas públicas
   const isPublicRoute = (currentPath: string) => {
     return webRoutes.protected.find((route: any) => route.path === currentPath && route.public === true) !== undefined;
   };
 
-  const validateToken = async (): Promise<boolean> => {
+  // Validación y refresh de token
+  const checkToken = async () => {
     const currentPath = location.pathname;
-    if (isPublicRoute(currentPath)) return true;
+    if (isPublicRoute(currentPath)) {
+      setTokenChecked(true);
+      return;
+    }
 
     let currentToken = useAuthStore.getState().token;
     const currentTime = Date.now() / 1000;
 
-    // No token → intentar refresh
     if (!currentToken) {
+      // Intentar refresh con la mutación
       try {
-        const refreshRes = await apiRequest<{ access_token: string }>({
-          url: apiRoutes.auth.refresh,
-          method: 'post',
-          requireAuth: false,
-        });
-
-        if (refreshRes?.access_token) {
-          setToken(refreshRes.access_token);
-          setAuthenticated(true);
-          return true;
-        }
-      } catch (error) {
-        handleInvalidToken();
-        return false;
+        await refreshTokenMutation.mutateAsync();
+        setTokenChecked(true);
+      } catch {
+        clearAuthentication();
+        queryClient.clear();
+        navigate(webRoutes.login);
+        setTokenChecked(true);
       }
+      return;
     }
 
-    // Validar token actual
+    // Token presente, validarlo
     try {
       const decoded = jwtDecode<JWTPayload>(currentToken!);
       if (decoded.exp < currentTime) {
-        return await validateToken(); // intentar refresh si está vencido
+        // Intentar refresh
+        try {
+          await refreshTokenMutation.mutateAsync();
+          setTokenChecked(true);
+        } catch {
+          clearAuthentication();
+          queryClient.clear();
+          navigate(webRoutes.login);
+          setTokenChecked(true);
+        }
+        return;
       }
-
-      setAuthenticated(true);
-      return true;
+      // Token válido
+      setTokenChecked(true);
     } catch (err) {
-      console.error('Error decoding token:', err);
-      handleInvalidToken();
-      return false;
+      clearAuthentication();
+      queryClient.clear();
+      navigate(webRoutes.login);
+      setTokenChecked(true);
     }
   };
 
+  useEffect(() => {
+    setTokenChecked(false);
+    checkToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  // Fetch de usuario solo si está autenticado y token validado
   const { isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['auth', 'user'],
     queryFn: async () => {
-      try {
-        const response = await apiRequest<any>({
-          url: apiRoutes.auth.me,
-          method: 'get',
-        });
-        setUserData(response);
-        return response;
-      } catch (error: any) {
-        console.error('Error fetching user data:', error);
-        refetchServerStatus();
-        throw formatApiError(error);
-      }
+      const response = await apiRequest<any>({
+        url: apiRoutes.auth.me,
+        method: 'get',
+      });
+      setUserData(response);
+      setAuthenticated(true); // Solo acá se marca como autenticado
+      return response;
     },
-    enabled: isAuthenticated,
+    enabled: tokenChecked && !!useAuthStore.getState().token,
     retry: 1,
     staleTime: 5 * 60 * 1000,
   });
 
+  // Manejo del error vía useEffect
   useEffect(() => {
-    validateToken();
+    if (userError) {
+      refetchServerStatus();
+    }
+  }, [userError, refetchServerStatus]);
 
-    const tokenCheckInterval = setInterval(() => {
-      validateToken();
-    }, 60000); // cada 60 segundos
-
-    return () => clearInterval(tokenCheckInterval);
-  }, []);
-
-  if (isAuthenticated && isLoadingUser) {
+  // 👇 Aquí la clave: SOLO renderizar children si está listo el auth/check de token.
+  if (!tokenChecked || refreshTokenMutation.isPending || (tokenChecked && isAuthenticated && isLoadingUser)) {
     return <CenteredLoader open={true} />;
   }
 
   if (isAuthenticated && userError) {
     const is429Error = (userError as any)?.statusCode === 429;
-
     return (
       <Box
         sx={{
@@ -149,6 +147,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     );
   }
 
+  // Solo cuando esté listo, renderiza los children. Nada debajo del provider se monta antes.
   return <AuthContext.Provider value={null}>{children}</AuthContext.Provider>;
 };
 
