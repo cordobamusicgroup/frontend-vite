@@ -1,20 +1,16 @@
-import React, { createContext, useContext, useEffect, type ReactNode } from 'react';
-import Cookies from 'js-cookie';
+import React, { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { jwtDecode } from 'jwt-decode';
-import { useApiRequest } from '../../../hooks/useApiRequest';
-import { apiRoutes } from '../../../lib/api.routes';
-import { useAuthStore, useUserStore } from '../../../stores';
+import { useApiRequest } from '@/hooks/useApiRequest';
+import { apiRoutes } from '@/lib/api.routes';
+import { useAuthStore, useUserStore } from '@/stores';
 import webRoutes from '@/lib/web.routes';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useServerStatus } from '@/context/ServerStatusContext';
 import { Box, Typography } from '@mui/material';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
-import { formatApiError } from '@/lib/formatApiError.util';
+import useAuthQueries from '../hooks/useAuthQueries';
+import { logColor } from '@/lib/log.util';
 
-/**
- * JWT payload structure
- */
 interface JWTPayload {
   sub: string;
   email: string;
@@ -22,126 +18,147 @@ interface JWTPayload {
   exp: number;
 }
 
-/**
- * Auth provider props
- */
 interface AuthProviderProps {
   children: ReactNode;
 }
 
 export const AuthContext = createContext(null);
 
-/**
- * Authentication provider component
- * Handles user authentication, token management, and related API calls
- */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  useEffect(() => {
+    logColor('info', 'AuthProvider', 'mounted');
+    return () => logColor('info', 'AuthProvider', 'unmounted');
+  }, []);
+
   const { apiRequest } = useApiRequest();
   const { setUserData } = useUserStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
-  const { refetchServerStatus } = useServerStatus(); // Assuming this is a function to refetch server status
-  const { setAuthenticated, isAuthenticated } = useAuthStore();
-  const location = useLocation(); // Get the current location
+  const { setAuthenticated, isAuthenticated, clearAuthentication } = useAuthStore();
 
-  /**
-   * Handles invalid or expired tokens by clearing credentials and redirecting to login
-   */
-  const handleInvalidToken = () => {
-    Cookies.remove('access_token');
-    Cookies.remove('refresh_token');
-    setAuthenticated(false);
-    queryClient.clear(); // Clear all caches on logout
-    navigate(webRoutes.login);
-  };
+  const { refreshTokenMutation } = useAuthQueries();
+  const [tokenChecked, setTokenChecked] = useState(false);
 
-  /**
-   * Valida si la ruta actual es pública según la configuración de rutas protegidas
-   */
+  // Previene dobles ejecuciones en StrictMode
+  const hasCheckedTokenRef = useRef(false);
+
   const isPublicRoute = (currentPath: string) => {
     return webRoutes.protected.find((route: any) => route.path === currentPath && route.public === true) !== undefined;
   };
 
-  /**
-   * Validates the current auth token
-   * @returns {boolean} Whether the token is valid
-   */
-  const validateToken = () => {
+  const checkToken = async () => {
+    if (hasCheckedTokenRef.current) {
+      logColor('warn', 'AuthProvider', 'Token check SKIPPED (already running)');
+      return;
+    }
+    hasCheckedTokenRef.current = true;
     const currentPath = location.pathname;
-
-    // Omitir validación de token si la ruta es pública
     if (isPublicRoute(currentPath)) {
-      return true;
+      setTokenChecked(true);
+      hasCheckedTokenRef.current = false;
+      logColor('info', 'AuthProvider', 'Public route, token check OK');
+      return;
     }
 
-    const token = Cookies.get('access_token');
-    if (!token) {
-      handleInvalidToken();
-      return false;
-    }
+    let currentToken = useAuthStore.getState().token;
+    const currentTime = Date.now() / 1000;
 
-    try {
-      const decoded = jwtDecode<JWTPayload>(token);
-      const currentTime = Date.now() / 1000;
-
-      // If token is expired
-      if (decoded.exp < currentTime) {
-        handleInvalidToken();
-        return false;
+    if (!currentToken) {
+      try {
+        logColor('info', 'AuthProvider', 'No token, refreshing...');
+        await refreshTokenMutation.mutateAsync();
+        setTokenChecked(true);
+        logColor('success', 'AuthProvider', 'Token refreshed, auth ready');
+      } catch (err) {
+        logColor('error', 'AuthProvider', 'Refresh failed, clearing auth');
+        clearAuthentication();
+        queryClient.clear();
+        if (location.pathname !== webRoutes.login) {
+          navigate(webRoutes.login, { replace: true });
+        }
+        setTokenChecked(true);
+      } finally {
+        hasCheckedTokenRef.current = false;
       }
+      return;
+    }
 
-      setAuthenticated(true);
-      return true;
+    // Token presente
+    try {
+      const decoded = jwtDecode<JWTPayload>(currentToken!);
+      if (decoded.exp < currentTime) {
+        try {
+          logColor('info', 'AuthProvider', 'Token expired, refreshing...');
+          await refreshTokenMutation.mutateAsync();
+          setTokenChecked(true);
+          logColor('success', 'AuthProvider', 'Token refreshed after expire, auth ready');
+        } catch (err) {
+          logColor('error', 'AuthProvider', 'Refresh after expire failed, clearing auth');
+          clearAuthentication();
+          queryClient.clear();
+          if (location.pathname !== webRoutes.login) {
+            navigate(webRoutes.login, { replace: true });
+          }
+          setTokenChecked(true);
+        } finally {
+          hasCheckedTokenRef.current = false;
+        }
+        return;
+      }
+      setTokenChecked(true);
+      logColor('success', 'AuthProvider', 'Token valid, auth ready');
+      hasCheckedTokenRef.current = false;
     } catch (err) {
-      console.error('Error decoding token:', err);
-      handleInvalidToken();
-      return false;
+      logColor('error', 'AuthProvider', 'Token decode failed, clearing auth');
+      clearAuthentication();
+      queryClient.clear();
+      if (location.pathname !== webRoutes.login) {
+        navigate(webRoutes.login, { replace: true });
+      }
+      setTokenChecked(true);
+      hasCheckedTokenRef.current = false;
     }
   };
 
-  // Current user query with Tanstack Query
+  useEffect(() => {
+    setTokenChecked(false);
+    hasCheckedTokenRef.current = false;
+    checkToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
   const { isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['auth', 'user'],
     queryFn: async () => {
-      try {
-        const response = await apiRequest<any>({
-          url: apiRoutes.auth.me,
-          method: 'get',
-        });
-        setUserData(response);
-        return response;
-      } catch (error: any) {
-        console.error('Error fetching user data:', error);
-        refetchServerStatus(); // Refetch server status on error
-        throw formatApiError(error); // Format error for better user experience
-      }
+      logColor('info', 'AuthProvider', 'Loading user from API...');
+      const response = await apiRequest<any>({
+        url: apiRoutes.auth.me,
+        method: 'get',
+      });
+      setUserData(response);
+      setAuthenticated(true);
+      logColor('success', 'AuthProvider', 'User loaded and authenticated');
+      return response;
     },
-    enabled: isAuthenticated,
+    enabled: tokenChecked && !!useAuthStore.getState().token,
     retry: 1,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Set up token validation check on component mount
-  useEffect(() => {
-    validateToken();
+  if (!tokenChecked || refreshTokenMutation.isPending) {
+    logColor('info', 'AuthProvider', 'Loading...', { tokenChecked, isPending: refreshTokenMutation.isPending });
+    return <CenteredLoader open={true} />;
+  }
 
-    // Set up periodic token validation
-    const tokenCheckInterval = setInterval(() => {
-      validateToken();
-    }, 60000); // Check token every minute
-
-    return () => clearInterval(tokenCheckInterval);
-  }, []);
-
-  // Render loading state or error message while authenticating
-  if (isAuthenticated && isLoadingUser) {
+  if (tokenChecked && isAuthenticated && isLoadingUser) {
+    logColor('info', 'AuthProvider', 'Loading user data...');
     return <CenteredLoader open={true} />;
   }
 
   if (isAuthenticated && userError) {
-    // Check for rate limit error (429 Too Many Requests)
     const is429Error = (userError as any)?.statusCode === 429;
-
+    logColor('error', 'AuthProvider', 'Error loading user:', userError);
     return (
       <Box
         sx={{
@@ -160,13 +177,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     );
   }
 
+  // Si todo OK, render hijos
   return <AuthContext.Provider value={null}>{children}</AuthContext.Provider>;
 };
 
 export const useAuthContext = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth debe usarse dentro de un AuthProvider');
+    throw new Error('useAuthContext debe usarse dentro de un AuthProvider');
   }
   return context;
 };

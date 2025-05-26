@@ -12,6 +12,7 @@ import { useUsersAdmin } from '../../hooks/useUsersAdmin';
 import UserAdminActionButtons from '../molecules/UserAdminActionButtons';
 import TableSkeletonLoader from '@/components/ui/atoms/TableSkeletonLoader';
 import FailedToLoadData from '@/components/ui/molecules/FailedToLoadData';
+import { useUsersQuery } from '../../hooks/useUsersQuery';
 
 interface Props {
   setNotification: (notification: { message: string; type: 'success' | 'error' }) => void;
@@ -20,16 +21,18 @@ interface Props {
 const ListUserTable: React.FC<Props> = ({ setNotification }) => {
   const navigate = useNavigate();
   const gridRef = useRef<AgGridReact>(null);
-  const { usersData, loading, errors, mutations } = useUsersAdmin();
+  const { mutations } = useUsersAdmin();
+  const { data, error: fetchError, isPending: userFetchLoading } = useUsersQuery();
   const { clientsData, loading: clientLoading, errors: clientErrors } = useClientsAdmin();
+  console.log('🟣 ListUserTable rendered');
 
-  const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter(gridRef);
+  const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter();
 
   const handleEdit = (user: any): void => {
     navigate(`${webRoutes.admin.users.edit}/${user.id}`);
   };
 
-  if (errors.userFetch || clientErrors.clientFetch) {
+  if (fetchError || clientErrors.clientFetch) {
     return <FailedToLoadData secondaryText="Failed to load users data" />;
   }
 
@@ -104,7 +107,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
     },
   ];
 
-  const rowData = usersData?.map((apiData: any) => {
+  const rowData = data?.map((apiData: any) => {
     return {
       id: apiData.id,
       username: apiData.username,
@@ -131,7 +134,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
         defaultColDef={defaultColDef}
         columns={columns}
         rowData={rowData}
-        loading={loading.userFetch || loading.deleteUsers || loading.resendWelcomeEmail}
+        loading={userFetchLoading || mutations.deleteUsers.isPending || mutations.resendWelcomeEmail.isPending}
         quickFilterText={quickFilterText}
       />
     </Box>

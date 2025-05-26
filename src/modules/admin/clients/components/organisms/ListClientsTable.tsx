@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { Box, Paper, Typography } from '@mui/material';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { useNavigate } from 'react-router';
@@ -120,24 +120,28 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
       field: 'balanceUsd',
       headerName: 'Balance USD',
       width: 180,
+      valueGetter: (params: any) => params.data.balanceUsd,
       valueFormatter: (params: any) => formatCurrency('$', params.value),
     },
     {
       field: 'balanceUsdRetain',
       headerName: 'Retained USD',
       width: 180,
+      valueGetter: (params: any) => params.data.balanceUsdRetain,
       valueFormatter: (params: any) => formatCurrency('$', params.value),
     },
     {
       field: 'balanceEur',
       headerName: 'Balance EUR',
       width: 180,
+      valueGetter: (params: any) => params.data.balanceEur,
       valueFormatter: (params: any) => formatCurrency('€', params.value),
     },
     {
       field: 'balanceEurRetain',
       headerName: 'Retained EUR',
       width: 180,
+      valueGetter: (params: any) => params.data.balanceEurRetain,
       valueFormatter: (params: any) => formatCurrency('€', params.value),
     },
     {
@@ -153,19 +157,23 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
   ];
 
   const rowData =
-    clientsData?.map((apiData: any) => ({
-      id: apiData.id,
-      clientName: apiData.clientName,
-      firstName: apiData.firstName,
-      lastName: apiData.lastName,
-      type: apiData.type,
-      dmb: apiData.dmb, // objeto dmb con accessType, subclientName y status
-      balanceUsd: apiData.balances?.find((b: any) => b.currency === 'USD')?.amount ?? 0,
-      balanceUsdRetain: apiData.balances?.find((b: any) => b.currency === 'USD' && b.retain)?.amount ?? 0,
-      balanceEur: apiData.balances?.find((b: any) => b.currency === 'EUR')?.amount ?? 0,
-      balanceEurRetain: apiData.balances?.find((b: any) => b.currency === 'EUR' && b.retain)?.amount ?? 0,
-      status: apiData.status, // nuevo campo desde la API
-    })) || [];
+    clientsData?.map((apiData: any) => {
+      const usd = apiData.balances?.find((b: any) => b.currency === 'USD') || {};
+      const eur = apiData.balances?.find((b: any) => b.currency === 'EUR') || {};
+      return {
+        id: apiData.id,
+        clientName: apiData.clientName,
+        firstName: apiData.firstName,
+        lastName: apiData.lastName,
+        type: apiData.type,
+        dmb: apiData.dmb, // objeto dmb con accessType, subclientName y status
+        balanceUsd: usd.amount ?? 0,
+        balanceUsdRetain: usd.amountRetain ?? 0,
+        balanceEur: eur.amount ?? 0,
+        balanceEurRetain: eur.amountRetain ?? 0,
+        status: apiData.status, // nuevo campo desde la API
+      };
+    }) || [];
 
   const defaultColDef: ColDef = {
     wrapText: true,

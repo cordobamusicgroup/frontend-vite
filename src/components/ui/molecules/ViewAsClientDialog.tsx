@@ -26,7 +26,7 @@ const ViewAsClientDialog: React.FC<ViewAsClientDialogProps> = () => {
   const [open, setOpen] = useState(false);
   const methods = useForm<{ clientId: string }>({ mode: 'onChange', resolver: zodResolver(viewAsClientFormSchema) });
   const { handleSubmit, reset } = methods;
-  const { mutations, loading } = useUsersAdmin();
+  const { mutations } = useUsersAdmin();
   const setNotification = useNotificationStore((s) => s.setNotification);
   const notification = useNotificationStore((s) => s.notification);
   const { clearNotification } = useNotificationStore();
@@ -89,8 +89,8 @@ const ViewAsClientDialog: React.FC<ViewAsClientDialogProps> = () => {
         <Button onClick={handleClose} color="secondary">
           Cancel
         </Button>
-        <Button onClick={handleSubmit(onSubmit)} color="primary" variant="contained" disabled={loading.viewAsClient}>
-          {loading.viewAsClient ? 'Switching...' : 'View as Client'}
+        <Button onClick={handleSubmit(onSubmit)} color="primary" variant="contained" disabled={mutations.viewAsClient.isPending}>
+          {mutations.viewAsClient.isPending ? 'Switching...' : 'View as Client'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,6 +1,6 @@
 import { useCallback, useRef, useEffect } from 'react';
-import Cookies from 'js-cookie';
 import axios, { AxiosError, AxiosRequestConfig, CancelTokenSource } from 'axios';
+import { useAuthStore } from '@/stores';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -26,16 +26,11 @@ interface ApiParams {
 export const useApiRequest = () => {
   const cancelTokenRef = useRef<CancelTokenSource | null>(null);
 
-  useEffect(() => {
-    return () => {
-      cancelTokenRef.current?.cancel('Request cancelled on unmount');
-    };
-  }, []);
 
   const apiRequest = useCallback(async <T = any, E = any>(params: ApiParams): Promise<T> => {
     const { url, method, data, params: query, headers, isFormData = false, requireAuth = true, timeout = 30000 } = params;
 
-    const token = requireAuth ? Cookies.get('access_token') : null;
+    const token = requireAuth ? useAuthStore.getState().token : null;
     cancelTokenRef.current = axios.CancelToken.source();
 
     const config: AxiosRequestConfig = {
