@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { Box, Paper, Typography } from '@mui/material';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { useNavigate } from 'react-router';
@@ -120,24 +120,28 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
       field: 'balanceUsd',
       headerName: 'Balance USD',
       width: 180,
+      valueGetter: (params: any) => params.data.balanceUsd,
       valueFormatter: (params: any) => formatCurrency('$', params.value),
     },
     {
       field: 'balanceUsdRetain',
       headerName: 'Retained USD',
       width: 180,
+      valueGetter: (params: any) => params.data.balanceUsdRetain,
       valueFormatter: (params: any) => formatCurrency('$', params.value),
     },
     {
       field: 'balanceEur',
       headerName: 'Balance EUR',
       width: 180,
+      valueGetter: (params: any) => params.data.balanceEur,
       valueFormatter: (params: any) => formatCurrency('€', params.value),
     },
     {
       field: 'balanceEurRetain',
       headerName: 'Retained EUR',
       width: 180,
+      valueGetter: (params: any) => params.data.balanceEurRetain,
       valueFormatter: (params: any) => formatCurrency('€', params.value),
     },
     {
