@@ -6,6 +6,7 @@ import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
 import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
 import ContactEmergencyIcon from '@mui/icons-material/ContactEmergency';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import AlbumIcon from '@mui/icons-material/Album';
 
 export interface SubMenuType {
   text: string;
@@ -34,6 +35,18 @@ export const usePortalMenus = (userRole: Roles): MenuItemType[] => {
       icon: <HomeIcon />,
       roles: [Roles.All],
       path: webRoutes.backoffice.overview,
+    },
+    {
+      text: 'Distribution',
+      icon: <AlbumIcon />,
+      roles: [Roles.All],
+      subMenuItems: [
+        {
+          text: 'DMB Submission QC',
+          path: webRoutes.backoffice.distribution.dmbSubmissionQC,
+          roles: [Roles.All],
+        },
+      ],
     },
     {
       text: 'Financial',
