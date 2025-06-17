@@ -1,8 +1,9 @@
 import { Box } from '@mui/material';
 import LoginLogo from '../components/atoms/LoginLogo';
 import { Outlet } from 'react-router';
+import { logColor } from '@/lib/log.util';
 
-console.log('Root layout rendered');
+logColor('info', 'AuthLayout', 'rendered');
 
 const AuthLayout: React.FC = () => {
   return (
