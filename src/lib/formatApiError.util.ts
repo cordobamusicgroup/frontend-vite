@@ -37,3 +37,15 @@ export const formatError = (error: any) => {
     error: error.message || 'An unexpected error occurred',
   };
 };
+
+export const getErrorMessages = (error: any): string[] => {
+  if (axios.isAxiosError(error)) {
+    const raw = error.response?.data?.message;
+    if (Array.isArray(raw)) return raw;
+    if (raw) return [raw];
+    return [error.message];
+  }
+  if (typeof error?.message === 'string') return [error.message];
+  if (typeof error === 'string') return [error];
+  return ['An unexpected error occurred'];
+};

@@ -6,6 +6,7 @@ import HeaderLayout from './HeaderLayout';
 import VerticalMenu from '../ui/molecules/VerticalMenu';
 import SkeletonLoader from '../ui/molecules/SkeletonLoader';
 import ViewAsClientDialog from '../ui/molecules/ViewAsClientDialog';
+import { useRouteCleanup } from '@/hooks/useRouteCleanup';
 
 //TODO: Implement this layout
 // * Add HeaderLayout
@@ -17,7 +18,6 @@ import ViewAsClientDialog from '../ui/molecules/ViewAsClientDialog';
  * @component
  */
 
-console.log('BackofficeLayout rendered');
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{ open?: boolean }>(({ theme, open }) => {
   const mobile = isMobile();
@@ -46,6 +46,7 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{ 
 });
 
 const BackofficeLayout: React.FC = () => {
+  useRouteCleanup();
   const isOpen = usePageDataStore().openMenu;
   const navigation = useNavigation();
   const isNavigating = Boolean(navigation.location);

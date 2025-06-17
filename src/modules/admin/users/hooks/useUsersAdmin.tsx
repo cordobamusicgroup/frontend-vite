@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRoutes } from '@/lib/api.routes';
 import { useApiRequest } from '@/hooks/useApiRequest';
-import { formatApiError, formatError } from '@/lib/formatApiError.util';
+import { formatError } from '@/lib/formatApiError.util';
 
 // Unifica queries y mutations en un solo hook
 export const useUsersAdmin = (userId?: string) => {
@@ -44,7 +44,7 @@ export const useUsersAdmin = (userId?: string) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: (err) => {
-      throw formatApiError(err);
+      throw formatError(err);
     },
   });
 
@@ -84,7 +84,7 @@ export const useUsersAdmin = (userId?: string) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: (err) => {
-      throw formatApiError(err);
+      throw formatError(err);
     },
   });
 
@@ -125,7 +125,7 @@ export const useUsersAdmin = (userId?: string) => {
       }
     },
     onError: (err) => {
-      throw formatApiError(err);
+      throw formatError(err);
     },
   });
 

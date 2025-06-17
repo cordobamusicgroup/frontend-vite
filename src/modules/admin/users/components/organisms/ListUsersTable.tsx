@@ -12,6 +12,7 @@ import { useUsersAdmin } from '../../hooks/useUsersAdmin';
 import UserAdminActionButtons from '../molecules/UserAdminActionButtons';
 import TableSkeletonLoader from '@/components/ui/atoms/TableSkeletonLoader';
 import FailedToLoadData from '@/components/ui/molecules/FailedToLoadData';
+import { getErrorMessages } from '@/lib/formatApiError.util';
 
 interface Props {
   setNotification: (notification: { message: string; type: 'success' | 'error' }) => void;
@@ -41,7 +42,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
         setNotification({ message: 'User deleted successfully', type: 'success' });
       },
       onError: (error: any) => {
-        setNotification({ message: `Error deleting user: ${error.messages}`, type: 'error' });
+        setNotification({ message: `Error deleting user: ${getErrorMessages(error).join(', ')}`, type: 'error' });
       },
     });
   };
@@ -52,7 +53,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
         setNotification({ message: 'Email sent successfully', type: 'success' });
       },
       onError: (error: any) => {
-        setNotification({ message: `Error sending email: ${error.messages}`, type: 'error' });
+        setNotification({ message: `Error sending email: ${getErrorMessages(error).join(', ')}`, type: 'error' });
       },
     });
   };

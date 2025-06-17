@@ -1,10 +1,11 @@
 import { Box } from '@mui/material';
 import LoginLogo from '../components/atoms/LoginLogo';
 import { Outlet } from 'react-router';
+import { useRouteCleanup } from '@/hooks/useRouteCleanup';
 
-console.log('Root layout rendered');
 
 const AuthLayout: React.FC = () => {
+  useRouteCleanup();
   return (
     <Box
       sx={{
