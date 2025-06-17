@@ -6,6 +6,12 @@ import HeaderLayout from './HeaderLayout';
 import VerticalMenu from '../ui/molecules/VerticalMenu';
 import SkeletonLoader from '../ui/molecules/SkeletonLoader';
 import ViewAsClientDialog from '../ui/molecules/ViewAsClientDialog';
+import { useRouteCleanup } from '@/hooks/useRouteCleanup';
+
+//TODO: Implement this layout
+// * Add HeaderLayout
+// * Add VerticalMenu
+// * Add MainContent
 import { logColor } from '@/lib/log.util';
 import { useRouteCleanup } from '@/hooks/useRouteCleanup';
 import React from 'react';
@@ -14,8 +20,6 @@ import React from 'react';
  * Represents the main content component.
  * @component
  */
-
-logColor('info', 'BackofficeLayout', 'rendered');
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{ open?: boolean }>(({ theme, open }) => {
   const mobile = isMobile();
@@ -44,6 +48,7 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{ 
 });
 
 const BackofficeLayout: React.FC = () => {
+  useRouteCleanup();
   const isOpen = usePageDataStore().openMenu;
   const navigation = useNavigation();
   const isNavigating = Boolean(navigation.location);

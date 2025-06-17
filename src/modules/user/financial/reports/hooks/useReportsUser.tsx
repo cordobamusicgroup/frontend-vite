@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { apiRoutes } from '@/lib/api.routes';
-import { formatApiError } from '@/lib/formatApiError.util';
+import { formatError } from '@/lib/formatApiError.util';
 
 /**
  * Hook to fetch and download financial reports for the user.
@@ -27,7 +27,7 @@ export const useReportsUser = (distributor: string) => {
         requireAuth: true,
       });
     } catch (error) {
-      throw formatApiError(error);
+      throw formatError(error);
     }
   };
 
@@ -54,7 +54,7 @@ export const useReportsUser = (distributor: string) => {
         }
         return response.url;
       } catch (error) {
-        throw formatApiError(error);
+        throw formatError(error);
       }
     },
   });

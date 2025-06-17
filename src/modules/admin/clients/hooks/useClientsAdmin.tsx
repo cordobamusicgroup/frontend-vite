@@ -1,8 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRoutes } from '@/lib/api.routes';
 import { useApiRequest } from '@/hooks/useApiRequest';
-import { formatApiError, formatError, FormattedApiError } from '@/lib/formatApiError.util';
-import { logColor } from '@/lib/log.util';
+import { formatError } from '@/lib/formatApiError.util';
 
 /**
  * Hook to manage fetching and mutating clients (admin).
@@ -32,7 +31,7 @@ export const useClientsAdmin = (clientId?: string) => {
         requireAuth: true,
       });
     } catch (error) {
-      throw formatApiError(error);
+      throw formatError(error);
     }
   };
 
@@ -52,7 +51,7 @@ export const useClientsAdmin = (clientId?: string) => {
           requireAuth: true,
         });
       } catch (error) {
-        throw formatApiError(error);
+        throw formatError(error);
       }
     },
 
@@ -61,8 +60,8 @@ export const useClientsAdmin = (clientId?: string) => {
         queryKey: ['clients'],
       });
     },
-    onError: (error: FormattedApiError) => {
-      logColor('error', 'useClientsAdmin', 'Error creating client:', error);
+    onError: (error: any) => {
+      console.log('Error creating client:', error);
     },
   });
 
@@ -84,8 +83,8 @@ export const useClientsAdmin = (clientId?: string) => {
         queryKey: ['clients', 'client', clientId],
       });
     },
-    onError: (error: FormattedApiError) => {
-      logColor('error', 'useClientsAdmin', 'Error updating client:', error);
+    onError: (error: any) => {
+      console.log('Error updating client:', error);
     },
   });
 
@@ -99,7 +98,7 @@ export const useClientsAdmin = (clientId?: string) => {
           data: { ids: clientsIds },
         });
       } catch (error) {
-        throw formatApiError(error);
+        throw formatError(error);
       }
     },
     onSuccess: () => {
@@ -107,8 +106,8 @@ export const useClientsAdmin = (clientId?: string) => {
         queryKey: ['clients'],
       });
     },
-    onError: (error: FormattedApiError) => {
-      logColor('error', 'useClientsAdmin', 'Error deleting client:', error);
+    onError: (error: any) => {
+      console.log('Error deleting client:', error);
     },
   });
 

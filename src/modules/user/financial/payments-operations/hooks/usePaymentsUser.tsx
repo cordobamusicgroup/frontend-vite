@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { apiRoutes } from '@/lib/api.routes';
-import { formatApiError } from '@/lib/formatApiError.util';
+import { formatError } from '@/lib/formatApiError.util';
 
 /**
  * Hook to check if the user is authorized for withdrawals.
@@ -22,7 +22,7 @@ export const usePaymentsUser = () => {
         requireAuth: true,
       });
     } catch (error) {
-      throw formatApiError(error);
+      throw formatError(error);
     }
   };
 

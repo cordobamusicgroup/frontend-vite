@@ -10,6 +10,7 @@ import { Box, Typography } from '@mui/material';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
 import useAuthQueries from '../hooks/useAuthQueries';
 import { logColor } from '@/lib/log.util';
+import { getErrorMessages } from '@/lib/formatApiError.util';
 
 interface JWTPayload {
   sub: string;
@@ -158,10 +159,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     let errorMessage = 'Failed to load user data.';
     if (is429Error) {
       errorMessage = 'Too many requests. Please wait 60 seconds before trying again.';
-    } else if ((userError as any)?.messages) {
-      errorMessage = (userError as any).messages;
-    } else if (userError instanceof Error && userError.message) {
-      errorMessage = userError.message;
+    } else {
+      const messages = getErrorMessages(userError).join(', ');
+      if (messages) {
+        errorMessage = messages;
+      } else if (userError instanceof Error && userError.message) {
+        errorMessage = userError.message;
+      }
     }
     return (
       <Box
