@@ -7,11 +7,8 @@ import VerticalMenu from '../ui/molecules/VerticalMenu';
 import SkeletonLoader from '../ui/molecules/SkeletonLoader';
 import ViewAsClientDialog from '../ui/molecules/ViewAsClientDialog';
 import { logColor } from '@/lib/log.util';
-
-//TODO: Implement this layout
-// * Add HeaderLayout
-// * Add VerticalMenu
-// * Add MainContent
+import { useRouteCleanup } from '@/hooks/useRouteCleanup';
+import React from 'react';
 
 /**
  * Represents the main content component.
@@ -50,9 +47,18 @@ const BackofficeLayout: React.FC = () => {
   const isOpen = usePageDataStore().openMenu;
   const navigation = useNavigation();
   const isNavigating = Boolean(navigation.location);
+  useRouteCleanup();
+
+  React.useEffect(() => {
+    if (isNavigating) {
+      document.title = 'Loading ...';
+    }
+    // No else: dejamos que cada página ponga su título con Helmet o document.title
+  }, [isNavigating]);
 
   return (
     <div>
+      {isNavigating && <title>Loading ...</title>}
       <HeaderLayout />
       {!isMobile() && <VerticalMenu />}
       {isMobile() && isOpen && <VerticalMenu />}
