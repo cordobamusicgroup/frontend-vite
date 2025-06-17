@@ -1,7 +1,0 @@
-{
-  "name": "cmg-front-app",
-  "compatibility_date": "2025-06-12",
-  "assets": {
-    "directory": "./build/client"
-  }
-}
