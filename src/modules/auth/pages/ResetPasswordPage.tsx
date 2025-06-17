@@ -10,6 +10,7 @@ import { Check, Close, Visibility, VisibilityOff } from '@mui/icons-material';
 import FailedToLoadData from '@/components/ui/molecules/FailedToLoadData';
 import { useErrorStore } from '@/stores';
 import { AxiosError } from 'axios';
+import { logColor } from '@/lib/log.util';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import SuccessModal from '@/components/ui/molecules/SucessModal';
 import { useNavigate } from 'react-router';
@@ -88,7 +89,7 @@ export default function ResetPasswordPage() {
           setCountdown(3);
         },
         onError: (e: unknown) => {
-          console.log('Error resetting password:', e);
+          logColor('error', 'ResetPasswordPage', 'Error resetting password:', e);
           const error = e as AxiosError<{ message?: string }>;
           setError(error.response?.data?.message || 'An error occurred while resetting the password');
         },

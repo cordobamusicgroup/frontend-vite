@@ -9,6 +9,7 @@ import SearchBoxTable from '@/components/ui/organisms/SearchBoxTable';
 import { ColDef } from 'ag-grid-community';
 import { useClientsAdmin } from '@/modules/admin/clients/hooks/useClientsAdmin';
 import { useUsersAdmin } from '../../hooks/useUsersAdmin';
+import { logColor } from '@/lib/log.util';
 import UserAdminActionButtons from '../molecules/UserAdminActionButtons';
 import TableSkeletonLoader from '@/components/ui/atoms/TableSkeletonLoader';
 import FailedToLoadData from '@/components/ui/molecules/FailedToLoadData';
@@ -23,7 +24,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
   const { query: usersQuery, mutations } = useUsersAdmin();
   const { data, error: fetchError, isPending: userFetchLoading } = usersQuery;
   const { clientsData, loading: clientLoading, errors: clientErrors } = useClientsAdmin();
-  console.log('🟣 ListUserTable rendered');
+  logColor('info', 'ListUserTable', 'rendered');
 
   const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter();
 

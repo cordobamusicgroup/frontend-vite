@@ -7,6 +7,7 @@ import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { Helmet } from 'react-helmet';
+import { logColor } from '@/lib/log.util';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -61,12 +62,12 @@ const CreateLabelPage: React.FC = () => {
         });
       },
     });
-    console.log('Create Label Form Submitted:', labelPayload);
+    logColor('info', 'CreateLabelPage', 'Create Label Form Submitted:', labelPayload);
   };
 
   const handleLabelFormSubmit = onSubmitLabelForm(
     (labelFormData) => {
-      console.log('Form data:', labelFormData);
+      logColor('info', 'CreateLabelPage', 'Form data:', labelFormData);
       onSubmitLabel(labelFormData);
     },
     (validationErrors) => {

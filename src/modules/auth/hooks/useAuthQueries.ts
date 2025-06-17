@@ -6,6 +6,7 @@ import { AuthErrorMessages, AuthErrorCode } from '../utils/auth.utils';
 import { useNavigate } from 'react-router';
 import { useAuthStore, useErrorStore } from '@/stores';
 import { AxiosError } from 'axios';
+import { logColor } from '@/lib/log.util';
 
 interface LoginCredentials {
   username: string;
@@ -60,7 +61,7 @@ const useAuthQueries = () => {
           }
         }
       }
-      console.log('Login error:', errorMsg);
+      logColor('error', 'useAuthQueries', 'Login error:', errorMsg);
       setError(errorMsg);
     },
   });
@@ -76,11 +77,11 @@ const useAuthQueries = () => {
     },
     onSuccess: (data) => {
       setToken(data.access_token);
-      console.log('[Auth] Nuevo access_token seteado:', data.access_token);
+      logColor('info', 'useAuthQueries', 'Nuevo access_token seteado:', data.access_token);
       // NO setees setAuthenticated acá, SOLO en /auth/me!
     },
     onError: (error) => {
-      console.error('[Auth] ERROR en refresh mutation', error);
+      logColor('error', 'useAuthQueries', '[Auth] ERROR en refresh mutation', error);
       clearAuthentication();
     },
   });

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRoutes } from '@/lib/api.routes';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { formatApiError, formatError, FormattedApiError } from '@/lib/formatApiError.util';
+import { logColor } from '@/lib/log.util';
 
 /**
  * Hook to manage fetching and mutating clients (admin).
@@ -61,7 +62,7 @@ export const useClientsAdmin = (clientId?: string) => {
       });
     },
     onError: (error: FormattedApiError) => {
-      console.log('Error creating client:', error);
+      logColor('error', 'useClientsAdmin', 'Error creating client:', error);
     },
   });
 
@@ -84,7 +85,7 @@ export const useClientsAdmin = (clientId?: string) => {
       });
     },
     onError: (error: FormattedApiError) => {
-      console.log('Error updating client:', error);
+      logColor('error', 'useClientsAdmin', 'Error updating client:', error);
     },
   });
 
@@ -107,7 +108,7 @@ export const useClientsAdmin = (clientId?: string) => {
       });
     },
     onError: (error: FormattedApiError) => {
-      console.log('Error deleting client:', error);
+      logColor('error', 'useClientsAdmin', 'Error deleting client:', error);
     },
   });
 
