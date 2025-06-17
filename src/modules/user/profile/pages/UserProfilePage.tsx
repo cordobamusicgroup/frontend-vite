@@ -82,7 +82,7 @@ const ProfileUserPage: React.FC = () => {
     if (formattedProfileData) {
       reset(formattedProfileData);
       setOriginalData(formattedProfileData);
-      console.log('Form reset with:', formattedProfileData);
+      logColor('info', 'UserProfilePage', 'Form reset with:', formattedProfileData);
     }
   }, [formattedProfileData, error.profileFetchError, reset]);
 

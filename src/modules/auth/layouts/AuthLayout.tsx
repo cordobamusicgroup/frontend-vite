@@ -3,7 +3,6 @@ import LoginLogo from '../components/atoms/LoginLogo';
 import { Outlet } from 'react-router';
 import { useRouteCleanup } from '@/hooks/useRouteCleanup';
 
-
 const AuthLayout: React.FC = () => {
   useRouteCleanup();
   return (

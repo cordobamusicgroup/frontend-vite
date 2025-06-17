@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, List, ListItem, ListItemText, Typography, useTheme } from '@mui/material';
+import { Box, List, ListItem, ListItemText, Typography, useTheme, Paper } from '@mui/material';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import ErrorBox from '@/components/ui/molecules/ErrorBox';
@@ -21,45 +21,6 @@ import { buildClientPayload } from '../utils/buildClientPayload.util';
 
 type ClientFormData = z.infer<typeof ClientValidationSchema>;
 
-const defaultClientFormData: ClientFormData = {
-  client: {
-    clientId: undefined,
-    clientName: 'Test Client',
-    firstName: 'John',
-    lastName: 'Doe',
-    type: 'PERSON',
-    taxIdType: 'NATIONAL_ID',
-    taxId: '12345678',
-    vatRegistered: true,
-    vatId: 'VAT-1234',
-  },
-  address: {
-    street: 'Test Street 123',
-    city: 'Test City',
-    state: 'Test State',
-    countryId: 1,
-    zip: '1000',
-  },
-  contract: {
-    uuid: undefined,
-    type: 'DISTRIBUTION_NONEXCLUSIVE',
-    status: 'ACTIVE',
-    ppd: 20,
-    docUrl: 'http://test.com/doc.pdf',
-    startDate: dayjs('2025-05-01'),
-    endDate: dayjs('2025-06-01'),
-    signed: true,
-    signedBy: 'Admin',
-    signedAt: dayjs('2025-05-02'),
-  },
-  dmb: {
-    accessType: 'STANDARD',
-    status: 'ACTIVE',
-    subclientName: 'Test Subclient',
-    username: 'testuser',
-  },
-};
-
 const CreateClientPage: React.FC = () => {
   const theme = useTheme();
   const { mutations: clientMutations, loading: clientOperationsLoading } = useClientsAdmin();
@@ -69,7 +30,6 @@ const CreateClientPage: React.FC = () => {
   const clientFormMethods = useForm<ClientFormData>({
     mode: 'all',
     resolver: zodResolver(ClientValidationSchema),
-    defaultValues: defaultClientFormData,
   });
 
   const {
@@ -94,12 +54,12 @@ const CreateClientPage: React.FC = () => {
         });
       },
     });
-    console.log('Create Client Form Submitted:', clientPayload);
+    logColor('info', 'CreateClientPage', 'Create Client Form Submitted:', clientPayload);
   };
 
   const handleClientFormSubmit = handleSubmit(
     (clientFormData) => {
-      console.log('Form data:', clientFormData);
+      logColor('info', 'CreateClientPage', 'Form data:', clientFormData);
       onSubmitClient(clientFormData);
     },
     (validationErrors) => {
@@ -138,7 +98,8 @@ const CreateClientPage: React.FC = () => {
       <Helmet>
         <title>Create Client - Córdoba Music Group</title>
       </Helmet>
-      <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+      <Paper sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Creating New Client</Typography>
           <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
@@ -173,7 +134,8 @@ const CreateClientPage: React.FC = () => {
             ))}
           </List>
         </ErrorModal2>
-      </Box>
+        </Box>
+      </Paper>
     </>
   );
 };

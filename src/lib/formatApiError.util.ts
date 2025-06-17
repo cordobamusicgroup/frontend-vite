@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { logColor } from '@/lib/log.util';
 
 type ErrorResponse = {
   message?: string | string[];
@@ -20,7 +21,7 @@ export const formatApiError = (error: any): FormattedApiError => {
 
   const rawMessage = err.response?.data?.message;
   const message: string[] = Array.isArray(rawMessage) ? rawMessage : rawMessage ? [rawMessage] : [err.message || 'An unexpected error occurred'];
-  console.log('Formatted API Error:', err);
+  logColor('error', 'formatApiError', err);
 
   return {
     message: message,

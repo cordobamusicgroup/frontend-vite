@@ -18,7 +18,6 @@ import { useRouteCleanup } from '@/hooks/useRouteCleanup';
  * @component
  */
 
-
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{ open?: boolean }>(({ theme, open }) => {
   const mobile = isMobile();
   return {
