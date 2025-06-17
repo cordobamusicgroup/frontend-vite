@@ -12,7 +12,6 @@ import { useUsersAdmin } from '../../hooks/useUsersAdmin';
 import UserAdminActionButtons from '../molecules/UserAdminActionButtons';
 import TableSkeletonLoader from '@/components/ui/atoms/TableSkeletonLoader';
 import FailedToLoadData from '@/components/ui/molecules/FailedToLoadData';
-import { useUsersQuery } from '../../hooks/useUsersQuery';
 
 interface Props {
   setNotification: (notification: { message: string; type: 'success' | 'error' }) => void;
@@ -21,8 +20,8 @@ interface Props {
 const ListUserTable: React.FC<Props> = ({ setNotification }) => {
   const navigate = useNavigate();
   const gridRef = useRef<AgGridReact>(null);
-  const { mutations } = useUsersAdmin();
-  const { data, error: fetchError, isPending: userFetchLoading } = useUsersQuery();
+  const { query: usersQuery, mutations } = useUsersAdmin();
+  const { data, error: fetchError, isPending: userFetchLoading } = usersQuery;
   const { clientsData, loading: clientLoading, errors: clientErrors } = useClientsAdmin();
   console.log('🟣 ListUserTable rendered');
 

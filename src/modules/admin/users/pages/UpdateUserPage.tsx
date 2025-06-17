@@ -18,7 +18,6 @@ import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 import { useUsersAdmin } from '../hooks/useUsersAdmin';
 import { UsersValidationSchema } from '../schemas/UsersAdminValidationSchema';
 import UsersFormLayout from '../components/organisms/UsersFormLayout';
-import { useUsersQuery } from '../hooks/useUsersQuery';
 
 type UserFormData = z.infer<typeof UsersValidationSchema>;
 
@@ -34,9 +33,10 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
 const UpdateUserPage: React.FC = () => {
   const theme = useTheme();
   const { userId } = useParams();
-  const { mutations } = useUsersAdmin();
+  // Unificado: ahora el hook recibe userId y expone query y mutations
+  const { query: usersQuery, mutations } = useUsersAdmin(userId);
   const { updateUser } = mutations;
-  const { data: userData, error: userFetchError, isPending: userFetchLoading } = useUsersQuery(userId);
+  const { data: userData, error: userFetchError, isPending: userFetchLoading } = usersQuery;
 
   const { notification: userNotification, setNotification: setUserNotification, clearNotification: clearUserNotification } = useNotificationStore();
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
@@ -128,7 +128,7 @@ const UpdateUserPage: React.FC = () => {
       onError: (userApiError: any) => {
         scrollToPageTop();
         setUserNotification({
-          message: userApiError.messages,
+          message: userApiError?.message?.join?.(' ') || userApiError?.error || 'Error updating user',
           type: 'error',
         });
       },

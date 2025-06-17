@@ -20,7 +20,15 @@ type UserFormData = z.infer<typeof UsersValidationSchema>;
 
 const CreateUserPage: React.FC = () => {
   const theme = useTheme();
-  const { mutations: userMutations, loading: userLoading } = useUsersAdmin();
+  // El hook unificado no expone loading, así que lo obtengo de las mutations
+  const { mutations: userMutations } = useUsersAdmin();
+  const userLoading = {
+    registerUser: userMutations.registerUser.isPending,
+    updateUser: userMutations.updateUser.isPending,
+    deleteUsers: userMutations.deleteUsers.isPending,
+    viewAsClient: userMutations.viewAsClient.isPending,
+    resendWelcomeEmail: userMutations.resendWelcomeEmail.isPending,
+  };
   const { notification: userNotification, setNotification: setUserNotification, clearNotification: clearUserNotification } = useNotificationStore();
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
 
