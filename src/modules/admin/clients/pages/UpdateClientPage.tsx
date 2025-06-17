@@ -251,7 +251,7 @@ const UpdateClientPage: React.FC = () => {
   const handleInputChange = () => clearClientNotification();
 
   const getErrorMessages = (errors: any): string[] => {
-    let messages: string[] = [];
+    const messages: string[] = [];
     const iterate = (errObj: any) => {
       if (errObj?.message) {
         messages.push(errObj.message);

@@ -15,6 +15,7 @@ export default [
         route('payments-operations', 'modules/user/financial/payments-operations/pages/PaymentsUserPage.tsx'),
         route('reports', 'modules/user/financial/reports/pages/ReportsUserPage.tsx'),
       ]),
+      ...prefix('distribution', [route('dmb-submission-qc', 'modules/user/distribution/dmb-submission-qc/pages/DMBSubmissionQCUser.tsx')]),
       ...prefix('user', [route('profile', 'modules/user/profile/pages/UserProfilePage.tsx')]),
       ...prefix('admin', [
         ...prefix('clients', [

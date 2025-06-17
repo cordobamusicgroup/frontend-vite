@@ -1,20 +1,44 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRoutes } from '@/lib/api.routes';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { formatApiError, formatError } from '@/lib/formatApiError.util';
 
-export const useUsersAdmin = () => {
+// Unifica queries y mutations en un solo hook
+export const useUsersAdmin = (userId?: string) => {
   const { apiRequest } = useApiRequest();
   const queryClient = useQueryClient();
 
+  // Query para uno o todos los usuarios
+  const fetchUsers = async () => {
+    const url = userId ? `${apiRoutes.users.admin.getById(Number(userId))}` : apiRoutes.users.admin.root;
+    return await apiRequest({
+      url,
+      method: 'get',
+      requireAuth: true,
+    });
+  };
+
+  const usersQuery = useQuery({
+    queryKey: userId ? ['user', userId] : ['users'],
+    queryFn: fetchUsers,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const registerUser = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest({
-        url: apiRoutes.users.admin.register,
-        method: 'post',
-        data,
-        requireAuth: true,
-      });
+      try {
+        return await apiRequest({
+          url: apiRoutes.users.admin.register,
+          method: 'post',
+          data,
+          requireAuth: true,
+        });
+      } catch (error) {
+        throw formatError(error);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -26,30 +50,35 @@ export const useUsersAdmin = () => {
 
   const updateUser = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest({
-        url: `${apiRoutes.users.admin.root}/${data.id}`,
-        method: 'put',
-        data,
-        requireAuth: true,
-      });
+      try {
+        return await apiRequest({
+          url: `${apiRoutes.users.admin.root}/${userId}`,
+          method: 'put',
+          data,
+          requireAuth: true,
+        });
+      } catch (error) {
+        throw formatError(error);
+      }
     },
-    onSuccess: (_, data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['user', data.id] });
-    },
-    onError: (err) => {
-      throw formatApiError(err);
+      if (userId) queryClient.invalidateQueries({ queryKey: ['user', userId] });
     },
   });
 
   const deleteUsers = useMutation({
     mutationFn: async (userIds: number[]) => {
-      return await apiRequest({
-        url: apiRoutes.users.admin.root,
-        method: 'delete',
-        requireAuth: true,
-        data: { ids: userIds },
-      });
+      try {
+        return await apiRequest({
+          url: apiRoutes.users.admin.root,
+          method: 'delete',
+          requireAuth: true,
+          data: { ids: userIds },
+        });
+      } catch (error) {
+        throw formatError(error);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -61,12 +90,16 @@ export const useUsersAdmin = () => {
 
   const viewAsClient = useMutation({
     mutationFn: async (clientId: number) => {
-      return await apiRequest({
-        url: apiRoutes.users.admin.viewAs,
-        method: 'patch',
-        requireAuth: true,
-        data: { clientId },
-      });
+      try {
+        return await apiRequest({
+          url: apiRoutes.users.admin.viewAs,
+          method: 'patch',
+          requireAuth: true,
+          data: { clientId },
+        });
+      } catch (error) {
+        throw formatError(error);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user'] });
@@ -80,12 +113,16 @@ export const useUsersAdmin = () => {
 
   const resendWelcomeEmail = useMutation({
     mutationFn: async (email: string) => {
-      return await apiRequest({
-        url: apiRoutes.users.admin.resendAccountInfo,
-        method: 'post',
-        requireAuth: true,
-        data: { email },
-      });
+      try {
+        return await apiRequest({
+          url: apiRoutes.users.admin.resendAccountInfo,
+          method: 'post',
+          requireAuth: true,
+          data: { email },
+        });
+      } catch (error) {
+        throw formatError(error);
+      }
     },
     onError: (err) => {
       throw formatApiError(err);
@@ -93,6 +130,7 @@ export const useUsersAdmin = () => {
   });
 
   return {
+    query: usersQuery,
     mutations: {
       registerUser,
       updateUser,

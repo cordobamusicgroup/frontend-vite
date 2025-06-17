@@ -47,9 +47,21 @@ const useAuthQueries = () => {
 
       setAuthenticated(true);
     },
-    onError: (error: string) => {
-      console.log('Login error:', error);
-      setError(error);
+    onError: (error: string | unknown) => {
+      let errorMsg = 'Cannot connect to the server. Please try again later.';
+      if (typeof error === 'string' && error) {
+        errorMsg = error;
+      } else if (error && typeof error === 'object' && 'isAxiosError' in error && (error as any).isAxiosError) {
+        // Axios error, check if no response (network error)
+        if ((error as any).response && (error as any).response.data && typeof (error as any).response.data.code === 'string') {
+          const code = (error as any).response.data.code as AuthErrorCode;
+          if (code in AuthErrorMessages) {
+            errorMsg = AuthErrorMessages[code];
+          }
+        }
+      }
+      console.log('Login error:', errorMsg);
+      setError(errorMsg);
     },
   });
 

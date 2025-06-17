@@ -87,14 +87,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Token presente
     try {
       const decoded = jwtDecode<JWTPayload>(currentToken!);
-      if (decoded.exp < currentTime) {
+      // Refrescar si el token expira en menos de 60 segundos
+      if (decoded.exp < currentTime + 60) {
         try {
-          logColor('info', 'AuthProvider', 'Token expired, refreshing...');
+          logColor('info', 'AuthProvider', 'Token expira pronto o expirado, refrescando...');
           await refreshTokenMutation.mutateAsync();
           setTokenChecked(true);
-          logColor('success', 'AuthProvider', 'Token refreshed after expire, auth ready');
+          logColor('success', 'AuthProvider', 'Token refrescado antes de expirar, auth ready');
         } catch (err) {
-          logColor('error', 'AuthProvider', 'Refresh after expire failed, clearing auth');
+          logColor('error', 'AuthProvider', 'Refresh antes de expirar falló, limpiando auth');
           clearAuthentication();
           queryClient.clear();
           if (location.pathname !== webRoutes.login) {
@@ -107,7 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
       }
       setTokenChecked(true);
-      logColor('success', 'AuthProvider', 'Token valid, auth ready');
+      logColor('success', 'AuthProvider', 'Token válido, auth ready');
       hasCheckedTokenRef.current = false;
     } catch (err) {
       logColor('error', 'AuthProvider', 'Token decode failed, clearing auth');
@@ -146,19 +147,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     staleTime: 5 * 60 * 1000,
   });
 
-  if (!tokenChecked || refreshTokenMutation.isPending) {
-    logColor('info', 'AuthProvider', 'Loading...', { tokenChecked, isPending: refreshTokenMutation.isPending });
-    return <CenteredLoader open={true} />;
-  }
-
-  if (tokenChecked && isAuthenticated && isLoadingUser) {
-    logColor('info', 'AuthProvider', 'Loading user data...');
+  if (!tokenChecked || refreshTokenMutation.isPending || isLoadingUser) {
+    logColor('info', 'AuthProvider', 'Loading...', { tokenChecked, isPending: refreshTokenMutation.isPending, isLoadingUser });
     return <CenteredLoader open={true} />;
   }
 
   if (isAuthenticated && userError) {
     const is429Error = (userError as any)?.statusCode === 429;
     logColor('error', 'AuthProvider', 'Error loading user:', userError);
+    let errorMessage = 'Failed to load user data.';
+    if (is429Error) {
+      errorMessage = 'Too many requests. Please wait 60 seconds before trying again.';
+    } else if ((userError as any)?.messages) {
+      errorMessage = (userError as any).messages;
+    } else if (userError instanceof Error && userError.message) {
+      errorMessage = userError.message;
+    }
     return (
       <Box
         sx={{
@@ -171,7 +175,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }}
       >
         <Typography color="error" variant="h6">
-          {is429Error ? 'Too many requests. Please wait 60 seconds before trying again.' : (userError as any)?.messages || 'Failed to load user data.'}
+          {errorMessage}
         </Typography>
       </Box>
     );

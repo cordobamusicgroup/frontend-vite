@@ -72,7 +72,7 @@ function LoginPage() {
         </Box>
       </FormProvider>
       <ErrorModal2 open={openModal} onClose={closeModal}>
-        <Typography>{error}</Typography>
+        <Typography>{typeof error === 'string' && error ? error : 'An unexpected error occurred. Please try again later.'}</Typography>
       </ErrorModal2>
       <ForgotPasswordPopup open={openPopUpForgot} onClose={() => setOpenPopUpForgot(false)} />
     </>
