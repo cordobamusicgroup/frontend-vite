@@ -7,9 +7,11 @@
     "dev": "react-router dev",
     "build": "react-router build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "pnpm run build && vite preview",
+    "deploy": "pnpm run build && wrangler deploy"
   },
   "dependencies": {
+    "@cloudflare/vite-plugin": "^1.7.0",
     "@cloudflare/workers-types": "^4.20250617.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
@@ -45,6 +47,7 @@
     "styled-components": "^6.1.19",
     "swr": "^2.3.3",
     "vite-tsconfig-paths": "^5.1.4",
+    "wrangler": "^4.20.1",
     "zod": "^3.25.67",
     "zustand": "^5.0.5"
   },

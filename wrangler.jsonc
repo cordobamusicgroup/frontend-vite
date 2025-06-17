@@ -1,7 +1,6 @@
 {
   "name": "cmg-front-app",
-  "compatibility_date": "2025-06-17",
-  "assets": {
-    "directory": "./dist"
-  }
+  "compatibility_date": "2025-06-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "./workers/app.ts"
 }
