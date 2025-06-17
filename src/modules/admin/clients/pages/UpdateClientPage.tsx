@@ -23,6 +23,7 @@ import { buildClientPayload } from '../utils/buildClientPayload.util';
 import webRoutes from '@/lib/web.routes';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import { getErrorMessages as getApiErrorMessages } from '@/lib/formatApiError.util';
 import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
 
@@ -225,7 +226,7 @@ const UpdateClientPage: React.FC = () => {
       },
       onError: (error: any) => {
         setClientNotification({
-          message: error.messages,
+          message: getApiErrorMessages(error),
           type: 'error',
         });
         scrollToTop();
@@ -250,7 +251,7 @@ const UpdateClientPage: React.FC = () => {
 
   const handleInputChange = () => clearClientNotification();
 
-  const getErrorMessages = (errors: any): string[] => {
+  const extractValidationMessages = (errors: any): string[] => {
     const messages: string[] = [];
     const iterate = (errObj: any) => {
       if (errObj?.message) {
@@ -328,7 +329,7 @@ const UpdateClientPage: React.FC = () => {
 
         <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
           <List sx={{ padding: 0, margin: 0 }}>
-            {getErrorMessages(clientFormErrors).map((msg, index) => (
+            {extractValidationMessages(clientFormErrors).map((msg, index) => (
               <ListItem key={index} disableGutters sx={{ padding: '1px 0' }}>
                 <ListItemText primary={`• ${msg}`} sx={{ margin: 0, padding: 0 }} />
               </ListItem>

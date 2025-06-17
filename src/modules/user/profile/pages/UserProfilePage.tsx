@@ -15,14 +15,14 @@ import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import { useNotificationStore } from '@/stores';
 import { Helmet } from 'react-helmet';
 import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
-import { logColor } from '@/lib/log.util';
+import { getErrorMessages } from '@/lib/formatApiError.util';
 
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 const getErrorMessages = (errors: any): string[] => {
-  let messages: string[] = [];
+  const messages: string[] = [];
   const iterate = (errObj: any) => {
     if (errObj?.message) {
       messages.push(errObj.message);
@@ -155,7 +155,7 @@ const ProfileUserPage: React.FC = () => {
       },
       onError: (error: any) => {
         setNotification({
-          message: error.messages,
+          message: getErrorMessages(error),
           type: 'error',
         });
         scrollToTop();

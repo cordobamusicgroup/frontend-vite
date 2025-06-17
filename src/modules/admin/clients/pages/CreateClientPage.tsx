@@ -15,9 +15,9 @@ import { ClientValidationSchema } from '../schemas/ClientValidationSchema';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ClientFormLayout from '../components/organisms/ClientFormLayout';
-import { FormattedApiError } from '@/lib/formatApiError.util';
+import { getErrorMessages } from '@/lib/formatApiError.util';
+import dayjs from 'dayjs';
 import { buildClientPayload } from '../utils/buildClientPayload.util';
-import { logColor } from '@/lib/log.util';
 
 type ClientFormData = z.infer<typeof ClientValidationSchema>;
 
@@ -46,10 +46,10 @@ const CreateClientPage: React.FC = () => {
         setClientNotification({ message: 'Client created successfully', type: 'success' });
         resetClientForm(); // Reset the form after successful submission
       },
-      onError: (clientApiError: FormattedApiError) => {
+      onError: (clientApiError: any) => {
         scrollToPageTop();
         setClientNotification({
-          message: clientApiError.message,
+          message: getErrorMessages(clientApiError),
           type: 'error',
         });
       },
@@ -75,8 +75,8 @@ const CreateClientPage: React.FC = () => {
 
   const handleInputChange = () => clearClientNotification();
 
-  const getErrorMessages = (errors: any): string[] => {
-    let messages: string[] = [];
+  const extractValidationMessages = (errors: any): string[] => {
+    const messages: string[] = [];
     const iterate = (errObj: any) => {
       if (errObj?.message) {
         messages.push(errObj.message);
@@ -127,7 +127,7 @@ const CreateClientPage: React.FC = () => {
         </FormProvider>
         <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
           <List sx={{ padding: 0, margin: 0 }}>
-            {getErrorMessages(clientFormErrors).map((msg, index) => (
+            {extractValidationMessages(clientFormErrors).map((msg, index) => (
               <ListItem key={index} disableGutters sx={{ padding: '1px 0' }}>
                 <ListItemText primary={`• ${msg}`} sx={{ margin: 0, padding: 0 }} />
               </ListItem>
