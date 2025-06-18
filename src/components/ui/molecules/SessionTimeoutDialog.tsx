@@ -36,7 +36,7 @@ const SessionTimeoutDialog: React.FC<SessionTimeoutDialogProps> = ({ open, count
     return (
       <>
         {open && <title>Session expiring in {countdown}s</title>}
-        <Dialog open={open} onClose={onLogout} maxWidth="xs" fullWidth>
+        <Dialog open={open} maxWidth="xs" fullWidth disableEscapeKeyDown>
       <DialogTitle>Session Expiring</DialogTitle>
       <DialogContent>
         <Typography variant="body2" mb={2}>

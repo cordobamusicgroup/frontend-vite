@@ -144,7 +144,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     countdownRef.current = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          clearInterval(countdownRef.current!);
+          if (countdownRef.current) {
+            clearInterval(countdownRef.current);
+          }
           handleLogout();
           return 0;
         }
@@ -201,7 +203,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const warningTime = decoded.exp * 1000 - 60 * 1000; // 1 min before expiry
       const delay = warningTime - Date.now();
       if (delay <= 0) {
-        startSessionCountdown();
+        handleLogout();
       } else {
         sessionTimeoutRef.current = setTimeout(startSessionCountdown, delay);
       }
