@@ -47,7 +47,7 @@ const BackofficeLayout: React.FC = () => {
 
   return (
     <div>
-      {isNavigating && <title>Loading ...</title>}
+      {isNavigating && <title>Loading...</title>}
       <HeaderLayout />
       {!isMobile() && <VerticalMenu />}
       {isMobile() && isOpen && <VerticalMenu />}

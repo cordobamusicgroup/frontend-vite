@@ -1,15 +1,11 @@
 import React from 'react';
-import { Helmet } from 'react-helmet';
 import { Box, Typography, Container } from '@mui/material';
 import BuildCircleIcon from '@mui/icons-material/BuildCircle';
 
 const DMBSubmissionQCUser: React.FC = () => {
   return (
     <>
-      <Helmet>
-        <title>DMB Submission QC - Córdoba Music Group</title>
-        <meta name="description" content="QC submission page is currently under construction. Coming soon!" />
-      </Helmet>
+      <title>DMB Submission QC - Córdoba Music Group</title>
 
       <Container
         maxWidth="sm"
