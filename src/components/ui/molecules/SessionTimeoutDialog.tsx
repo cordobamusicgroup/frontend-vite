@@ -11,7 +11,7 @@ interface SessionTimeoutDialogProps {
 const SessionTimeoutDialog: React.FC<SessionTimeoutDialogProps> = ({ open, countdown, onStayLoggedIn, onLogout }) => {
   return (
     <>
-      {open && <title>Session expiring in {countdown}s</title>}
+      {open && <title>{`Session expiring in ${countdown}s`}</title>}
       <Dialog open={open} maxWidth="xs" fullWidth disableEscapeKeyDown>
         <DialogTitle>Session Expiring</DialogTitle>
         <DialogContent>
