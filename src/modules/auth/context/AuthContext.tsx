@@ -14,6 +14,8 @@ import { useAuthStore, useUserStore } from '@/stores';
 import webRoutes from '@/lib/web.routes';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Box, Typography } from '@mui/material';
+import { AxiosError } from 'axios';
+import { ApiErrorResponse } from '@/types/api';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
 import SessionTimeoutDialog from '@/components/ui/molecules/SessionTimeoutDialog';
 import useAuthQueries from '../hooks/useAuthQueries';
@@ -241,7 +243,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   if (isAuthenticated && userError) {
-    const is429Error = (userError as any)?.statusCode === 429;
+    const is429Error =
+      (userError as AxiosError<ApiErrorResponse>).response?.data.statusCode === 429;
     logColor('error', 'AuthProvider', 'Error loading user:', userError);
     let errorMessage = 'Failed to load user data.';
     if (is429Error) {

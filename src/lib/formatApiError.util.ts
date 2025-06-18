@@ -1,11 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { logColor } from '@/lib/log.util';
-
-type ErrorResponse = {
-  message?: string | string[];
-  error?: string;
-  statusCode?: number;
-};
+import { ApiErrorResponse } from '@/types/api';
 
 export type FormattedApiError = {
   message: string[]; // siempre un array, aunque haya un solo mensaje
@@ -17,7 +12,7 @@ export type FormattedApiError = {
  * @deprecated Use `formatError` instead.
  */
 export const formatApiError = (error: any): FormattedApiError => {
-  const err = error as AxiosError<ErrorResponse>;
+  const err = error as AxiosError<ApiErrorResponse>;
 
   const rawMessage = err.response?.data?.message;
   const message: string[] = Array.isArray(rawMessage) ? rawMessage : rawMessage ? [rawMessage] : [err.message || 'An unexpected error occurred'];
@@ -30,17 +25,17 @@ export const formatApiError = (error: any): FormattedApiError => {
   };
 };
 
-export const formatError = (error: any) => {
-  if (axios.isAxiosError(error)) {
-    return error as AxiosError;
+export const formatError = (error: any): AxiosError<ApiErrorResponse> | { error: string } => {
+  if (axios.isAxiosError<ApiErrorResponse>(error)) {
+    return error;
   }
   return {
-    error: error.message || 'An unexpected error occurred',
+    error: error?.message || 'An unexpected error occurred',
   };
 };
 
 export const getErrorMessages = (error: any): string[] => {
-  if (axios.isAxiosError(error)) {
+  if (axios.isAxiosError<ApiErrorResponse>(error)) {
     const raw = error.response?.data?.message;
     if (Array.isArray(raw)) return raw;
     if (raw) return [raw];
