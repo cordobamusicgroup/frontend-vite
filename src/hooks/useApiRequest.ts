@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect } from 'react';
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/stores';
+import { ApiErrorResponse } from '@/types/api';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -27,7 +28,8 @@ export const useApiRequest = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
 
 
-  const apiRequest = useCallback(async <T = any, E = any>(params: ApiParams): Promise<T> => {
+  const apiRequest = useCallback(
+    async <T = any, E = ApiErrorResponse>(params: ApiParams): Promise<T> => {
     const { url, method, data, params: query, headers, isFormData = false, requireAuth = true, timeout = 30000 } = params;
 
     const token = requireAuth ? useAuthStore.getState().token : null;
