@@ -15,7 +15,6 @@ import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import { useNotificationStore } from '@/stores';
 import { Helmet } from 'react-helmet';
 import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
-import { getErrorMessages } from '@/lib/formatApiError.util';
 
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -82,7 +81,6 @@ const ProfileUserPage: React.FC = () => {
     if (formattedProfileData) {
       reset(formattedProfileData);
       setOriginalData(formattedProfileData);
-      logColor('info', 'UserProfilePage', 'Form reset with:', formattedProfileData);
     }
   }, [formattedProfileData, error.profileFetchError, reset]);
 
