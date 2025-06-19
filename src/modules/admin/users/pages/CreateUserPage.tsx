@@ -15,7 +15,7 @@ import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import { useUsersAdmin } from '../hooks/useUsersAdmin';
 import { UsersValidationSchema } from '../schemas/UsersAdminValidationSchema';
 import UsersFormLayout from '../components/organisms/UsersFormLayout';
-import { getErrorMessages } from '@/lib/formatApiError.util';
+import { formatError } from '@/lib/formatApiError.util';
 
 type UserFormData = z.infer<typeof UsersValidationSchema>;
 
@@ -61,7 +61,7 @@ const CreateUserPage: React.FC = () => {
       onError: (userApiError: any) => {
         scrollToPageTop();
         setUserNotification({
-          message: getErrorMessages(userApiError),
+          message: formatError(userApiError).message.join('\n'),
           type: 'error',
         });
       },

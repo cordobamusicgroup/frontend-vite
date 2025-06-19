@@ -8,7 +8,7 @@ import GridTables from '@/components/ui/organisms/GridTables';
 import { AgGridReact } from 'ag-grid-react';
 import { useNotificationStore } from '@/stores';
 import { useReportsUser } from '../../hooks/useReportsUser';
-import { getErrorMessages } from '@/lib/formatApiError.util';
+import { formatError } from '@/lib/formatApiError.util';
 
 interface ReportsTableProps {
   distributor: string;
@@ -26,7 +26,7 @@ const ReportsTable: React.FC<ReportsTableProps> = ({ distributor }) => {
         setNotification({ message: 'Report downloaded successfully', type: 'success' });
       },
       onError: (error: any) => {
-        setNotification({ message: getErrorMessages(error), type: 'error' });
+        setNotification({ message: formatError(error).message.join('\n'), type: 'error' });
       },
     });
   };
