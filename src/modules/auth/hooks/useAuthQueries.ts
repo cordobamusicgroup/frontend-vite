@@ -6,6 +6,8 @@ import { AuthErrorMessages, AuthErrorCode } from '../utils/auth.utils';
 import { useNavigate } from 'react-router';
 import { useAuthStore, useErrorStore } from '@/stores';
 import { AxiosError } from 'axios';
+import { ApiErrorResponse } from '@/types/api';
+import { logColor } from '@/lib/log.util';
 
 interface LoginCredentials {
   username: string;
@@ -34,9 +36,8 @@ const useAuthQueries = () => {
           requireAuth: false,
         });
       } catch (e) {
-        const error = e as AxiosError;
-        const errorData = error.response?.data as { code: AuthErrorCode };
-        throw AuthErrorMessages[errorData.code];
+        const error = e as AxiosError<ApiErrorResponse>;
+        throw error.response?.data.message || 'Login failed';
       }
     },
     onSuccess: (data) => {
@@ -49,18 +50,20 @@ const useAuthQueries = () => {
     },
     onError: (error: string | unknown) => {
       let errorMsg = 'Cannot connect to the server. Please try again later.';
-      if (typeof error === 'string' && error) {
+      if (typeof error === 'string') {
         errorMsg = error;
-      } else if (error && typeof error === 'object' && 'isAxiosError' in error && (error as any).isAxiosError) {
-        // Axios error, check if no response (network error)
-        if ((error as any).response && (error as any).response.data && typeof (error as any).response.data.code === 'string') {
-          const code = (error as any).response.data.code as AuthErrorCode;
-          if (code in AuthErrorMessages) {
-            errorMsg = AuthErrorMessages[code];
-          }
-        }
+      } else if (
+        error &&
+        typeof error === 'object' &&
+        'isAxiosError' in error &&
+        (error as any).isAxiosError
+      ) {
+        const axiosError = error as AxiosError<ApiErrorResponse>;
+        const rawMsg = axiosError.response?.data.message;
+        if (Array.isArray(rawMsg)) errorMsg = rawMsg.join(', ');
+        else if (rawMsg) errorMsg = rawMsg;
       }
-      console.log('Login error:', errorMsg);
+      logColor('error', 'useAuthQueries', 'Login error:', errorMsg);
       setError(errorMsg);
     },
   });
@@ -76,11 +79,11 @@ const useAuthQueries = () => {
     },
     onSuccess: (data) => {
       setToken(data.access_token);
-      console.log('[Auth] Nuevo access_token seteado:', data.access_token);
+      logColor('info', 'useAuthQueries', 'Nuevo access_token seteado:', data.access_token);
       // NO setees setAuthenticated acá, SOLO en /auth/me!
     },
     onError: (error) => {
-      console.error('[Auth] ERROR en refresh mutation', error);
+      logColor('error', 'useAuthQueries', '[Auth] ERROR en refresh mutation', error);
       clearAuthentication();
     },
   });

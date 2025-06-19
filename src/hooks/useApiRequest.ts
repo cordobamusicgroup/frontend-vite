@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect } from 'react';
-import axios, { AxiosError, AxiosRequestConfig, CancelTokenSource } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/stores';
+import { ApiErrorResponse } from '@/types/api';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -24,14 +25,16 @@ interface ApiParams {
  * Returns an apiRequest function for making HTTP requests.
  */
 export const useApiRequest = () => {
-  const cancelTokenRef = useRef<CancelTokenSource | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
 
-  const apiRequest = useCallback(async <T = any, E = any>(params: ApiParams): Promise<T> => {
+  const apiRequest = useCallback(
+    async <T = any, E = ApiErrorResponse>(params: ApiParams): Promise<T> => {
     const { url, method, data, params: query, headers, isFormData = false, requireAuth = true, timeout = 30000 } = params;
 
     const token = requireAuth ? useAuthStore.getState().token : null;
-    cancelTokenRef.current = axios.CancelToken.source();
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
 
     const config: AxiosRequestConfig = {
       url,
@@ -44,7 +47,7 @@ export const useApiRequest = () => {
         ...headers,
       },
       withCredentials: true,
-      cancelToken: cancelTokenRef.current.token,
+      signal: abortControllerRef.current.signal,
       timeout,
     };
 
@@ -54,8 +57,12 @@ export const useApiRequest = () => {
     } catch (err) {
       throw err as AxiosError<E>;
     } finally {
-      cancelTokenRef.current = null;
+      abortControllerRef.current = null;
     }
+  }, []);
+
+  useEffect(() => {
+    return () => abortControllerRef.current?.abort();
   }, []);
 
   return { apiRequest };

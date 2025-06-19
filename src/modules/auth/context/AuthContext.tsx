@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { jwtDecode } from 'jwt-decode';
 import { useApiRequest } from '@/hooks/useApiRequest';
@@ -7,9 +14,13 @@ import { useAuthStore, useUserStore } from '@/stores';
 import webRoutes from '@/lib/web.routes';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Box, Typography } from '@mui/material';
+import { AxiosError } from 'axios';
+import { ApiErrorResponse } from '@/types/api';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
+import SessionTimeoutDialog from '@/components/ui/molecules/SessionTimeoutDialog';
 import useAuthQueries from '../hooks/useAuthQueries';
 import { logColor } from '@/lib/log.util';
+import { getErrorMessages } from '@/lib/formatApiError.util';
 
 interface JWTPayload {
   sub: string;
@@ -37,8 +48,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const queryClient = useQueryClient();
   const { setAuthenticated, isAuthenticated, clearAuthentication } = useAuthStore();
 
-  const { refreshTokenMutation } = useAuthQueries();
+  const { refreshTokenMutation, logoutMutation } = useAuthQueries();
   const [tokenChecked, setTokenChecked] = useState(false);
+  const [sessionExpiring, setSessionExpiring] = useState(false);
+  const [countdown, setCountdown] = useState(30);
+  const token = useAuthStore((s) => s.token);
+  const sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
   // Previene dobles ejecuciones en StrictMode
   const hasCheckedTokenRef = useRef(false);
@@ -122,12 +138,88 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const startSessionCountdown = () => {
+    setSessionExpiring(true);
+    setCountdown(30);
+    countdownRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          if (countdownRef.current) {
+            clearInterval(countdownRef.current);
+          }
+          handleLogout();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+    } catch (e) {
+      logColor('error', 'AuthProvider', 'Auto logout failed', e);
+    } finally {
+      setSessionExpiring(false);
+    }
+  };
+
+  const handleStayLogged = async () => {
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+    }
+    try {
+      await refreshTokenMutation.mutateAsync();
+    } catch (e) {
+      logColor('error', 'AuthProvider', 'Refresh during countdown failed', e);
+      await logoutMutation.mutateAsync();
+    } finally {
+      setSessionExpiring(false);
+    }
+  };
+
   useEffect(() => {
     setTokenChecked(false);
     hasCheckedTokenRef.current = false;
     checkToken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (sessionTimeoutRef.current) {
+      clearTimeout(sessionTimeoutRef.current);
+    }
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+    }
+
+    if (!token) {
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode<JWTPayload>(token);
+      const warningTime = decoded.exp * 1000 - 60 * 1000; // 1 min before expiry
+      const delay = warningTime - Date.now();
+      if (delay <= 0) {
+        handleLogout();
+      } else {
+        sessionTimeoutRef.current = setTimeout(startSessionCountdown, delay);
+      }
+    } catch (err) {
+      logColor('error', 'AuthProvider', 'Failed to decode token for timeout', err);
+    }
+
+    return () => {
+      if (sessionTimeoutRef.current) {
+        clearTimeout(sessionTimeoutRef.current);
+      }
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
+    };
+  }, [token]);
 
   const { isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['auth', 'user'],
@@ -153,15 +245,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   if (isAuthenticated && userError) {
-    const is429Error = (userError as any)?.statusCode === 429;
+    const is429Error =
+      (userError as AxiosError<ApiErrorResponse>).response?.data.statusCode === 429;
     logColor('error', 'AuthProvider', 'Error loading user:', userError);
     let errorMessage = 'Failed to load user data.';
     if (is429Error) {
       errorMessage = 'Too many requests. Please wait 60 seconds before trying again.';
-    } else if ((userError as any)?.messages) {
-      errorMessage = (userError as any).messages;
-    } else if (userError instanceof Error && userError.message) {
-      errorMessage = userError.message;
+    } else {
+      const messages = getErrorMessages(userError).join(', ');
+      if (messages) {
+        errorMessage = messages;
+      } else if (userError instanceof Error && userError.message) {
+        errorMessage = userError.message;
+      }
     }
     return (
       <Box
@@ -182,7 +278,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   // Si todo OK, render hijos
-  return <AuthContext.Provider value={null}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={null}>
+      {children}
+      <SessionTimeoutDialog
+        open={sessionExpiring}
+        countdown={countdown}
+        onStayLoggedIn={handleStayLogged}
+        onLogout={handleLogout}
+      />
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuthContext = () => {

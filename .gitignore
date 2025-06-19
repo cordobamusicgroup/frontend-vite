@@ -24,5 +24,12 @@ dist-ssr
 *.sw?
 
 .env
-build
-.react-router
+
+# React Router
+/.react-router/
+/build/
+
+# Cloudflare
+.mf
+.wrangler
+.dev.vars*

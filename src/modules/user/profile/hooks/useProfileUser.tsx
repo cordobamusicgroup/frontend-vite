@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { apiRoutes } from '@/lib/api.routes';
-import { formatApiError } from '@/lib/formatApiError.util';
+import { formatError } from '@/lib/formatApiError.util';
 
 /**
  * Hook to manage fetching and downloading reports for a user.
@@ -28,7 +28,7 @@ export const useProfileUser = () => {
         requireAuth: true,
       });
     } catch (error) {
-      throw formatApiError(error);
+      throw formatError(error);
     }
   };
 
@@ -53,7 +53,7 @@ export const useProfileUser = () => {
         });
         return response;
       } catch (error) {
-        throw formatApiError(error);
+        throw formatError(error);
       }
     },
     onSuccess: () => {

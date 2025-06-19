@@ -18,6 +18,7 @@ import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 import { LabelValidationSchema } from '../schemas/LabelValidationSchema';
 import { useLabelsAdmin } from '../hooks/useLabelsAdmin';
 import LabelFormLayout from '../components/organisms/LabelFormLayout';
+import { getErrorMessages as getApiErrorMessages } from '@/lib/formatApiError.util';
 
 type LabelFormData = z.infer<typeof LabelValidationSchema>;
 
@@ -140,7 +141,7 @@ const UpdateLabelPage: React.FC = () => {
       },
       onError: (error: any) => {
         setLabelNotification({
-          message: error.messages,
+          message: getApiErrorMessages(error),
           type: 'error',
         });
         scrollToTop();
@@ -165,8 +166,8 @@ const UpdateLabelPage: React.FC = () => {
 
   const handleInputChange = () => clearLabelNotification();
 
-  const getErrorMessages = (errors: any): string[] => {
-    let messages: string[] = [];
+  const extractValidationMessages = (errors: any): string[] => {
+    const messages: string[] = [];
     const iterate = (errObj: any) => {
       if (errObj?.message) {
         messages.push(errObj.message);
@@ -215,7 +216,7 @@ const UpdateLabelPage: React.FC = () => {
         </FormProvider>
         <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
           <List sx={{ padding: 0, margin: 0 }}>
-            {getErrorMessages(labelFormErrors).map((msg, index) => (
+            {extractValidationMessages(labelFormErrors).map((msg, index) => (
               <ListItem key={index} disableGutters sx={{ padding: '1px 0' }}>
                 <ListItemText primary={`• ${msg}`} sx={{ margin: 0, padding: 0 }} />
               </ListItem>

@@ -7,6 +7,7 @@ import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { Helmet } from 'react-helmet';
+import { logColor } from '@/lib/log.util';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,6 +16,7 @@ import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import { useLabelsAdmin } from '../hooks/useLabelsAdmin';
 import { LabelValidationSchema } from '../schemas/LabelValidationSchema';
 import LabelFormLayout from '../components/organisms/LabelFormLayout';
+import { getErrorMessages } from '@/lib/formatApiError.util';
 
 type LabelFormData = z.infer<typeof LabelValidationSchema>;
 
@@ -56,17 +58,17 @@ const CreateLabelPage: React.FC = () => {
       onError: (labelError: any) => {
         scrollToPageTop();
         setLabelNotification({
-          message: labelError.messages,
+          message: getErrorMessages(labelError),
           type: 'error',
         });
       },
     });
-    console.log('Create Label Form Submitted:', labelPayload);
+    logColor('info', 'CreateLabelPage', 'Create Label Form Submitted:', labelPayload);
   };
 
   const handleLabelFormSubmit = onSubmitLabelForm(
     (labelFormData) => {
-      console.log('Form data:', labelFormData);
+      logColor('info', 'CreateLabelPage', 'Form data:', labelFormData);
       onSubmitLabel(labelFormData);
     },
     (validationErrors) => {
@@ -82,8 +84,8 @@ const CreateLabelPage: React.FC = () => {
 
   const handleInputChange = () => clearLabelNotification();
 
-  const getErrorMessages = (errors: any): string[] => {
-    let messages: string[] = [];
+  const extractValidationMessages = (errors: any): string[] => {
+    const messages: string[] = [];
     const iterate = (errObj: any) => {
       if (errObj?.message) {
         messages.push(errObj.message);
@@ -133,7 +135,7 @@ const CreateLabelPage: React.FC = () => {
         </FormProvider>
         <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
           <List sx={{ padding: 0, margin: 0 }}>
-            {getErrorMessages(labelFormErrors).map((msg, index) => (
+            {extractValidationMessages(labelFormErrors).map((msg, index) => (
               <ListItem key={index} disableGutters sx={{ padding: '1px 0' }}>
                 <ListItemText primary={`• ${msg}`} sx={{ margin: 0, padding: 0 }} />
               </ListItem>
