@@ -131,12 +131,14 @@ const ProfileUserPage: React.FC = () => {
       return;
     }
 
-    const mappedData: any = Object.keys(updatedFields).reduce((acc: any, key) => {
-      if (updatedFields[key] !== null && updatedFields[key] !== '') {
-        acc[key] = updatedFields[key];
+    // Construir el payload solo con los campos permitidos por la API
+    const allowedFields = ['email', 'fullName', 'currentPassword', 'newPassword'];
+    const mappedData: any = {};
+    for (const key of allowedFields) {
+      if (updatedFields[key] !== undefined && updatedFields[key] !== null && updatedFields[key] !== '') {
+        mappedData[key] = updatedFields[key];
       }
-      return acc;
-    }, {});
+    }
 
     if (Object.keys(mappedData).length === 0) {
       setNotification({
@@ -153,7 +155,7 @@ const ProfileUserPage: React.FC = () => {
       },
       onError: (error: any) => {
         setNotification({
-          message: getErrorMessages(error),
+          message: (Array.isArray(error.message) ? error.message : [error.message || 'Ocurrió un error inesperado']).join('\n'),
           type: 'error',
         });
         scrollToTop();

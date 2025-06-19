@@ -16,7 +16,7 @@ import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import { useLabelsAdmin } from '../hooks/useLabelsAdmin';
 import { LabelValidationSchema } from '../schemas/LabelValidationSchema';
 import LabelFormLayout from '../components/organisms/LabelFormLayout';
-import { getErrorMessages } from '@/lib/formatApiError.util';
+import { formatError } from '@/lib/formatApiError.util';
 
 type LabelFormData = z.infer<typeof LabelValidationSchema>;
 
@@ -58,7 +58,7 @@ const CreateLabelPage: React.FC = () => {
       onError: (labelError: any) => {
         scrollToPageTop();
         setLabelNotification({
-          message: getErrorMessages(labelError),
+          message: formatError(labelError).message.join('\n'),
           type: 'error',
         });
       },

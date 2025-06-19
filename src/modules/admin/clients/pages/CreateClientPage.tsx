@@ -15,8 +15,7 @@ import { ClientValidationSchema } from '../schemas/ClientValidationSchema';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ClientFormLayout from '../components/organisms/ClientFormLayout';
-import { getErrorMessages } from '@/lib/formatApiError.util';
-import dayjs from 'dayjs';
+import { formatError } from '@/lib/formatApiError.util';
 import { buildClientPayload } from '../utils/buildClientPayload.util';
 
 type ClientFormData = z.infer<typeof ClientValidationSchema>;
@@ -49,17 +48,15 @@ const CreateClientPage: React.FC = () => {
       onError: (clientApiError: any) => {
         scrollToPageTop();
         setClientNotification({
-          message: getErrorMessages(clientApiError),
+          message: formatError(clientApiError).message.join('\n'),
           type: 'error',
         });
       },
     });
-    logColor('info', 'CreateClientPage', 'Create Client Form Submitted:', clientPayload);
   };
 
   const handleClientFormSubmit = handleSubmit(
     (clientFormData) => {
-      logColor('info', 'CreateClientPage', 'Form data:', clientFormData);
       onSubmitClient(clientFormData);
     },
     (validationErrors) => {
@@ -100,40 +97,40 @@ const CreateClientPage: React.FC = () => {
       </Helmet>
       <Paper sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-        <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
-          <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Creating New Client</Typography>
-          <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
-          <BasicButton
-            colorBackground="white"
-            colorText={theme.palette.secondary.main}
-            onClick={handleClientFormSubmit}
-            color="primary"
-            variant="contained"
-            disabled={clientOperationsLoading.createClient}
-            startIcon={<AddOutlinedIcon />}
-            loading={clientOperationsLoading.createClient}
-          >
-            Create Client
-          </BasicButton>
-        </CustomPageHeader>
+          <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
+            <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Creating New Client</Typography>
+            <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
+            <BasicButton
+              colorBackground="white"
+              colorText={theme.palette.secondary.main}
+              onClick={handleClientFormSubmit}
+              color="primary"
+              variant="contained"
+              disabled={clientOperationsLoading.createClient}
+              startIcon={<AddOutlinedIcon />}
+              loading={clientOperationsLoading.createClient}
+            >
+              Create Client
+            </BasicButton>
+          </CustomPageHeader>
 
-        <Box>
-          {clientNotification?.type === 'success' && <SuccessBox>{clientNotification.message}</SuccessBox>}
-          {clientNotification?.type === 'error' && <ErrorBox>{clientNotification.message}</ErrorBox>}
-        </Box>
+          <Box>
+            {clientNotification?.type === 'success' && <SuccessBox>{clientNotification.message}</SuccessBox>}
+            {clientNotification?.type === 'error' && <ErrorBox>{clientNotification.message}</ErrorBox>}
+          </Box>
 
-        <FormProvider {...clientFormMethods}>
-          <ClientFormLayout handleSubmit={handleClientFormSubmit} onChange={handleInputChange} />
-        </FormProvider>
-        <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
-          <List sx={{ padding: 0, margin: 0 }}>
-            {extractValidationMessages(clientFormErrors).map((msg, index) => (
-              <ListItem key={index} disableGutters sx={{ padding: '1px 0' }}>
-                <ListItemText primary={`• ${msg}`} sx={{ margin: 0, padding: 0 }} />
-              </ListItem>
-            ))}
-          </List>
-        </ErrorModal2>
+          <FormProvider {...clientFormMethods}>
+            <ClientFormLayout handleSubmit={handleClientFormSubmit} onChange={handleInputChange} />
+          </FormProvider>
+          <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
+            <List sx={{ padding: 0, margin: 0 }}>
+              {extractValidationMessages(clientFormErrors).map((msg, index) => (
+                <ListItem key={index} disableGutters sx={{ padding: '1px 0' }}>
+                  <ListItemText primary={`• ${msg}`} sx={{ margin: 0, padding: 0 }} />
+                </ListItem>
+              ))}
+            </List>
+          </ErrorModal2>
         </Box>
       </Paper>
     </>

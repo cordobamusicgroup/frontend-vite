@@ -13,7 +13,7 @@ import { ColDef } from 'ag-grid-community';
 import { useClientsAdmin } from '../../hooks/useClientsAdmin';
 import ActionButtonsClient from '../atoms/ActionsButtonsClient';
 import { useNotificationStore } from '@/stores';
-import { getErrorMessages } from '@/lib/formatApiError.util';
+import { formatError } from '@/lib/formatApiError.util';
 interface ClientTableProps {
   setNotification: (notification: { message: string; type: 'success' | 'error' }) => void;
 }
@@ -76,7 +76,7 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
         setNotification({ message: `Client with ID ${clientId} deleted successfully`, type: 'success' });
       },
       onError: (error: any) => {
-        setNotification({ message: getErrorMessages(error), type: 'error' });
+        setNotification({ message: formatError(error).message.join('\n'), type: 'error' });
       },
     });
   };

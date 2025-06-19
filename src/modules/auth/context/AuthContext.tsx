@@ -1,11 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
+import React, { useEffect, useRef, useState, useCallback, type ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { jwtDecode } from 'jwt-decode';
 import { useApiRequest } from '@/hooks/useApiRequest';
@@ -20,7 +13,7 @@ import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
 import SessionTimeoutDialog from '@/components/ui/molecules/SessionTimeoutDialog';
 import useAuthQueries from '../hooks/useAuthQueries';
 import { logColor } from '@/lib/log.util';
-import { getErrorMessages } from '@/lib/formatApiError.util';
+import { formatError } from '@/lib/formatApiError.util';
 
 interface JWTPayload {
   sub: string;
@@ -32,8 +25,6 @@ interface JWTPayload {
 interface AuthProviderProps {
   children: ReactNode;
 }
-
-export const AuthContext = createContext(null);
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
@@ -77,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
 
-    let currentToken = useAuthStore.getState().token;
+    const currentToken = useAuthStore.getState().token;
     const currentTime = Date.now() / 1000;
 
     if (!currentToken) {
@@ -86,7 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await refreshTokenMutation.mutateAsync();
         setTokenChecked(true);
         logColor('success', 'AuthProvider', 'Token refreshed, auth ready');
-      } catch (err) {
+      } catch {
         logColor('error', 'AuthProvider', 'Refresh failed, clearing auth');
         clearAuthentication();
         queryClient.clear();
@@ -110,7 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           await refreshTokenMutation.mutateAsync();
           setTokenChecked(true);
           logColor('success', 'AuthProvider', 'Token refrescado antes de expirar, auth ready');
-        } catch (err) {
+        } catch {
           logColor('error', 'AuthProvider', 'Refresh antes de expirar falló, limpiando auth');
           clearAuthentication();
           queryClient.clear();
@@ -138,7 +129,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const startSessionCountdown = () => {
+  const handleLogout = useCallback(async () => {
+    try {
+      await logoutMutation.mutateAsync();
+    } catch (e) {
+      logColor('error', 'AuthProvider', 'Auto logout failed', e);
+    } finally {
+      setSessionExpiring(false);
+    }
+  }, [logoutMutation]);
+
+  const startSessionCountdown = useCallback(() => {
     setSessionExpiring(true);
     setCountdown(30);
     countdownRef.current = setInterval(() => {
@@ -153,17 +154,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return prev - 1;
       });
     }, 1000);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logoutMutation.mutateAsync();
-    } catch (e) {
-      logColor('error', 'AuthProvider', 'Auto logout failed', e);
-    } finally {
-      setSessionExpiring(false);
-    }
-  };
+  }, [handleLogout]);
 
   const handleStayLogged = async () => {
     if (countdownRef.current) {
@@ -219,7 +210,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         clearInterval(countdownRef.current);
       }
     };
-  }, [token]);
+  }, [token, handleLogout, startSessionCountdown]);
 
   const { isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['auth', 'user'],
@@ -245,16 +236,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   if (isAuthenticated && userError) {
-    const is429Error =
-      (userError as AxiosError<ApiErrorResponse>).response?.data.statusCode === 429;
+    const is429Error = (userError as AxiosError<ApiErrorResponse>).response?.data.statusCode === 429;
     logColor('error', 'AuthProvider', 'Error loading user:', userError);
     let errorMessage = 'Failed to load user data.';
     if (is429Error) {
       errorMessage = 'Too many requests. Please wait 60 seconds before trying again.';
     } else {
-      const messages = getErrorMessages(userError).join(', ');
-      if (messages) {
-        errorMessage = messages;
+      const formatted = formatError(userError);
+      if (formatted.message && formatted.message.length > 0) {
+        errorMessage = formatted.message.join(', ');
       } else if (userError instanceof Error && userError.message) {
         errorMessage = userError.message;
       }
@@ -279,22 +269,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Si todo OK, render hijos
   return (
-    <AuthContext.Provider value={null}>
+    <>
       {children}
-      <SessionTimeoutDialog
-        open={sessionExpiring}
-        countdown={countdown}
-        onStayLoggedIn={handleStayLogged}
-        onLogout={handleLogout}
-      />
-    </AuthContext.Provider>
+      <SessionTimeoutDialog open={sessionExpiring} countdown={countdown} onStayLoggedIn={handleStayLogged} onLogout={handleLogout} />
+    </>
   );
 };
 
-export const useAuthContext = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuthContext debe usarse dentro de un AuthProvider');
-  }
-  return context;
-};
+// Move AuthContext and useAuthContext to a separate file to fix Fast Refresh warning
+// src/modules/auth/context/AuthContextBase.tsx
+// ---
+// import { createContext, useContext } from 'react';
+// export const AuthContext = createContext(null);
+// export const useAuthContext = () => {
+//   const context = useContext(AuthContext);
+//   if (!context) {
+//     throw new Error('useAuthContext debe usarse dentro de un AuthProvider');
+//   }
+//   return context;
+// };
+// ---
+// Then import { AuthContext, useAuthContext } from './AuthContextBase';

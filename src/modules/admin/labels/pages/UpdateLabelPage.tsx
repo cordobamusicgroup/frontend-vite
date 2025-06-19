@@ -18,7 +18,7 @@ import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 import { LabelValidationSchema } from '../schemas/LabelValidationSchema';
 import { useLabelsAdmin } from '../hooks/useLabelsAdmin';
 import LabelFormLayout from '../components/organisms/LabelFormLayout';
-import { getErrorMessages as getApiErrorMessages } from '@/lib/formatApiError.util';
+import { formatError } from '@/lib/formatApiError.util';
 
 type LabelFormData = z.infer<typeof LabelValidationSchema>;
 
@@ -122,26 +122,15 @@ const UpdateLabelPage: React.FC = () => {
       ...modifiedFields,
     };
 
-    // const labelUpdatePayload = {
-    //   name: modifiedFields.labelName,
-    //   clientId: modifiedFields.clientId,
-    //   status: modifiedFields.labelStatus,
-    //   website: modifiedFields.labelWebsite,
-    //   countryId: modifiedFields.countryId,
-    //   beatportStatus: modifiedFields.beatportStatus,
-    //   traxsourceStatus: modifiedFields.traxsourceStatus,
-    //   beatportUrl: modifiedFields.beatportUrl,
-    //   traxsourceUrl: modifiedFields.traxsourceUrl,
-    // };
-
     updateLabel.mutate(labelUpdatePayload, {
       onSuccess: () => {
         setLabelNotification({ message: 'Label updated successfully', type: 'success' });
         scrollToTop();
       },
       onError: (error: any) => {
+        const formatted = formatError(error);
         setLabelNotification({
-          message: getApiErrorMessages(error),
+          message: formatted.message.join('\n'),
           type: 'error',
         });
         scrollToTop();

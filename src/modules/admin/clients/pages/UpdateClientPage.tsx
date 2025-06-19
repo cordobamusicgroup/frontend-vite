@@ -23,7 +23,7 @@ import { buildClientPayload } from '../utils/buildClientPayload.util';
 import webRoutes from '@/lib/web.routes';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import { getErrorMessages as getApiErrorMessages } from '@/lib/formatApiError.util';
+import { formatError } from '@/lib/formatApiError.util';
 import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
 
@@ -38,9 +38,9 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
   }, {});
 };
 
-const AccordionTitle = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
+const AccordionTitle = ({ icon, text }: { icon: React.ReactElement; text: string }) => (
   <Box display="flex" alignItems="center">
-    {icon}
+    {icon as any}
     <Typography variant="subtitle1" sx={{ fontSize: '16px', ml: 1 }}>
       {text}
     </Typography>
@@ -226,7 +226,7 @@ const UpdateClientPage: React.FC = () => {
       },
       onError: (error: any) => {
         setClientNotification({
-          message: getApiErrorMessages(error),
+          message: formatError(error).message.join('\n'),
           type: 'error',
         });
         scrollToTop();
