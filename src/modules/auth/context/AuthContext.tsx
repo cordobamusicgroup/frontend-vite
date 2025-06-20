@@ -105,7 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setTokenChecked(true);
       logColor('success', 'AuthProvider', 'Token válido, auth ready');
       hasCheckedTokenRef.current = false;
-    } catch (err) {
+    } catch {
       logColor('error', 'AuthProvider', 'Token decode failed, clearing auth');
       clearAuthentication();
       queryClient.clear();
