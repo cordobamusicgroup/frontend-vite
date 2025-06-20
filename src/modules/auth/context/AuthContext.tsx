@@ -46,6 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const token = useAuthStore((s) => s.token);
   const sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  const loggingOutRef = useRef(false);
 
   // Previene dobles ejecuciones en StrictMode
   const hasCheckedTokenRef = useRef(false);
@@ -94,24 +95,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Token presente
     try {
       const decoded = jwtDecode<JWTPayload>(currentToken!);
-      // Refrescar si el token expira en menos de 60 segundos
-      if (decoded.exp < currentTime + 60) {
-        try {
-          logColor('info', 'AuthProvider', 'Token expira pronto o expirado, refrescando...');
-          await refreshTokenMutation.mutateAsync();
-          setTokenChecked(true);
-          logColor('success', 'AuthProvider', 'Token refrescado antes de expirar, auth ready');
-        } catch {
-          logColor('error', 'AuthProvider', 'Refresh antes de expirar falló, limpiando auth');
-          clearAuthentication();
-          queryClient.clear();
-          if (location.pathname !== webRoutes.login) {
-            navigate(webRoutes.login, { replace: true });
-          }
-          setTokenChecked(true);
-        } finally {
-          hasCheckedTokenRef.current = false;
-        }
+      if (decoded.exp < currentTime) {
+        logColor('warn', 'AuthProvider', 'Token expired, logging out');
+        await logoutMutation.mutateAsync();
+        setTokenChecked(true);
+        hasCheckedTokenRef.current = false;
         return;
       }
       setTokenChecked(true);
@@ -130,11 +118,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const handleLogout = useCallback(async () => {
+    if (loggingOutRef.current) return;
+    loggingOutRef.current = true;
     try {
       await logoutMutation.mutateAsync();
     } catch (e) {
       logColor('error', 'AuthProvider', 'Auto logout failed', e);
     } finally {
+      loggingOutRef.current = false;
       setSessionExpiring(false);
     }
   }, [logoutMutation]);
@@ -194,10 +185,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const warningTime = decoded.exp * 1000 - 60 * 1000; // 1 min before expiry
       const delay = warningTime - Date.now();
       if (delay <= 0) {
-        handleLogout();
-      } else {
-        sessionTimeoutRef.current = setTimeout(startSessionCountdown, delay);
+        // Token already expired; checkToken will handle logout
+        return;
       }
+      sessionTimeoutRef.current = setTimeout(startSessionCountdown, delay);
     } catch (err) {
       logColor('error', 'AuthProvider', 'Failed to decode token for timeout', err);
     }
@@ -230,9 +221,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     staleTime: 5 * 60 * 1000,
   });
 
-  if (!tokenChecked || refreshTokenMutation.isPending || isLoadingUser) {
+  const showLoader =
+    !tokenChecked || (refreshTokenMutation.isPending && !token) || isLoadingUser;
+
+  if (showLoader) {
     logColor('info', 'AuthProvider', 'Loading...', { tokenChecked, isPending: refreshTokenMutation.isPending, isLoadingUser });
-    return <CenteredLoader open={true} />;
   }
 
   if (isAuthenticated && userError) {
@@ -270,8 +263,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Si todo OK, render hijos
   return (
     <>
+      {showLoader && <CenteredLoader open={true} />}
       {children}
-      <SessionTimeoutDialog open={sessionExpiring} countdown={countdown} onStayLoggedIn={handleStayLogged} onLogout={handleLogout} />
+      <SessionTimeoutDialog
+        open={sessionExpiring}
+        countdown={countdown}
+        onStayLoggedIn={handleStayLogged}
+        onLogout={handleLogout}
+      />
     </>
   );
 };
