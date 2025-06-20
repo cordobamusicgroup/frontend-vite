@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
 
 interface SessionTimeoutDialogProps {
@@ -9,26 +9,10 @@ interface SessionTimeoutDialogProps {
 }
 
 const SessionTimeoutDialog: React.FC<SessionTimeoutDialogProps> = ({ open, countdown, onStayLoggedIn, onLogout }) => {
-  const previousTitleRef = useRef<string>('');
-
-  // Store the current title when the dialog opens and restore it when closed
-  useEffect(() => {
-    if (open) {
-      previousTitleRef.current = document.title;
-    } else if (previousTitleRef.current) {
-      document.title = previousTitleRef.current;
-    }
-  }, [open]);
-
-  // Update the title countdown while the dialog is open
-  useEffect(() => {
-    if (open) {
-      document.title = `Session expiring in ${countdown}s`;
-    }
-  }, [open, countdown]);
 
   return (
     <>
+      {open && <title>{`Session expiring in ${countdown}s`}</title>}
       <Dialog open={open} maxWidth="xs" fullWidth disableEscapeKeyDown>
         <DialogTitle>Session Expiring</DialogTitle>
         <DialogContent>

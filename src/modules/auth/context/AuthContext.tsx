@@ -133,8 +133,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const startSessionCountdown = useCallback(() => {
     setSessionExpiring(true);
     setCountdown(30);
+    logColor('info', 'AuthProvider', 'Session countdown started');
     countdownRef.current = setInterval(() => {
       setCountdown((prev) => {
+        const next = prev - 1;
+        logColor('info', 'AuthProvider', `Countdown: ${next}`);
         if (prev <= 1) {
           if (countdownRef.current) {
             clearInterval(countdownRef.current);
@@ -142,7 +145,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           handleLogout();
           return 0;
         }
-        return prev - 1;
+        return next;
       });
     }, 1000);
   }, [handleLogout]);
@@ -201,7 +204,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         clearInterval(countdownRef.current);
       }
     };
-  }, [token, handleLogout, startSessionCountdown]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const { isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['auth', 'user'],
