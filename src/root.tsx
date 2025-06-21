@@ -27,6 +27,7 @@ export default function App() {
           <ThemeProvider theme={theme}>
             <AuthProvider>
               <CssBaseline />
+              {/* Asegura que la fuente Roboto esté disponible para todos los componentes */}
               <Outlet />
             </AuthProvider>
           </ThemeProvider>

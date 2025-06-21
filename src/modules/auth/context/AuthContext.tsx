@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback, type ReactNode } from 'react';
+import React, { useEffect, useCallback, type ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { jwtDecode } from 'jwt-decode';
 import { useApiRequest } from '@/hooks/useApiRequest';
@@ -14,6 +14,7 @@ import SessionTimeoutDialog from '@/components/ui/molecules/SessionTimeoutDialog
 import useAuthQueries from '../hooks/useAuthQueries';
 import { logColor } from '@/lib/log.util';
 import { formatError } from '@/lib/formatApiError.util';
+import { SESSION_TIMEOUT_WARNING_SECONDS, useSessionTimeout } from '@/hooks/useSessionTimeout';
 
 interface JWTPayload {
   sub: string;
@@ -40,92 +41,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { setAuthenticated, isAuthenticated, clearAuthentication } = useAuthStore();
 
   const { refreshTokenMutation, logoutMutation } = useAuthQueries();
-  const [tokenChecked, setTokenChecked] = useState(false);
-  const [sessionExpiring, setSessionExpiring] = useState(false);
-  const [countdown, setCountdown] = useState(30);
   const token = useAuthStore((s) => s.token);
-  const sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const countdownRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Previene dobles ejecuciones en StrictMode
-  const hasCheckedTokenRef = useRef(false);
 
   const isPublicRoute = (currentPath: string) => {
     return webRoutes.protected.find((route: any) => route.path === currentPath && route.public === true) !== undefined;
   };
 
   const checkToken = async () => {
-    if (hasCheckedTokenRef.current) {
-      logColor('warn', 'AuthProvider', 'Token check SKIPPED (already running)');
-      return;
-    }
-    hasCheckedTokenRef.current = true;
     const currentPath = location.pathname;
     if (isPublicRoute(currentPath)) {
-      setTokenChecked(true);
-      hasCheckedTokenRef.current = false;
       logColor('info', 'AuthProvider', 'Public route, token check OK');
       return;
     }
-
     const currentToken = useAuthStore.getState().token;
-    const currentTime = Date.now() / 1000;
-
     if (!currentToken) {
-      try {
-        logColor('info', 'AuthProvider', 'No token, refreshing...');
-        await refreshTokenMutation.mutateAsync();
-        setTokenChecked(true);
-        logColor('success', 'AuthProvider', 'Token refreshed, auth ready');
-      } catch {
-        logColor('error', 'AuthProvider', 'Refresh failed, clearing auth');
-        clearAuthentication();
-        queryClient.clear();
-        if (location.pathname !== webRoutes.login) {
-          navigate(webRoutes.login, { replace: true });
+      // Si no hay token, intenta refrescar SOLO si es la primera carga (no por expiración)
+      // Detecta recarga de página de forma segura
+      const navEntry = performance && (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined);
+      if (navEntry && navEntry.type === 'reload') {
+        try {
+          logColor('info', 'AuthProvider', 'No token, intentando refresh tras recarga...');
+          await refreshTokenMutation.mutateAsync();
+          logColor('success', 'AuthProvider', 'Token refreshed after reload, auth ready');
+          return;
+        } catch {
+          logColor('error', 'AuthProvider', 'Refresh failed after reload, clearing auth');
         }
-        setTokenChecked(true);
-      } finally {
-        hasCheckedTokenRef.current = false;
+      }
+      clearAuthentication();
+      queryClient.clear();
+      if (location.pathname !== webRoutes.login) {
+        navigate(webRoutes.login, { replace: true });
       }
       return;
     }
-
     // Token presente
     try {
-      const decoded = jwtDecode<JWTPayload>(currentToken!);
-      // Refrescar si el token expira en menos de 60 segundos
-      if (decoded.exp < currentTime + 60) {
-        try {
-          logColor('info', 'AuthProvider', 'Token expira pronto o expirado, refrescando...');
-          await refreshTokenMutation.mutateAsync();
-          setTokenChecked(true);
-          logColor('success', 'AuthProvider', 'Token refrescado antes de expirar, auth ready');
-        } catch {
-          logColor('error', 'AuthProvider', 'Refresh antes de expirar falló, limpiando auth');
-          clearAuthentication();
-          queryClient.clear();
-          if (location.pathname !== webRoutes.login) {
-            navigate(webRoutes.login, { replace: true });
-          }
-          setTokenChecked(true);
-        } finally {
-          hasCheckedTokenRef.current = false;
-        }
-        return;
-      }
-      setTokenChecked(true);
+      jwtDecode<JWTPayload>(currentToken!);
       logColor('success', 'AuthProvider', 'Token válido, auth ready');
-      hasCheckedTokenRef.current = false;
-    } catch (err) {
+    } catch {
       logColor('error', 'AuthProvider', 'Token decode failed, clearing auth');
       clearAuthentication();
       queryClient.clear();
       if (location.pathname !== webRoutes.login) {
         navigate(webRoutes.login, { replace: true });
       }
-      setTokenChecked(true);
-      hasCheckedTokenRef.current = false;
     }
   };
 
@@ -134,83 +94,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await logoutMutation.mutateAsync();
     } catch (e) {
       logColor('error', 'AuthProvider', 'Auto logout failed', e);
-    } finally {
-      setSessionExpiring(false);
     }
   }, [logoutMutation]);
 
-  const startSessionCountdown = useCallback(() => {
-    setSessionExpiring(true);
-    setCountdown(30);
-    countdownRef.current = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          if (countdownRef.current) {
-            clearInterval(countdownRef.current);
-          }
-          handleLogout();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, [handleLogout]);
-
-  const handleStayLogged = async () => {
-    if (countdownRef.current) {
-      clearInterval(countdownRef.current);
-    }
+  const handleStayLogged = useCallback(async () => {
     try {
       await refreshTokenMutation.mutateAsync();
+      logColor('info', 'AuthProvider', 'Token refreshed by user, session extended');
+      // No recargar ni redirigir, solo refrescar el token
     } catch (e) {
       logColor('error', 'AuthProvider', 'Refresh during countdown failed', e);
       await logoutMutation.mutateAsync();
-    } finally {
-      setSessionExpiring(false);
     }
-  };
+  }, [refreshTokenMutation, logoutMutation]);
 
   useEffect(() => {
-    setTokenChecked(false);
-    hasCheckedTokenRef.current = false;
     checkToken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
-  useEffect(() => {
-    if (sessionTimeoutRef.current) {
-      clearTimeout(sessionTimeoutRef.current);
-    }
-    if (countdownRef.current) {
-      clearInterval(countdownRef.current);
-    }
-
-    if (!token) {
-      return;
-    }
-
+  // Extraer exp del token
+  let exp: number | null = null;
+  if (token) {
     try {
-      const decoded = jwtDecode<JWTPayload>(token);
-      const warningTime = decoded.exp * 1000 - 60 * 1000; // 1 min before expiry
-      const delay = warningTime - Date.now();
-      if (delay <= 0) {
-        handleLogout();
-      } else {
-        sessionTimeoutRef.current = setTimeout(startSessionCountdown, delay);
-      }
-    } catch (err) {
-      logColor('error', 'AuthProvider', 'Failed to decode token for timeout', err);
+      exp = jwtDecode<JWTPayload>(token).exp;
+    } catch {
+      exp = null;
     }
+  }
 
-    return () => {
-      if (sessionTimeoutRef.current) {
-        clearTimeout(sessionTimeoutRef.current);
-      }
-      if (countdownRef.current) {
-        clearInterval(countdownRef.current);
-      }
-    };
-  }, [token, handleLogout, startSessionCountdown]);
+  // Hook de timeout de sesión
+  const sessionCountdown = useSessionTimeout(exp, () => {
+    logColor('info', 'AuthProvider', 'Mostrando SessionTimeoutDialog');
+  });
+
+  // Lógica de visibilidad del diálogo aquí
+  const showSessionDialog = sessionCountdown > 0 && sessionCountdown <= SESSION_TIMEOUT_WARNING_SECONDS;
 
   const { isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['auth', 'user'],
@@ -225,14 +144,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logColor('success', 'AuthProvider', 'User loaded and authenticated');
       return response;
     },
-    enabled: tokenChecked && !!useAuthStore.getState().token,
+    enabled: !!token,
     retry: 1,
     staleTime: 5 * 60 * 1000,
   });
 
-  if (!tokenChecked || refreshTokenMutation.isPending || isLoadingUser) {
-    logColor('info', 'AuthProvider', 'Loading...', { tokenChecked, isPending: refreshTokenMutation.isPending, isLoadingUser });
-    return <CenteredLoader open={true} />;
+  // Loader persistente y con mensaje personalizado
+  const [showLoader, setShowLoader] = React.useState(false);
+
+  useEffect(() => {
+    if (isLoadingUser) {
+      setShowLoader(true);
+    } else {
+      setShowLoader(false);
+    }
+  }, [isLoadingUser]);
+
+  if (showLoader) {
+    logColor('info', 'AuthProvider', 'Loading...');
+    return <CenteredLoader open={true} text="Loading user, please wait..." />;
   }
 
   if (isAuthenticated && userError) {
@@ -241,6 +171,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     let errorMessage = 'Failed to load user data.';
     if (is429Error) {
       errorMessage = 'Too many requests. Please wait 60 seconds before trying again.';
+      return (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100vh',
+            textAlign: 'center',
+            padding: 2,
+            gap: 2,
+          }}
+        >
+          <Typography color="error" variant="h4" fontWeight={700} mb={1}>
+            429: Too Many Requests
+          </Typography>
+          <Typography color="text.secondary" variant="h6" mb={2}>
+            {errorMessage}
+          </Typography>
+          <Typography color="text.secondary" variant="body2">
+            If you just logged in or refreshed, please wait a moment before trying again.
+            <br />
+            This is a temporary protection against excessive requests.
+          </Typography>
+        </Box>
+      );
     } else {
       const formatted = formatError(userError);
       if (formatted.message && formatted.message.length > 0) {
@@ -271,22 +227,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   return (
     <>
       {children}
-      <SessionTimeoutDialog open={sessionExpiring} countdown={countdown} onStayLoggedIn={handleStayLogged} onLogout={handleLogout} />
+      <SessionTimeoutDialog open={showSessionDialog} countdown={sessionCountdown} onStayLoggedIn={handleStayLogged} onLogout={handleLogout} />
     </>
   );
 };
-
-// Move AuthContext and useAuthContext to a separate file to fix Fast Refresh warning
-// src/modules/auth/context/AuthContextBase.tsx
-// ---
-// import { createContext, useContext } from 'react';
-// export const AuthContext = createContext(null);
-// export const useAuthContext = () => {
-//   const context = useContext(AuthContext);
-//   if (!context) {
-//     throw new Error('useAuthContext debe usarse dentro de un AuthProvider');
-//   }
-//   return context;
-// };
-// ---
-// Then import { AuthContext, useAuthContext } from './AuthContextBase';
