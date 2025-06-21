@@ -1,41 +1,39 @@
 import { useEffect, useRef, useState } from 'react';
 
+export const SESSION_TIMEOUT_WARNING_SECONDS = 30;
+
 /**
  * Hook para manejar el timeout de sesión y el countdown de aviso.
  * @param expTimestamp Expiración del token (segundos UNIX)
  * @param onTimeout Callback cuando expira la sesión
- * @param warningSeconds Segundos antes de expirar para mostrar el aviso
  */
-export function useSessionTimeout(expTimestamp: number | null, onTimeout: () => void, warningSeconds = SESSION_TIMEOUT_WARNING_SECONDS) {
-  const [countdown, setCountdown] = useState<number | null>(null);
+export function useSessionTimeout(expTimestamp: number | null, onTimeout: () => void) {
+  const [countdown, setCountdown] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutCalled = useRef(false);
 
   useEffect(() => {
     if (!expTimestamp) {
-      setCountdown(null);
+      setCountdown(0);
+      timeoutCalled.current = false;
       return;
     }
     const updateCountdown = () => {
       const now = Date.now();
       const secondsLeft = Math.max(0, Math.floor(expTimestamp - now / 1000));
       setCountdown(secondsLeft);
-      if (secondsLeft <= 0) {
+      if (secondsLeft === 0 && !timeoutCalled.current) {
+        timeoutCalled.current = true;
         onTimeout();
       }
     };
     updateCountdown();
     intervalRef.current = setInterval(updateCountdown, 1000);
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      clearInterval(intervalRef.current as NodeJS.Timeout);
+      timeoutCalled.current = false;
     };
   }, [expTimestamp, onTimeout]);
 
-  // Solo mostrar el countdown cuando faltan menos de warningSeconds
-  if (typeof countdown === 'number' && countdown <= warningSeconds) {
-    return countdown;
-  }
-  return null;
+  return countdown;
 }
-
-// Cambia el valor aquí para modificar el aviso en toda la app
-export const SESSION_TIMEOUT_WARNING_SECONDS = 30;
