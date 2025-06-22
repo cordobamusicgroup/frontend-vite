@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-import { useAuthStore } from '@/stores';
+import Cookies from 'js-cookie';
 import { ApiErrorResponse } from '@/types/api';
 
 const api = axios.create({
@@ -55,8 +55,8 @@ export const useApiRequest = () => {
   async function apiRequest<T = any, E = ApiErrorResponse>(params: ApiParams): Promise<T> {
     const { url, method, data, params: query, headers, isFormData = false, requireAuth = true, timeout = 30000 } = params;
 
-    // Si requireAuth es true, intenta obtener el token del store
-    const token = requireAuth ? useAuthStore.getState().token : null;
+    // Si requireAuth es true, intenta obtener el token de la cookie
+    const token = requireAuth ? Cookies.get('access_token') : null;
 
     const config: AxiosRequestConfig = {
       url,

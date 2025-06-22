@@ -23,7 +23,7 @@ const useAuthQueries = () => {
   const { apiRequest } = useApiRequest();
   const navigate = useNavigate();
   const { setError } = useErrorStore();
-  const { clearAuthentication, setToken, setAuthenticated } = useAuthStore(); // Assuming this is a function to set authentication state
+  const { clearAuthentication, setAuthenticated, setToken } = useAuthStore();
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
@@ -40,23 +40,18 @@ const useAuthQueries = () => {
       }
     },
     onSuccess: (data) => {
+      setAuthenticated(true);
+      // Sincronizamos el token en el estado para que los componentes reactivos de zustand se actualicen automáticamente
       setToken(data.access_token);
       queryClient.invalidateQueries({ queryKey: ['auth', 'user'] }).then(() => {
         navigate(webRoutes.backoffice.overview);
       });
-
-      setAuthenticated(true);
     },
     onError: (error: string | unknown) => {
       let errorMsg = 'Cannot connect to the server. Please try again later.';
       if (typeof error === 'string') {
         errorMsg = error;
-      } else if (
-        error &&
-        typeof error === 'object' &&
-        'isAxiosError' in error &&
-        (error as any).isAxiosError
-      ) {
+      } else if (error && typeof error === 'object' && 'isAxiosError' in error && (error as any).isAxiosError) {
         const axiosError = error as AxiosError<ApiErrorResponse>;
         const rawMsg = axiosError.response?.data.message;
         if (Array.isArray(rawMsg)) errorMsg = rawMsg.join(', ');

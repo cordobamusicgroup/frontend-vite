@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const { setAuthenticated, isAuthenticated, clearAuthentication } = useAuthStore();
+  const { setAuthenticated, isAuthenticated, clearAuthentication, setToken } = useAuthStore();
   const { refreshTokenMutation } = useAuthQueries();
 
   const isPublicRoute = (currentPath: string) => {
@@ -69,6 +69,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
     // Token presente
+    setToken(currentToken); // Asegura que el estado esté sincronizado si la cookie cambió fuera del store
     const decoded = decodeJwtOrLogout<JWTPayload>(currentToken!, () => {
       clearAuthentication();
       queryClient.clear();
@@ -96,6 +97,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       setUserData(response);
       setAuthenticated(true);
+      setToken(useAuthStore.getState().token); // Sincroniza el token tras login
       logColor('success', 'AuthProvider', 'User loaded and authenticated');
       return response;
     },

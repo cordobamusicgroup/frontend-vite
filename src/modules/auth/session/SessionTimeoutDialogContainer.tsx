@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import SessionTimeoutDialog from '../../../components/ui/molecules/SessionTimeoutDialog';
 import { eventBus } from '../../../eventBus';
 import { sessionTimer } from './SessionTimer';
 import useAuthQueries from '../hooks/useAuthQueries';
 import { useAuthStore } from '@/stores';
 import { logColor } from '@/lib/log.util';
+import SessionTimeoutDialog from '../../../components/ui/molecules/SessionTimeoutDialog';
 
 /**
  * Componente que conecta el eventBus/sessionTimer con el Dialog visual y maneja la sesión.
@@ -14,9 +14,11 @@ import { logColor } from '@/lib/log.util';
 export const SessionTimeoutDialogContainer: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [countdown, setCountdown] = useState(30);
-  const { refreshTokenMutation, logoutMutation } = useAuthQueries();
-  const token = useAuthStore((s) => s.token);
+  const { logoutMutation, refreshTokenMutation } = useAuthQueries();
   const { clearAuthentication } = useAuthStore();
+
+  // Leer el token desde el estado global
+  const token = useAuthStore((s) => s.token);
 
   useEffect(() => {
     sessionTimer.setToken(token);
@@ -33,13 +35,6 @@ export const SessionTimeoutDialogContainer: React.FC = () => {
         logoutTimeout = setTimeout(async () => {
           setOpen(false);
           setCountdown(0);
-          if (token) {
-            try {
-              await logoutMutation.mutateAsync();
-            } catch (e) {
-              logColor('error', 'SessionTimeoutDialog', 'Auto logout failed', e);
-            }
-          }
         }, seconds * 1000);
       }
     };
@@ -50,14 +45,8 @@ export const SessionTimeoutDialogContainer: React.FC = () => {
       setOpen(false);
       setCountdown(0);
       if (logoutTimeout) clearTimeout(logoutTimeout);
-      // Si por alguna razón no se disparó antes, intenta logout aquí también
-      if (token) {
-        try {
-          await logoutMutation.mutateAsync();
-        } catch (e) {
-          logColor('error', 'SessionTimeoutDialog', 'Auto logout failed', e);
-        }
-      }
+      // Al expirar, hace logout automático
+      clearAuthentication();
     };
     const onClosed = () => {
       setOpen(false);
@@ -75,7 +64,7 @@ export const SessionTimeoutDialogContainer: React.FC = () => {
       eventBus.off('session:closed', onClosed);
       if (logoutTimeout) clearTimeout(logoutTimeout);
     };
-  }, [logoutMutation, clearAuthentication, token]);
+  }, [clearAuthentication, token]);
 
   const handleStayLoggedIn = async () => {
     eventBus.emit('session:closed');
@@ -84,19 +73,13 @@ export const SessionTimeoutDialogContainer: React.FC = () => {
       logColor('info', 'SessionTimeoutDialog', 'Token refreshed by user, session extended');
     } catch (e) {
       logColor('error', 'SessionTimeoutDialog', 'Refresh during countdown failed', e);
-      await logoutMutation.mutateAsync();
+      clearAuthentication();
     }
   };
 
   const handleLogout = async () => {
     eventBus.emit('session:closed');
-    if (token) {
-      try {
-        await logoutMutation.mutateAsync();
-      } catch (e) {
-        logColor('error', 'SessionTimeoutDialog', 'Auto logout failed', e);
-      }
-    }
+    await logoutMutation.mutateAsync();
   };
 
   return <SessionTimeoutDialog open={open} countdown={countdown} onStayLoggedIn={handleStayLoggedIn} onLogout={handleLogout} />;
