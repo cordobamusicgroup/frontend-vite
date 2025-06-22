@@ -13,6 +13,7 @@ import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
 import { SessionTimeoutDialogContainer } from '../session/SessionTimeoutDialogContainer';
 import { logColor } from '@/lib/log.util';
 import { formatError } from '@/lib/formatApiError.util';
+import useAuthQueries from '../hooks/useAuthQueries';
 
 interface JWTPayload {
   sub: string;
@@ -37,6 +38,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const location = useLocation();
   const queryClient = useQueryClient();
   const { setAuthenticated, isAuthenticated, clearAuthentication } = useAuthStore();
+  const { refreshTokenMutation } = useAuthQueries();
 
   const isPublicRoute = (currentPath: string) => {
     return webRoutes.protected.find((route: any) => route.path === currentPath && route.public === true) !== undefined;
@@ -50,17 +52,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     const currentToken = useAuthStore.getState().token;
     if (!currentToken) {
-      // Si no hay token, intenta refrescar SOLO si es la primera carga (no por expiración)
-      // Detecta recarga de página de forma segura
-      const navEntry = performance && (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined);
-      if (navEntry && navEntry.type === 'reload') {
-        try {
-          logColor('info', 'AuthProvider', 'No token, intentando refresh tras recarga...');
-          // El refreshTokenMutation ahora debe hacerse aquí manualmente
-          // Puedes importar y usar useAuthQueries temporalmente aquí si lo necesitas
-        } catch {
-          logColor('error', 'AuthProvider', 'Refresh failed after reload, clearing auth');
-        }
+      try {
+        logColor('info', 'AuthProvider', 'No token, intentando refresh...');
+        await refreshTokenMutation.mutateAsync();
+        // Tras refresh exitoso, volver a ejecutar checkToken para continuar el flujo
+        await checkToken();
+        return;
+      } catch {
+        logColor('error', 'AuthProvider', 'Refresh failed, clearing auth');
       }
       clearAuthentication();
       queryClient.clear();
