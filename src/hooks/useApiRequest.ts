@@ -1,4 +1,3 @@
-import { useCallback, useRef, useEffect } from 'react';
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/stores';
 import { ApiErrorResponse } from '@/types/api';
@@ -21,20 +20,43 @@ interface ApiParams {
 }
 
 /**
- * Hook for making centralized HTTP requests using Axios, with support for cancellation, authentication, and token management.
- * Returns an apiRequest function for making HTTP requests.
+ * useApiRequest
+ *
+ * Hook para realizar peticiones HTTP centralizadas usando Axios.
+ *
+ * Características:
+ * - Añade automáticamente el token de autenticación (si requireAuth es true y existe token).
+ * - Permite peticiones públicas (sin token) usando requireAuth: false.
+ * - Soporta envío de datos como JSON o FormData.
+ * - Permite personalizar headers y timeout por petición.
+ *
+ * Ejemplo de uso:
+ *
+ * const { apiRequest } = useApiRequest();
+ *
+ * Petición autenticada
+ * await apiRequest({ url: '/user', method: 'get' });
+ *
+ * Petición pública
+ * await apiRequest({ url: '/login', method: 'post', requireAuth: false });
+ *
+ * @returns { apiRequest } Función para realizar peticiones HTTP.
  */
 export const useApiRequest = () => {
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-
-  const apiRequest = useCallback(
-    async <T = any, E = ApiErrorResponse>(params: ApiParams): Promise<T> => {
+  /**
+   * apiRequest
+   *
+   * Realiza una petición HTTP usando Axios.
+   *
+   * @param params Parámetros de la petición (url, method, data, etc).
+   * @returns Respuesta de la API (data).
+   * @throws AxiosError si la petición falla.
+   */
+  async function apiRequest<T = any, E = ApiErrorResponse>(params: ApiParams): Promise<T> {
     const { url, method, data, params: query, headers, isFormData = false, requireAuth = true, timeout = 30000 } = params;
 
+    // Si requireAuth es true, intenta obtener el token del store
     const token = requireAuth ? useAuthStore.getState().token : null;
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = new AbortController();
 
     const config: AxiosRequestConfig = {
       url,
@@ -47,7 +69,6 @@ export const useApiRequest = () => {
         ...headers,
       },
       withCredentials: true,
-      signal: abortControllerRef.current.signal,
       timeout,
     };
 
@@ -56,14 +77,8 @@ export const useApiRequest = () => {
       return response.data;
     } catch (err) {
       throw err as AxiosError<E>;
-    } finally {
-      abortControllerRef.current = null;
     }
-  }, []);
-
-  useEffect(() => {
-    return () => abortControllerRef.current?.abort();
-  }, []);
+  }
 
   return { apiRequest };
 };
