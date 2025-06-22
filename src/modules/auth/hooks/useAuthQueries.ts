@@ -2,7 +2,6 @@ import { useApiRequest } from '@/hooks/useApiRequest';
 import { apiRoutes } from '@/lib/api.routes';
 import webRoutes from '@/lib/web.routes';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { AuthErrorMessages, AuthErrorCode } from '../utils/auth.utils';
 import { useNavigate } from 'react-router';
 import { useAuthStore, useErrorStore } from '@/stores';
 import { AxiosError } from 'axios';
