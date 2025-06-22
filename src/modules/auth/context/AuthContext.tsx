@@ -1,6 +1,6 @@
 import React, { useEffect, type ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { jwtDecode } from 'jwt-decode';
+import { decodeJwtOrLogout } from '@/lib/jwt.util';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { apiRoutes } from '@/lib/api.routes';
 import { useAuthStore, useUserStore } from '@/stores';
@@ -70,16 +70,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
     // Token presente
-    try {
-      jwtDecode<JWTPayload>(currentToken!);
-      logColor('success', 'AuthProvider', 'Token válido, auth ready');
-    } catch {
-      logColor('error', 'AuthProvider', 'Token decode failed, clearing auth');
+    const decoded = decodeJwtOrLogout<JWTPayload>(currentToken!, () => {
       clearAuthentication();
       queryClient.clear();
       if (location.pathname !== webRoutes.login) {
         navigate(webRoutes.login, { replace: true });
       }
+    });
+    if (decoded) {
+      logColor('success', 'AuthProvider', 'Token válido, auth ready');
     }
   };
 
@@ -116,6 +115,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setShowLoader(false);
     }
   }, [isLoadingUser]);
+
+  // Query para validar el token en el backend
+  const { data: isTokenValid, isLoading: isValidatingToken } = useQuery({
+    queryKey: ['auth', 'validate-token', useAuthStore.getState().token],
+    queryFn: async () => {
+      const token = useAuthStore.getState().token;
+      if (!token) return false;
+      try {
+        const response = await apiRequest<{ valid: boolean }>({
+          url: apiRoutes.auth.validateToken, // Debe estar definido en apiRoutes
+          method: 'post',
+          data: { token },
+        });
+        return response.valid;
+      } catch (e) {
+        logColor('error', 'AuthProvider', 'Token validation failed in backend', e);
+        return false;
+      }
+    },
+    enabled: !!useAuthStore.getState().token,
+    retry: 0,
+    staleTime: 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (isValidatingToken) return;
+    if (isTokenValid === false) {
+      logColor('error', 'AuthProvider', 'Token inválido según backend, limpiando sesión');
+      clearAuthentication();
+      queryClient.clear();
+      if (location.pathname !== webRoutes.login) {
+        navigate(webRoutes.login, { replace: true });
+      }
+    }
+  }, [isTokenValid, isValidatingToken, clearAuthentication, queryClient, location.pathname, navigate]);
 
   if (showLoader) {
     logColor('info', 'AuthProvider', 'Loading...');

@@ -1,7 +1,7 @@
 // SessionTimer.ts
 // Lógica desacoplada de React para manejar el timeout y countdown de sesión usando eventBus (mitt)
 import { eventBus } from '../../../eventBus';
-import { jwtDecode } from 'jwt-decode';
+import { decodeJwtOrLogout } from '@/lib/jwt.util';
 
 interface JWTPayload {
   exp: number;
@@ -28,22 +28,16 @@ export class SessionTimer {
   private startTimeout() {
     this.clearTimers();
     if (!this.token) return;
-    try {
-      const decoded = jwtDecode<JWTPayload>(this.token);
-      const now = Date.now();
-      const exp = decoded.exp * 1000;
-      // Eliminar LOGOUT_BEFORE_EXPIRY y ajustar:
-      // const warnAt = exp - (this.countdownSeconds + LOGOUT_BEFORE_EXPIRY) * 1000;
-      // por:
-      const warnAt = exp - this.countdownSeconds * 1000;
-      const delay = warnAt - now;
-      if (delay <= 0) {
-        this.startCountdown();
-      } else {
-        this.timeout = setTimeout(() => this.startCountdown(), delay);
-      }
-    } catch {
-      // Token inválido
+    const decoded = decodeJwtOrLogout<JWTPayload>(this.token);
+    if (!decoded) return;
+    const now = Date.now();
+    const exp = decoded.exp * 1000;
+    const warnAt = exp - this.countdownSeconds * 1000;
+    const delay = warnAt - now;
+    if (delay <= 0) {
+      this.startCountdown();
+    } else {
+      this.timeout = setTimeout(() => this.startCountdown(), delay);
     }
   }
 
