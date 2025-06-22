@@ -1,4 +1,3 @@
-import { error } from 'console';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 

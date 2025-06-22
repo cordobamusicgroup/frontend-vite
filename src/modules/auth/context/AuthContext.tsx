@@ -1,6 +1,6 @@
-import React, { useEffect, useCallback, type ReactNode } from 'react';
+import React, { useEffect, type ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { jwtDecode } from 'jwt-decode';
+import { decodeJwtOrLogout } from '@/lib/jwt.util';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { apiRoutes } from '@/lib/api.routes';
 import { useAuthStore, useUserStore } from '@/stores';
@@ -10,11 +10,10 @@ import { Box, Typography } from '@mui/material';
 import { AxiosError } from 'axios';
 import { ApiErrorResponse } from '@/types/api';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
-import SessionTimeoutDialog from '@/components/ui/molecules/SessionTimeoutDialog';
-import useAuthQueries from '../hooks/useAuthQueries';
+import { SessionTimeoutDialogContainer } from '../session/SessionTimeoutDialogContainer';
 import { logColor } from '@/lib/log.util';
 import { formatError } from '@/lib/formatApiError.util';
-import { SESSION_TIMEOUT_WARNING_SECONDS, useSessionTimeout } from '@/hooks/useSessionTimeout';
+import useAuthQueries from '../hooks/useAuthQueries';
 
 interface JWTPayload {
   sub: string;
@@ -38,10 +37,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const { setAuthenticated, isAuthenticated, clearAuthentication } = useAuthStore();
-
-  const { refreshTokenMutation, logoutMutation } = useAuthQueries();
-  const token = useAuthStore((s) => s.token);
+  const { setAuthenticated, isAuthenticated, clearAuthentication, setToken } = useAuthStore();
+  const { refreshTokenMutation } = useAuthQueries();
 
   const isPublicRoute = (currentPath: string) => {
     return webRoutes.protected.find((route: any) => route.path === currentPath && route.public === true) !== undefined;
@@ -55,18 +52,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     const currentToken = useAuthStore.getState().token;
     if (!currentToken) {
-      // Si no hay token, intenta refrescar SOLO si es la primera carga (no por expiración)
-      // Detecta recarga de página de forma segura
-      const navEntry = performance && (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined);
-      if (navEntry && navEntry.type === 'reload') {
-        try {
-          logColor('info', 'AuthProvider', 'No token, intentando refresh tras recarga...');
-          await refreshTokenMutation.mutateAsync();
-          logColor('success', 'AuthProvider', 'Token refreshed after reload, auth ready');
-          return;
-        } catch {
-          logColor('error', 'AuthProvider', 'Refresh failed after reload, clearing auth');
-        }
+      try {
+        logColor('info', 'AuthProvider', 'No token, intentando refresh...');
+        await refreshTokenMutation.mutateAsync();
+        // Tras refresh exitoso, volver a ejecutar checkToken para continuar el flujo
+        await checkToken();
+        return;
+      } catch {
+        logColor('error', 'AuthProvider', 'Refresh failed, clearing auth');
       }
       clearAuthentication();
       queryClient.clear();
@@ -76,60 +69,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
     // Token presente
-    try {
-      jwtDecode<JWTPayload>(currentToken!);
-      logColor('success', 'AuthProvider', 'Token válido, auth ready');
-    } catch {
-      logColor('error', 'AuthProvider', 'Token decode failed, clearing auth');
+    setToken(currentToken); // Asegura que el estado esté sincronizado si la cookie cambió fuera del store
+    const decoded = decodeJwtOrLogout<JWTPayload>(currentToken!, () => {
       clearAuthentication();
       queryClient.clear();
       if (location.pathname !== webRoutes.login) {
         navigate(webRoutes.login, { replace: true });
       }
+    });
+    if (decoded) {
+      logColor('success', 'AuthProvider', 'Token válido, auth ready');
     }
   };
-
-  const handleLogout = useCallback(async () => {
-    try {
-      await logoutMutation.mutateAsync();
-    } catch (e) {
-      logColor('error', 'AuthProvider', 'Auto logout failed', e);
-    }
-  }, [logoutMutation]);
-
-  const handleStayLogged = useCallback(async () => {
-    try {
-      await refreshTokenMutation.mutateAsync();
-      logColor('info', 'AuthProvider', 'Token refreshed by user, session extended');
-      // No recargar ni redirigir, solo refrescar el token
-    } catch (e) {
-      logColor('error', 'AuthProvider', 'Refresh during countdown failed', e);
-      await logoutMutation.mutateAsync();
-    }
-  }, [refreshTokenMutation, logoutMutation]);
 
   useEffect(() => {
     checkToken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
-
-  // Extraer exp del token
-  let exp: number | null = null;
-  if (token) {
-    try {
-      exp = jwtDecode<JWTPayload>(token).exp;
-    } catch {
-      exp = null;
-    }
-  }
-
-  // Hook de timeout de sesión
-  const sessionCountdown = useSessionTimeout(exp, () => {
-    logColor('info', 'AuthProvider', 'Mostrando SessionTimeoutDialog');
-  });
-
-  // Lógica de visibilidad del diálogo aquí
-  const showSessionDialog = sessionCountdown > 0 && sessionCountdown <= SESSION_TIMEOUT_WARNING_SECONDS;
 
   const { isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['auth', 'user'],
@@ -141,10 +97,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       setUserData(response);
       setAuthenticated(true);
+      setToken(useAuthStore.getState().token); // Sincroniza el token tras login
       logColor('success', 'AuthProvider', 'User loaded and authenticated');
       return response;
     },
-    enabled: !!token,
+    enabled: !!useAuthStore.getState().token,
     retry: 1,
     staleTime: 5 * 60 * 1000,
   });
@@ -159,6 +116,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setShowLoader(false);
     }
   }, [isLoadingUser]);
+
+  // Query para validar el token en el backend
+  const { data: isTokenValid, isLoading: isValidatingToken } = useQuery({
+    queryKey: ['auth', 'validate-token', useAuthStore.getState().token],
+    queryFn: async () => {
+      const token = useAuthStore.getState().token;
+      if (!token) return false;
+      try {
+        const response = await apiRequest<{ valid: boolean }>({
+          url: apiRoutes.auth.validateToken, // Debe estar definido en apiRoutes
+          method: 'post',
+          data: { token },
+        });
+        return response.valid;
+      } catch (e) {
+        logColor('error', 'AuthProvider', 'Token validation failed in backend', e);
+        return false;
+      }
+    },
+    enabled: !!useAuthStore.getState().token,
+    retry: 0,
+    staleTime: 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (isValidatingToken) return;
+    if (isTokenValid === false) {
+      logColor('error', 'AuthProvider', 'Token inválido según backend, limpiando sesión');
+      clearAuthentication();
+      queryClient.clear();
+      if (location.pathname !== webRoutes.login) {
+        navigate(webRoutes.login, { replace: true });
+      }
+    }
+  }, [isTokenValid, isValidatingToken, clearAuthentication, queryClient, location.pathname, navigate]);
 
   if (showLoader) {
     logColor('info', 'AuthProvider', 'Loading...');
@@ -227,7 +219,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   return (
     <>
       {children}
-      <SessionTimeoutDialog open={showSessionDialog} countdown={sessionCountdown} onStayLoggedIn={handleStayLogged} onLogout={handleLogout} />
+      <SessionTimeoutDialogContainer />
     </>
   );
 };
