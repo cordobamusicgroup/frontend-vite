@@ -42,7 +42,8 @@ export class SessionTimer {
       } else {
         this.timeout = setTimeout(() => this.startCountdown(), delay);
       }
-    } catch {
+    } catch (error) {
+      console.error("Failed to decode token:", error);
       // Token inválido
     }
   }
