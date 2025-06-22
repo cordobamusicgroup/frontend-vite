@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, type ReactNode } from 'react';
+import React, { useEffect, type ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { jwtDecode } from 'jwt-decode';
 import { useApiRequest } from '@/hooks/useApiRequest';
@@ -10,11 +10,9 @@ import { Box, Typography } from '@mui/material';
 import { AxiosError } from 'axios';
 import { ApiErrorResponse } from '@/types/api';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
-import SessionTimeoutDialog from '@/components/ui/molecules/SessionTimeoutDialog';
-import useAuthQueries from '../hooks/useAuthQueries';
+import { SessionTimeoutDialogContainer } from '../session/SessionTimeoutDialogContainer';
 import { logColor } from '@/lib/log.util';
 import { formatError } from '@/lib/formatApiError.util';
-import { SESSION_TIMEOUT_WARNING_SECONDS, useSessionTimeout } from '@/hooks/useSessionTimeout';
 
 interface JWTPayload {
   sub: string;
@@ -40,9 +38,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const queryClient = useQueryClient();
   const { setAuthenticated, isAuthenticated, clearAuthentication } = useAuthStore();
 
-  const { refreshTokenMutation, logoutMutation } = useAuthQueries();
-  const token = useAuthStore((s) => s.token);
-
   const isPublicRoute = (currentPath: string) => {
     return webRoutes.protected.find((route: any) => route.path === currentPath && route.public === true) !== undefined;
   };
@@ -61,9 +56,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (navEntry && navEntry.type === 'reload') {
         try {
           logColor('info', 'AuthProvider', 'No token, intentando refresh tras recarga...');
-          await refreshTokenMutation.mutateAsync();
-          logColor('success', 'AuthProvider', 'Token refreshed after reload, auth ready');
-          return;
+          // El refreshTokenMutation ahora debe hacerse aquí manualmente
+          // Puedes importar y usar useAuthQueries temporalmente aquí si lo necesitas
         } catch {
           logColor('error', 'AuthProvider', 'Refresh failed after reload, clearing auth');
         }
@@ -89,47 +83,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const handleLogout = useCallback(async () => {
-    try {
-      await logoutMutation.mutateAsync();
-    } catch (e) {
-      logColor('error', 'AuthProvider', 'Auto logout failed', e);
-    }
-  }, [logoutMutation]);
-
-  const handleStayLogged = useCallback(async () => {
-    try {
-      await refreshTokenMutation.mutateAsync();
-      logColor('info', 'AuthProvider', 'Token refreshed by user, session extended');
-      // No recargar ni redirigir, solo refrescar el token
-    } catch (e) {
-      logColor('error', 'AuthProvider', 'Refresh during countdown failed', e);
-      await logoutMutation.mutateAsync();
-    }
-  }, [refreshTokenMutation, logoutMutation]);
-
   useEffect(() => {
     checkToken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
-
-  // Extraer exp del token
-  let exp: number | null = null;
-  if (token) {
-    try {
-      exp = jwtDecode<JWTPayload>(token).exp;
-    } catch {
-      exp = null;
-    }
-  }
-
-  // Hook de timeout de sesión
-  const sessionCountdown = useSessionTimeout(exp, () => {
-    logColor('info', 'AuthProvider', 'Mostrando SessionTimeoutDialog');
-  });
-
-  // Lógica de visibilidad del diálogo aquí
-  const showSessionDialog = sessionCountdown > 0 && sessionCountdown <= SESSION_TIMEOUT_WARNING_SECONDS;
 
   const { isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['auth', 'user'],
@@ -144,7 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logColor('success', 'AuthProvider', 'User loaded and authenticated');
       return response;
     },
-    enabled: !!token,
+    enabled: !!useAuthStore.getState().token,
     retry: 1,
     staleTime: 5 * 60 * 1000,
   });
@@ -227,7 +184,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   return (
     <>
       {children}
-      <SessionTimeoutDialog open={showSessionDialog} countdown={sessionCountdown} onStayLoggedIn={handleStayLogged} onLogout={handleLogout} />
+      <SessionTimeoutDialogContainer />
     </>
   );
 };
