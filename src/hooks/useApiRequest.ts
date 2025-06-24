@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
 import { ApiErrorResponse } from '@/types/api';
+import { refreshAccessToken } from '@/modules/auth/lib/refreshAccessToken.util';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -54,9 +55,7 @@ export const useApiRequest = () => {
    */
   async function apiRequest<T = any, E = ApiErrorResponse>(params: ApiParams): Promise<T> {
     const { url, method, data, params: query, headers, isFormData = false, requireAuth = true, timeout = 30000 } = params;
-
-    // Si requireAuth es true, intenta obtener el token de la cookie
-    const token = requireAuth ? Cookies.get('access_token') : null;
+    let token = requireAuth ? Cookies.get('access_token') : null;
 
     const config: AxiosRequestConfig = {
       url,
@@ -76,7 +75,29 @@ export const useApiRequest = () => {
       const response = await api.request<T>(config);
       return response.data;
     } catch (err) {
-      throw err as AxiosError<E>;
+      const error = err as AxiosError<E>;
+      // Si es 401 y requiere auth, intentamos refresh automático
+      if (requireAuth && error.response?.status === 401 && url !== '/auth/refresh') {
+        try {
+          await refreshAccessToken();
+          // Intentar de nuevo la request con el nuevo token
+          token = Cookies.get('access_token');
+          const retryConfig = {
+            ...config,
+            headers: {
+              ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              ...headers,
+            },
+          };
+          const retryResponse = await api.request<T>(retryConfig);
+          return retryResponse.data;
+        } catch {
+          // Si el refresh falla, relanzar el error original
+          throw error;
+        }
+      }
+      throw error;
     }
   }
 

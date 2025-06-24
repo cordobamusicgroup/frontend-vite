@@ -10,7 +10,6 @@ import { Box, Typography } from '@mui/material';
 import { AxiosError } from 'axios';
 import { ApiErrorResponse } from '@/types/api';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
-import { SessionTimeoutDialogContainer } from '../session/SessionTimeoutDialogContainer';
 import { logColor } from '@/lib/log.util';
 import { formatError } from '@/lib/formatApiError.util';
 import useAuthQueries from '../hooks/useAuthQueries';
@@ -216,10 +215,5 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   // Si todo OK, render hijos
-  return (
-    <>
-      {children}
-      <SessionTimeoutDialogContainer />
-    </>
-  );
+  return <>{children}</>;
 };
