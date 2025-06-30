@@ -1,13 +1,8 @@
-import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import { AxiosError, AxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
 import { ApiErrorResponse } from '@/types/api';
 import { refreshAccessToken } from '@/modules/auth/lib/refreshAccessToken.util';
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  withCredentials: true,
-  timeout: 30000,
-});
+import api from '@/lib/api';
 
 interface ApiParams {
   url: string;
@@ -76,8 +71,11 @@ export const useApiRequest = () => {
       return response.data;
     } catch (err) {
       const error = err as AxiosError<E>;
-      // Si es 401 y requiere auth, intentamos refresh automático
-      if (requireAuth && error.response?.status === 401 && url !== '/auth/refresh') {
+      const status = error.response?.status;
+      const originalRequest: any = error.config;
+      // Si es 401/403 y requiere auth, intentamos refresh automático
+      if (requireAuth && (status === 401 || status === 403) && url !== '/auth/refresh' && !originalRequest?._retry) {
+        originalRequest._retry = true;
         try {
           await refreshAccessToken();
           // Intentar de nuevo la request con el nuevo token
@@ -93,7 +91,6 @@ export const useApiRequest = () => {
           const retryResponse = await api.request<T>(retryConfig);
           return retryResponse.data;
         } catch {
-          // Si el refresh falla, relanzar el error original
           throw error;
         }
       }
