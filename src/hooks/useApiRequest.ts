@@ -1,7 +1,6 @@
-import { AxiosError, AxiosRequestConfig } from 'axios';
+import { AxiosRequestConfig, AxiosError } from 'axios';
 import Cookies from 'js-cookie';
 import { ApiErrorResponse } from '@/types/api';
-import { refreshAccessToken } from '@/modules/auth/lib/refreshAccessToken.util';
 import api from '@/lib/api';
 
 interface ApiParams {
@@ -70,31 +69,7 @@ export const useApiRequest = () => {
       const response = await api.request<T>(config);
       return response.data;
     } catch (err) {
-      const error = err as AxiosError<E>;
-      const status = error.response?.status;
-      const originalRequest: any = error.config;
-      // Si es 401/403 y requiere auth, intentamos refresh automático
-      if (requireAuth && (status === 401 || status === 403) && url !== '/auth/refresh' && !originalRequest?._retry) {
-        originalRequest._retry = true;
-        try {
-          await refreshAccessToken();
-          // Intentar de nuevo la request con el nuevo token
-          token = Cookies.get('access_token');
-          const retryConfig = {
-            ...config,
-            headers: {
-              ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-              ...headers,
-            },
-          };
-          const retryResponse = await api.request<T>(retryConfig);
-          return retryResponse.data;
-        } catch {
-          throw error;
-        }
-      }
-      throw error;
+      throw err as AxiosError<E>;
     }
   }
 

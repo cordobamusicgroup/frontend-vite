@@ -44,18 +44,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       async (error) => {
         const status = error.response?.status;
         const originalRequest = error.config;
-        if ((status === 401 || status === 403) && originalRequest && !(originalRequest as any)._retry) {
+        if (
+          (status === 401 || status === 403) &&
+          originalRequest &&
+          !(originalRequest as any)._retry &&
+          originalRequest.url !== '/auth/refresh'
+        ) {
           (originalRequest as any)._retry = true;
           try {
             await refreshAccessToken();
             const token = Cookies.get('access_token');
-            if (token) {
-              originalRequest.headers = {
+            const retryConfig = {
+              ...originalRequest,
+              headers: {
                 ...(originalRequest.headers || {}),
-                Authorization: `Bearer ${token}`,
-              };
-            }
-            return api(originalRequest);
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+            };
+            return api(retryConfig);
           } catch (err) {
             queryClient.clear();
             clearAuthentication();
