@@ -7,6 +7,8 @@ import VerticalMenu from '../ui/molecules/VerticalMenu';
 import SkeletonLoader from '../ui/molecules/SkeletonLoader';
 import ViewAsClientDialog from '../ui/molecules/ViewAsClientDialog';
 import { useRouteCleanup } from '@/hooks/useRouteCleanup';
+import RoleProtectedRoute from '@/routes/RoleProtectedRoute';
+import { Roles } from '@/constants/roles';
 
 /**
  * Represents the main content component.
@@ -46,14 +48,14 @@ const BackofficeLayout: React.FC = () => {
   const isNavigating = Boolean(navigation.location);
 
   return (
-    <div>
+    <RoleProtectedRoute allowedRoles={[Roles.All]}>
       {isNavigating && <title>Loading...</title>}
       <HeaderLayout />
       {!isMobile() && <VerticalMenu />}
       {isMobile() && isOpen && <VerticalMenu />}
       <Main open={isOpen}>{isNavigating ? <SkeletonLoader /> : <Outlet />}</Main>
       <ViewAsClientDialog />
-    </div>
+    </RoleProtectedRoute>
   );
 };
 
