@@ -1,5 +1,5 @@
 import { Roles } from '@/constants/roles';
-import webRoutes from '@/lib/web.routes';
+import webRoutes from '@/routes/web.routes';
 import HomeIcon from '@mui/icons-material/Home';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';

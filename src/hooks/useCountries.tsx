@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useApiRequest } from './useApiRequest';
-import { apiRoutes } from '@/lib/api.routes';
+import { apiRoutes } from '@/routes/api.routes';
 
 /**
  * Hook to get the list of countries from the API.

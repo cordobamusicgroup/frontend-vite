@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { Box, Paper, Typography } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { AgGridReact } from 'ag-grid-react';
-import webRoutes from '@/lib/web.routes';
+import webRoutes from '@/routes/web.routes';
 import useQuickFilter from '@/hooks/useQuickFilter';
 import GridTables from '@/components/ui/organisms/GridTables';
 import SearchBoxTable from '@/components/ui/organisms/SearchBoxTable';

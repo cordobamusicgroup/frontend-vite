@@ -1,6 +1,6 @@
 import { useApiRequest } from '@/hooks/useApiRequest';
-import { apiRoutes } from '@/lib/api.routes';
-import webRoutes from '@/lib/web.routes';
+import { apiRoutes } from '@/routes/api.routes';
+import webRoutes from '@/routes/web.routes';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import { useAuthStore, useErrorStore } from '@/stores';

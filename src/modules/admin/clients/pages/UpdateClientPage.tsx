@@ -20,7 +20,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import dayjs from 'dayjs';
 import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 import { buildClientPayload } from '../utils/buildClientPayload.util';
-import webRoutes from '@/lib/web.routes';
+import webRoutes from '@/routes/web.routes';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { formatError } from '@/lib/formatApiError.util';
