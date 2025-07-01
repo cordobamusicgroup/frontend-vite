@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { Roles } from '@/constants/roles';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
-import { useAuthStore } from '@/stores';
+import { getAccessTokenFromCookie } from '@/lib/cookies.util';
 
 interface RoleProtectedRouteProps {
   allowedRoles?: Roles[];
@@ -30,19 +30,18 @@ interface RoleProtectedRouteProps {
  *   </RoleProtectedRoute>
  */
 const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ allowedRoles, children }) => {
-  const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
 
   // Usa la query de usuario para obtener loading y datos
+  const isAuthenticated = !!getAccessTokenFromCookie();
   const { data: userData, isLoading: isUserLoading } = useQuery({
     queryKey: ['auth', 'user'],
     enabled: isAuthenticated,
     // El fetch real lo hace el AuthProvider, aquí solo leemos el cache
     queryFn: async () => queryClient.getQueryData(['auth', 'user']) as any,
   });
-
   const isLoading = isUserLoading;
 
   // Si no se pasan roles o se pasa Roles.All, se permite acceso a cualquier usuario autenticado

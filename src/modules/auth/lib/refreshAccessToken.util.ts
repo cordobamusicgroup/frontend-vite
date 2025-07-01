@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { setAccessTokenCookie } from '@/lib/cookies.util';
-import { useAuthStore } from '@/stores';
+import { setAccessTokenCookie, removeAccessTokenCookie } from '@/lib/cookies.util';
 
 // Mutex para evitar múltiples refresh simultáneos
 let refreshPromise: Promise<string | undefined> | null = null;
@@ -21,10 +20,9 @@ export async function refreshAccessToken() {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/refresh`, {}, { withCredentials: true });
       const { access_token } = response.data;
       setAccessTokenCookie(access_token);
-      useAuthStore.getState().setToken(access_token);
       return access_token;
     } catch (err) {
-      useAuthStore.getState().clearAuthentication();
+      removeAccessTokenCookie();
       throw err;
     } finally {
       refreshPromise = null;

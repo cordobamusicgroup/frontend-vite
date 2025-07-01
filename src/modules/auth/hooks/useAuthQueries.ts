@@ -3,10 +3,11 @@ import { apiRoutes } from '@/routes/api.routes';
 import webRoutes from '@/routes/web.routes';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
-import { useAuthStore, useErrorStore } from '@/stores';
+import { useErrorStore } from '@/stores';
 import { AxiosError } from 'axios';
 import { ApiErrorResponse } from '@/types/api';
 import { logColor } from '@/lib/log.util';
+import { setAccessTokenCookie } from '@/lib/cookies.util';
 
 interface LoginCredentials {
   username: string;
@@ -23,26 +24,28 @@ const useAuthQueries = () => {
   const { apiRequest } = useApiRequest();
   const navigate = useNavigate();
   const { setError } = useErrorStore();
-  const { clearAuthentication, setAuthenticated, setToken } = useAuthStore();
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
       try {
-        return await apiRequest({
+        const response = await apiRequest({
           url: apiRoutes.auth.login,
           method: 'post',
           data: credentials,
           requireAuth: false,
         });
+        // Set cookie manually si viene el token
+        if (response && response.access_token) {
+          setAccessTokenCookie(response.access_token);
+        }
+        return response;
       } catch (e) {
         const error = e as AxiosError<ApiErrorResponse>;
         throw error.response?.data.message || 'Login failed';
       }
     },
-    onSuccess: (data) => {
-      setAuthenticated(true);
-      // Sincronizamos el token en el estado para que los componentes reactivos de zustand se actualicen automáticamente
-      setToken(data.access_token);
+    onSuccess: () => {
+      // El token ya está en la cookie, solo redirigir y refrescar usuario
       queryClient.invalidateQueries({ queryKey: ['auth', 'user'] }).then(() => {
         navigate(webRoutes.backoffice.overview);
       });
@@ -72,13 +75,13 @@ const useAuthQueries = () => {
       return response;
     },
     onSuccess: (data) => {
-      setToken(data.access_token);
       logColor('info', 'useAuthQueries', 'Nuevo access_token seteado:', data.access_token);
       // NO setees setAuthenticated acá, SOLO en /auth/me!
     },
     onError: (error) => {
       logColor('error', 'useAuthQueries', '[Auth] ERROR en refresh mutation', error);
-      clearAuthentication();
+      // Elimina la cookie si el refresh falla
+      import('@/lib/cookies.util').then((mod) => mod.removeAccessTokenCookie());
     },
   });
 
@@ -97,7 +100,7 @@ const useAuthQueries = () => {
     },
     onSuccess: () => {
       queryClient.clear();
-      clearAuthentication();
+      import('@/lib/cookies.util').then((mod) => mod.removeAccessTokenCookie());
       navigate(webRoutes.login);
     },
   });

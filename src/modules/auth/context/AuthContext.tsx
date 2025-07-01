@@ -1,18 +1,15 @@
-import React, { type ReactNode } from 'react';
+import React from 'react';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { apiRoutes } from '@/routes/api.routes';
-import { useAuthStore, useUserStore } from '@/stores';
+import { useUserStore } from '@/stores';
 import { useQuery } from '@tanstack/react-query';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
+import { getAccessTokenFromCookie } from '@/lib/cookies.util';
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { apiRequest } = useApiRequest();
   const { setUserData } = useUserStore();
-  const { setAuthenticated, setToken } = useAuthStore();
+  const isAuthenticated = !!getAccessTokenFromCookie();
 
   const { isLoading } = useQuery({
     queryKey: ['auth', 'user'],
@@ -22,11 +19,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         method: 'get',
       });
       setUserData(response);
-      setAuthenticated(true);
-      setToken(useAuthStore.getState().token);
       return response;
     },
-    enabled: !!useAuthStore.getState().token,
+    enabled: isAuthenticated,
     retry: 1,
     staleTime: 5 * 60 * 1000,
   });

@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-import { useAuthStore } from '@/stores';
 import { useNavigate } from 'react-router';
+import { getAccessTokenFromCookie } from '@/lib/cookies.util';
 
 const PublicOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
+  const isAuthenticated = !!getAccessTokenFromCookie();
 
   useEffect(() => {
     if (isAuthenticated) {
