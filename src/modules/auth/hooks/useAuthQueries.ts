@@ -8,6 +8,7 @@ import { AxiosError } from 'axios';
 import { ApiErrorResponse } from '@/types/api';
 import { logColor } from '@/lib/log.util';
 import { setAccessTokenCookie } from '@/lib/cookies.util';
+import { useAuthStore } from '@/stores/auth.store';
 
 interface LoginCredentials {
   username: string;
@@ -38,6 +39,8 @@ const useAuthQueries = () => {
         // Set cookie manual si viene el token
         if (response && response.access_token) {
           setAccessTokenCookie(response.access_token);
+          // Update auth store
+          useAuthStore.getState().setAuthenticated(true);
         }
         return response;
       } catch (e) {
@@ -67,26 +70,6 @@ const useAuthQueries = () => {
     },
   });
 
-  const refreshTokenMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest<{ access_token: string; expires_in: number }>({
-        url: apiRoutes.auth.refresh,
-        method: 'post',
-        requireAuth: false,
-      });
-      return response;
-    },
-    onSuccess: (data) => {
-      logColor('info', 'useAuthQueries', 'Nuevo access_token seteado:', data.access_token);
-      // NO setees setAuthenticated acá, SOLO en /auth/me!
-    },
-    onError: (error) => {
-      logColor('error', 'useAuthQueries', '[Auth] ERROR en refresh mutation', error);
-      // Elimina la cookie si el refresh falla
-      import('@/lib/cookies.util').then((mod) => mod.removeAccessTokenCookie());
-    },
-  });
-
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
@@ -102,7 +85,10 @@ const useAuthQueries = () => {
     },
     onSuccess: () => {
       queryClient.clear();
-      import('@/lib/cookies.util').then((mod) => mod.removeAccessTokenCookie());
+      import('@/lib/cookies.util').then((mod) => {
+        mod.removeAccessTokenCookie();
+        useAuthStore.getState().setAuthenticated(false);
+      });
       navigate(webRoutes.login);
     },
   });
@@ -140,7 +126,7 @@ const useAuthQueries = () => {
     },
   });
 
-  return { loginMutation, refreshTokenMutation, logoutMutation, forgotPasswordMutation, resetPasswordMutation };
+  return { loginMutation, logoutMutation, forgotPasswordMutation, resetPasswordMutation };
 };
 
 export default useAuthQueries;

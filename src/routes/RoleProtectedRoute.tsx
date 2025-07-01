@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { Roles } from '@/constants/roles';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
-import { getAccessTokenFromCookie } from '@/lib/cookies.util';
+import { useAuthStore } from '@/stores/auth.store';
 
 interface RoleProtectedRouteProps {
   allowedRoles?: Roles[];
@@ -14,8 +14,8 @@ const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ allowedRoles, c
   const location = useLocation();
   const queryClient = useQueryClient();
 
-  // Determina si el usuario está autenticado
-  const isAuthenticated = !!getAccessTokenFromCookie();
+  // Determina si el usuario está autenticado usando el store
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   // Obtiene el usuario desde el cache (AuthProvider lo mantiene actualizado)
   const { data: userData, isLoading } = useQuery({
