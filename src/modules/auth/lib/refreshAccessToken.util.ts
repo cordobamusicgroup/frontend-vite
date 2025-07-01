@@ -26,7 +26,9 @@ export async function refreshAccessToken() {
       // Invalida la query de usuario para forzar refetch inmediato
       try {
         queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
-      } catch {}
+      } catch {
+        // Ignore errors during query invalidation
+      }
       return access_token;
     } catch (err) {
       removeAccessTokenCookie();

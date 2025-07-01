@@ -39,11 +39,6 @@ const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ allowedRoles, c
     }
   }, [isAuthenticated, userData, userRole, allowAll, allowedRoles, location, navigate, isLoading]);
 
-  // Renderizado: solo muestra children si el usuario está autenticado y tiene el rol permitido
-  if (isLoading) return null;
-  if (!isAuthenticated || !userData) return null;
-  if (!allowAll && userRole && !allowedRoles!.includes(userRole as Roles)) return null;
-
   return <>{children}</>;
 };
 
