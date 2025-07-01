@@ -2,7 +2,7 @@ import { useApiRequest } from '@/hooks/useApiRequest';
 import { apiRoutes } from '@/routes/api.routes';
 import webRoutes from '@/routes/web.routes';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { useErrorStore } from '@/stores';
 import { AxiosError } from 'axios';
 import { ApiErrorResponse } from '@/types/api';
@@ -23,6 +23,7 @@ const useAuthQueries = () => {
   const queryClient = useQueryClient();
   const { apiRequest } = useApiRequest();
   const navigate = useNavigate();
+  const location = useLocation();
   const { setError } = useErrorStore();
 
   const loginMutation = useMutation({
@@ -34,7 +35,7 @@ const useAuthQueries = () => {
           data: credentials,
           requireAuth: false,
         });
-        // Set cookie manually si viene el token
+        // Set cookie manual si viene el token
         if (response && response.access_token) {
           setAccessTokenCookie(response.access_token);
         }
@@ -45,9 +46,10 @@ const useAuthQueries = () => {
       }
     },
     onSuccess: () => {
-      // El token ya está en la cookie, solo redirigir y refrescar usuario
+      // Redirige a la ruta original si existe, si no al home
       queryClient.invalidateQueries({ queryKey: ['auth', 'user'] }).then(() => {
-        navigate(webRoutes.backoffice.overview);
+        const from = (location.state as any)?.from?.pathname || webRoutes.backoffice.overview;
+        navigate(from, { replace: true });
       });
     },
     onError: (error: string | unknown) => {

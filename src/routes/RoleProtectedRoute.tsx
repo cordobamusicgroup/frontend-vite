@@ -9,60 +9,40 @@ interface RoleProtectedRouteProps {
   children: React.ReactNode;
 }
 
-/**
- * Wrapper de protección de rutas por roles.
- *
- * - Si no se pasa `allowedRoles`, o es vacío, o contiene `Roles.All`,
- *   permite el acceso a cualquier usuario autenticado (sin importar su rol).
- * - Si se pasan roles específicos, solo permite acceso a usuarios autenticados
- *   cuyo rol esté incluido en `allowedRoles`.
- * - Si el usuario no está autenticado, redirige a /auth/login.
- * - Si el usuario no tiene el rol requerido, redirige a /backoffice/.
- * - Usa la query de usuario de React Query para obtener el estado de carga y datos.
- *
- * Ejemplo de uso:
- *   <RoleProtectedRoute allowedRoles={[Roles.Admin]}>
- *     <AdminPage />
- *   </RoleProtectedRoute>
- *
- *   <RoleProtectedRoute>
- *     <AnyAuthenticatedUserPage />
- *   </RoleProtectedRoute>
- */
 const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ allowedRoles, children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
 
-  // Usa la query de usuario para obtener loading y datos
+  // Determina si el usuario está autenticado
   const isAuthenticated = !!getAccessTokenFromCookie();
-  const { data: userData, isLoading: isUserLoading } = useQuery({
+
+  // Obtiene el usuario desde el cache (AuthProvider lo mantiene actualizado)
+  const { data: userData, isLoading } = useQuery({
     queryKey: ['auth', 'user'],
     enabled: isAuthenticated,
-    // El fetch real lo hace el AuthProvider, aquí solo leemos el cache
-    queryFn: async () => queryClient.getQueryData(['auth', 'user']) as any,
+    queryFn: async () => queryClient.getQueryData(['auth', 'user']) ?? null,
   });
-  const isLoading = isUserLoading;
 
-  // Si no se pasan roles o se pasa Roles.All, se permite acceso a cualquier usuario autenticado
+  // Permite acceso a cualquier usuario autenticado si no se pasan roles o se pasa Roles.All
   const allowAll = !allowedRoles || allowedRoles.length === 0 || allowedRoles.includes(Roles.All);
+  const userRole = userData && typeof userData === 'object' && 'role' in userData ? (userData as any).role : undefined;
 
   useEffect(() => {
     if (isLoading) return;
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !userData) {
       navigate('/auth/login', { replace: true, state: { from: location } });
       return;
     }
-    if (!allowAll && userData && !allowedRoles!.includes(userData.role as Roles)) {
+    if (!allowAll && userRole && !allowedRoles!.includes(userRole as Roles)) {
       navigate('/backoffice/', { replace: true });
     }
-  }, [isAuthenticated, allowedRoles, userData, location, navigate, isLoading, allowAll]);
+  }, [isAuthenticated, userData, userRole, allowAll, allowedRoles, location, navigate, isLoading]);
 
+  // Renderizado: solo muestra children si el usuario está autenticado y tiene el rol permitido
   if (isLoading) return null;
-  if (!isAuthenticated) return null;
-  if (!allowAll && userData && !allowedRoles!.includes(userData.role as Roles)) {
-    return null;
-  }
+  if (!isAuthenticated || !userData) return null;
+  if (!allowAll && userRole && !allowedRoles!.includes(userRole as Roles)) return null;
 
   return <>{children}</>;
 };
