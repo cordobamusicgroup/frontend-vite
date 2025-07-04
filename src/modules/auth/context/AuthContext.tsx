@@ -4,6 +4,11 @@ import { apiRoutes } from '@/routes/api.routes';
 import { useUserStore } from '@/stores';
 import { useQuery } from '@tanstack/react-query';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
+import FetchErrorBox from '@/components/ui/molecules/FetchErrorBox';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import { Box, Typography } from '@mui/material';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { getAccessTokenFromCookie, setAccessTokenCookie, removeAccessTokenCookie } from '@/lib/cookies.util';
 import { refreshAccessToken } from '@/modules/auth/lib/refreshAccessToken.util';
 import { useAuthStore } from '@/stores/auth.store';
@@ -72,7 +77,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    * - Solo se ejecuta si hay access token
    * - Actualiza el store global de usuario
    */
-  const { isLoading } = useQuery({
+  const {
+    isLoading,
+    refetch: refetchUser,
+    error,
+  } = useQuery({
     queryKey: ['auth', 'user'],
     queryFn: async () => {
       const response = await apiRequest<any>({
@@ -90,6 +99,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Muestra loader mientras se resuelve el estado inicial o la query de usuario
   if (loading || isLoading) {
     return <CenteredLoader open={true} text="Loading user, please wait..." />;
+  }
+
+  // Si hay error, mostrar mensaje y botón de reintentar
+  if (error) {
+    return (
+      <Stack
+        spacing={4}
+        alignItems="center"
+        justifyContent="center"
+        minHeight="100vh"
+        sx={{
+          backgroundColor: 'grey.50',
+          px: 3,
+        }}
+      >
+        <Box
+          sx={{
+            textAlign: 'center',
+            maxWidth: 600,
+            mx: 'auto',
+          }}
+        >
+          <ErrorOutlineIcon sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
+          <Typography variant="h5" color="error.main" gutterBottom>
+            Oops! Something went wrong
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            {error instanceof Error ? error.message : 'Failed to load user data.'}
+          </Typography>
+        </Box>
+
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => refetchUser()}
+          sx={{
+            fontSize: 16,
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            minWidth: 140,
+            textTransform: 'none',
+            fontWeight: 600,
+            backgroundColor: 'error.main',
+            mt: 1, // Reduced margin top
+            '&:hover': {
+              backgroundColor: '#c62828', // Darker hex value for hover color
+            },
+          }}
+        >
+          Try Again
+        </Button>
+      </Stack>
+    );
   }
 
   // Renderiza los hijos si ya está autenticado o no es necesario
