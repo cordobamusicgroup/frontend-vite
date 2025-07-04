@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { Box } from '@mui/material';
+import FetchErrorBox from '@/components/ui/molecules/FetchErrorBox';
 import dayjs from 'dayjs';
 import { royaltiesgrid } from '@/styles/grid-royalties';
 import { FiberManualRecord as DotIcon } from '@mui/icons-material';
@@ -14,7 +15,7 @@ interface TransactionsTableProps {
 
 const TransactionsTable: React.FC<TransactionsTableProps> = ({ currency }) => {
   const gridRef = useRef<AgGridReact>(null);
-  const { transactionsData, transactionsFetchLoading } = useTransactionsUser(currency);
+  const { transactionsData, transactionsFetchLoading, transactionsFetchError } = useTransactionsUser(currency);
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 80, filter: false },
@@ -67,6 +68,10 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ currency }) => {
     filter: true,
     sortable: false,
   };
+
+  if (transactionsFetchError) {
+    return <FetchErrorBox message={transactionsFetchError.message} defaultMessage="Failed to load transactions." />;
+  }
 
   return (
     <GridTables
