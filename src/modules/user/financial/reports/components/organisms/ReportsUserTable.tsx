@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { Box, Tooltip, IconButton } from '@mui/material';
+import FetchErrorBox from '@/components/ui/molecules/FetchErrorBox';
 import DownloadIcon from '@mui/icons-material/Download';
 import dayjs from 'dayjs';
 import { royaltiesgrid } from '@/styles/grid-royalties';
@@ -16,7 +17,7 @@ interface ReportsTableProps {
 
 const ReportsTable: React.FC<ReportsTableProps> = ({ distributor }) => {
   const { setNotification } = useNotificationStore();
-  const { downloadReport, reportData, reportFetchLoading } = useReportsUser(distributor);
+  const { downloadReport, reportData, reportFetchLoading, reportFetchError } = useReportsUser(distributor);
   const gridRef = useRef<AgGridReact>(null);
 
   const handleDownload = async (reportId: number): Promise<void> => {
@@ -130,6 +131,10 @@ const ReportsTable: React.FC<ReportsTableProps> = ({ distributor }) => {
     filter: true,
     sortable: false,
   };
+
+  if (reportFetchError) {
+    return <FetchErrorBox message={reportFetchError.message} defaultMessage="Failed to load reports." />;
+  }
 
   return (
     <GridTables

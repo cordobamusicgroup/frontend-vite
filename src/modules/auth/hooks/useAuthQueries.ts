@@ -1,12 +1,14 @@
 import { useApiRequest } from '@/hooks/useApiRequest';
-import { apiRoutes } from '@/lib/api.routes';
-import webRoutes from '@/lib/web.routes';
+import { apiRoutes } from '@/routes/api.routes';
+import webRoutes from '@/routes/web.routes';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router';
-import { useAuthStore, useErrorStore } from '@/stores';
+import { useNavigate, useLocation } from 'react-router';
+import { useErrorStore } from '@/stores';
 import { AxiosError } from 'axios';
 import { ApiErrorResponse } from '@/types/api';
 import { logColor } from '@/lib/log.util';
+import { setAccessTokenCookie } from '@/lib/cookies.util';
+import { useAuthStore } from '@/stores/auth.store';
 
 interface LoginCredentials {
   username: string;
@@ -22,29 +24,35 @@ const useAuthQueries = () => {
   const queryClient = useQueryClient();
   const { apiRequest } = useApiRequest();
   const navigate = useNavigate();
+  const location = useLocation();
   const { setError } = useErrorStore();
-  const { clearAuthentication, setAuthenticated, setToken } = useAuthStore();
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
       try {
-        return await apiRequest({
+        const response = await apiRequest({
           url: apiRoutes.auth.login,
           method: 'post',
           data: credentials,
           requireAuth: false,
         });
+        // Set cookie manual si viene el token
+        if (response && response.access_token) {
+          setAccessTokenCookie(response.access_token);
+          // Update auth store
+          useAuthStore.getState().setAuthenticated(true);
+        }
+        return response;
       } catch (e) {
         const error = e as AxiosError<ApiErrorResponse>;
         throw error.response?.data.message || 'Login failed';
       }
     },
-    onSuccess: (data) => {
-      setAuthenticated(true);
-      // Sincronizamos el token en el estado para que los componentes reactivos de zustand se actualicen automáticamente
-      setToken(data.access_token);
+    onSuccess: () => {
+      // Redirige a la ruta original si existe, si no al home
       queryClient.invalidateQueries({ queryKey: ['auth', 'user'] }).then(() => {
-        navigate(webRoutes.backoffice.overview);
+        const from = (location.state as any)?.from?.pathname || webRoutes.backoffice.overview;
+        navigate(from, { replace: true });
       });
     },
     onError: (error: string | unknown) => {
@@ -59,26 +67,6 @@ const useAuthQueries = () => {
       }
       logColor('error', 'useAuthQueries', 'Login error:', errorMsg);
       setError(errorMsg);
-    },
-  });
-
-  const refreshTokenMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest<{ access_token: string; expires_in: number }>({
-        url: apiRoutes.auth.refresh,
-        method: 'post',
-        requireAuth: false,
-      });
-      return response;
-    },
-    onSuccess: (data) => {
-      setToken(data.access_token);
-      logColor('info', 'useAuthQueries', 'Nuevo access_token seteado:', data.access_token);
-      // NO setees setAuthenticated acá, SOLO en /auth/me!
-    },
-    onError: (error) => {
-      logColor('error', 'useAuthQueries', '[Auth] ERROR en refresh mutation', error);
-      clearAuthentication();
     },
   });
 
@@ -97,7 +85,10 @@ const useAuthQueries = () => {
     },
     onSuccess: () => {
       queryClient.clear();
-      clearAuthentication();
+      import('@/lib/cookies.util').then((mod) => {
+        mod.removeAccessTokenCookie();
+        useAuthStore.getState().setAuthenticated(false);
+      });
       navigate(webRoutes.login);
     },
   });
@@ -135,7 +126,7 @@ const useAuthQueries = () => {
     },
   });
 
-  return { loginMutation, refreshTokenMutation, logoutMutation, forgotPasswordMutation, resetPasswordMutation };
+  return { loginMutation, logoutMutation, forgotPasswordMutation, resetPasswordMutation };
 };
 
 export default useAuthQueries;

@@ -14,7 +14,7 @@ import { logColor } from '@/lib/log.util';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import SuccessModal from '@/components/ui/molecules/SucessModal';
 import { useNavigate } from 'react-router';
-import webRoutes from '@/lib/web.routes';
+import webRoutes from '@/routes/web.routes';
 
 interface IResetPasswordForm {
   newPassword: string;

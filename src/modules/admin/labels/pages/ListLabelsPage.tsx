@@ -2,7 +2,7 @@ import { Box, Typography } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import theme from '@/theme';
 import { useNavigate } from 'react-router';
-import webRoutes from '@/lib/web.routes';
+import webRoutes from '@/routes/web.routes';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';

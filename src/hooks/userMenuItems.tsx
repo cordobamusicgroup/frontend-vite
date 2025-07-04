@@ -1,6 +1,6 @@
 // menuItems.tsx
 
-import webRoutes from '@/lib/web.routes';
+import webRoutes from '@/routes/web.routes';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import VisibilityIcon from '@mui/icons-material/Visibility';

@@ -1,9 +1,9 @@
 import React, { useRef } from 'react';
-import { Box, Paper, Typography } from '@mui/material';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { Box } from '@mui/material';
+import FetchErrorBox from '@/components/ui/molecules/FetchErrorBox';
 import { useNavigate } from 'react-router';
 import { AgGridReact } from 'ag-grid-react';
-import webRoutes from '@/lib/web.routes';
+import webRoutes from '@/routes/web.routes';
 import useQuickFilter from '@/hooks/useQuickFilter';
 import ClientStatusChip from '../atoms/ClientStatusChip';
 import GridTables from '@/components/ui/organisms/GridTables';
@@ -39,35 +39,7 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
   };
 
   if (errors.clientFetch) {
-    return (
-      <Box
-        sx={{
-          width: '100%',
-          mx: 'auto',
-          mt: 1,
-          textAlign: 'center',
-        }}
-      >
-        <Paper
-          elevation={0}
-          sx={{
-            p: 5,
-            borderRadius: 3,
-            backgroundColor: (theme) => (theme.palette.mode === 'light' ? 'rgba(244, 67, 54, 0.05)' : 'rgba(244, 67, 54, 0.1)'),
-          }}
-        >
-          <ErrorOutlineIcon sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
-
-          <Typography variant="h5" color="error.main" gutterBottom>
-            Oops! Something went wrong
-          </Typography>
-
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            {errors.clientFetch.message || 'Failed to load client data.'}
-          </Typography>
-        </Paper>
-      </Box>
-    );
+    return <FetchErrorBox message={errors.clientFetch.message} defaultMessage="Failed to load client data." />;
   }
 
   const handleDelete = async (clientId: number): Promise<void> => {

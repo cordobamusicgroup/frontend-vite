@@ -1,219 +1,160 @@
-import React, { useEffect, type ReactNode } from 'react';
-import { useNavigate, useLocation } from 'react-router';
-import { decodeJwtOrLogout } from '@/lib/jwt.util';
+import React from 'react';
 import { useApiRequest } from '@/hooks/useApiRequest';
-import { apiRoutes } from '@/lib/api.routes';
-import { useAuthStore, useUserStore } from '@/stores';
-import webRoutes from '@/lib/web.routes';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Box, Typography } from '@mui/material';
-import { AxiosError } from 'axios';
-import { ApiErrorResponse } from '@/types/api';
+import { apiRoutes } from '@/routes/api.routes';
+import { useUserStore } from '@/stores';
+import { useQuery } from '@tanstack/react-query';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
-import { logColor } from '@/lib/log.util';
-import { formatError } from '@/lib/formatApiError.util';
-import useAuthQueries from '../hooks/useAuthQueries';
+import FetchErrorBox from '@/components/ui/molecules/FetchErrorBox';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import { Box, Typography } from '@mui/material';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { getAccessTokenFromCookie, setAccessTokenCookie, removeAccessTokenCookie } from '@/lib/cookies.util';
+import { refreshAccessToken } from '@/modules/auth/lib/refreshAccessToken.util';
+import { useAuthStore } from '@/stores/auth.store';
 
-interface JWTPayload {
-  sub: string;
-  email: string;
-  iat: number;
-  exp: number;
-}
+// AuthProvider: Contexto global para autenticación y refresco de sesión.
+// - Al montar, intenta refrescar el access token si no existe.
+// - Actualiza el estado global de autenticación (useAuthStore).
+// - Muestra un loader mientras se resuelve el estado inicial.
+// - Usa un mutex en refreshAccessToken para evitar refresh simultáneos.
+// - Usa React Query para obtener los datos del usuario autenticado.
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
+/**
+ * AuthProvider
+ *
+ * Proveedor global de autenticación. Al montar:
+ * - Si no hay access token, intenta refrescarlo usando refreshAccessToken (con mutex).
+ * - Actualiza el estado global de autenticación (useAuthStore) según el resultado.
+ * - Muestra un loader mientras se resuelve el estado inicial.
+ * - Usa React Query para obtener los datos del usuario autenticado si hay token.
+ */
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Hook para peticiones API centralizadas
+  const { apiRequest } = useApiRequest();
+  // Setter global de datos de usuario
+  const { setUserData } = useUserStore();
+  // Estado de carga inicial
+  const [loading, setLoading] = React.useState(true);
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  useEffect(() => {
-    logColor('info', 'AuthProvider', 'mounted');
-    return () => logColor('info', 'AuthProvider', 'unmounted');
+  /**
+   * checkAndRefresh
+   *
+   * Si no hay access token, intenta refrescarlo usando refreshAccessToken (con mutex).
+   * Actualiza el estado global de autenticación y la cookie según el resultado.
+   * Siempre marca loading como false al finalizar.
+   */
+  const checkAndRefresh = React.useCallback(async () => {
+    if (!getAccessTokenFromCookie()) {
+      try {
+        // Intenta refrescar el token (usa mutex interno)
+        const accessToken = await refreshAccessToken();
+        if (accessToken) {
+          setAccessTokenCookie(accessToken);
+          useAuthStore.getState().setAuthenticated(true);
+        } else {
+          removeAccessTokenCookie();
+          useAuthStore.getState().setAuthenticated(false);
+        }
+      } catch {
+        removeAccessTokenCookie();
+        useAuthStore.getState().setAuthenticated(false);
+      }
+    }
+    setLoading(false);
   }, []);
 
-  const { apiRequest } = useApiRequest();
-  const { setUserData } = useUserStore();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const queryClient = useQueryClient();
-  const { setAuthenticated, isAuthenticated, clearAuthentication, setToken } = useAuthStore();
-  const { refreshTokenMutation } = useAuthQueries();
+  // Ejecuta el chequeo/refresh solo al montar
+  React.useEffect(() => {
+    checkAndRefresh();
+  }, [checkAndRefresh]);
 
-  const isPublicRoute = (currentPath: string) => {
-    return webRoutes.protected.find((route: any) => route.path === currentPath && route.public === true) !== undefined;
-  };
+  // Determina si hay access token para habilitar la query de usuario
+  const isAuthenticated = !!getAccessTokenFromCookie();
 
-  const checkToken = async () => {
-    const currentPath = location.pathname;
-    if (isPublicRoute(currentPath)) {
-      logColor('info', 'AuthProvider', 'Public route, token check OK');
-      return;
-    }
-    const currentToken = useAuthStore.getState().token;
-    if (!currentToken) {
-      try {
-        logColor('info', 'AuthProvider', 'No token, intentando refresh...');
-        await refreshTokenMutation.mutateAsync();
-        // Tras refresh exitoso, volver a ejecutar checkToken para continuar el flujo
-        await checkToken();
-        return;
-      } catch {
-        logColor('error', 'AuthProvider', 'Refresh failed, clearing auth');
-      }
-      clearAuthentication();
-      queryClient.clear();
-      if (location.pathname !== webRoutes.login) {
-        navigate(webRoutes.login, { replace: true });
-      }
-      return;
-    }
-    // Token presente
-    setToken(currentToken); // Asegura que el estado esté sincronizado si la cookie cambió fuera del store
-    const decoded = decodeJwtOrLogout<JWTPayload>(currentToken!, () => {
-      clearAuthentication();
-      queryClient.clear();
-      if (location.pathname !== webRoutes.login) {
-        navigate(webRoutes.login, { replace: true });
-      }
-    });
-    if (decoded) {
-      logColor('success', 'AuthProvider', 'Token válido, auth ready');
-    }
-  };
-
-  useEffect(() => {
-    checkToken();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
-
-  const { isLoading: isLoadingUser, error: userError } = useQuery({
+  /**
+   * React Query: Obtiene los datos del usuario autenticado
+   * - Solo se ejecuta si hay access token
+   * - Actualiza el store global de usuario
+   */
+  const {
+    isLoading,
+    refetch: refetchUser,
+    error,
+  } = useQuery({
     queryKey: ['auth', 'user'],
     queryFn: async () => {
-      logColor('info', 'AuthProvider', 'Loading user from API...');
       const response = await apiRequest<any>({
         url: apiRoutes.auth.me,
         method: 'get',
       });
       setUserData(response);
-      setAuthenticated(true);
-      setToken(useAuthStore.getState().token); // Sincroniza el token tras login
-      logColor('success', 'AuthProvider', 'User loaded and authenticated');
-      return response;
+      return response ?? null;
     },
-    enabled: !!useAuthStore.getState().token,
+    enabled: isAuthenticated,
     retry: 1,
     staleTime: 5 * 60 * 1000,
   });
 
-  // Loader persistente y con mensaje personalizado
-  const [showLoader, setShowLoader] = React.useState(false);
-
-  useEffect(() => {
-    if (isLoadingUser) {
-      setShowLoader(true);
-    } else {
-      setShowLoader(false);
-    }
-  }, [isLoadingUser]);
-
-  // Query para validar el token en el backend
-  const { data: isTokenValid, isLoading: isValidatingToken } = useQuery({
-    queryKey: ['auth', 'validate-token', useAuthStore.getState().token],
-    queryFn: async () => {
-      const token = useAuthStore.getState().token;
-      if (!token) return false;
-      try {
-        const response = await apiRequest<{ valid: boolean }>({
-          url: apiRoutes.auth.validateToken, // Debe estar definido en apiRoutes
-          method: 'post',
-          data: { token },
-        });
-        return response.valid;
-      } catch (e) {
-        logColor('error', 'AuthProvider', 'Token validation failed in backend', e);
-        return false;
-      }
-    },
-    enabled: !!useAuthStore.getState().token,
-    retry: 0,
-    staleTime: 60 * 1000,
-  });
-
-  useEffect(() => {
-    if (isValidatingToken) return;
-    if (isTokenValid === false) {
-      logColor('error', 'AuthProvider', 'Token inválido según backend, limpiando sesión');
-      clearAuthentication();
-      queryClient.clear();
-      if (location.pathname !== webRoutes.login) {
-        navigate(webRoutes.login, { replace: true });
-      }
-    }
-  }, [isTokenValid, isValidatingToken, clearAuthentication, queryClient, location.pathname, navigate]);
-
-  if (showLoader) {
-    logColor('info', 'AuthProvider', 'Loading...');
+  // Muestra loader mientras se resuelve el estado inicial o la query de usuario
+  if (loading || isLoading) {
     return <CenteredLoader open={true} text="Loading user, please wait..." />;
   }
 
-  if (isAuthenticated && userError) {
-    const is429Error = (userError as AxiosError<ApiErrorResponse>).response?.data.statusCode === 429;
-    logColor('error', 'AuthProvider', 'Error loading user:', userError);
-    let errorMessage = 'Failed to load user data.';
-    if (is429Error) {
-      errorMessage = 'Too many requests. Please wait 60 seconds before trying again.';
-      return (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '100vh',
-            textAlign: 'center',
-            padding: 2,
-            gap: 2,
-          }}
-        >
-          <Typography color="error" variant="h4" fontWeight={700} mb={1}>
-            429: Too Many Requests
-          </Typography>
-          <Typography color="text.secondary" variant="h6" mb={2}>
-            {errorMessage}
-          </Typography>
-          <Typography color="text.secondary" variant="body2">
-            If you just logged in or refreshed, please wait a moment before trying again.
-            <br />
-            This is a temporary protection against excessive requests.
-          </Typography>
-        </Box>
-      );
-    } else {
-      const formatted = formatError(userError);
-      if (formatted.message && formatted.message.length > 0) {
-        errorMessage = formatted.message.join(', ');
-      } else if (userError instanceof Error && userError.message) {
-        errorMessage = userError.message;
-      }
-    }
+  // Si hay error, mostrar mensaje y botón de reintentar
+  if (error) {
     return (
-      <Box
+      <Stack
+        spacing={4}
+        alignItems="center"
+        justifyContent="center"
+        minHeight="100vh"
         sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          textAlign: 'center',
-          padding: 2,
+          backgroundColor: 'grey.50',
+          px: 3,
         }}
       >
-        <Typography color="error" variant="h6">
-          {errorMessage}
-        </Typography>
-      </Box>
+        <Box
+          sx={{
+            textAlign: 'center',
+            maxWidth: 600,
+            mx: 'auto',
+          }}
+        >
+          <ErrorOutlineIcon sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
+          <Typography variant="h5" color="error.main" gutterBottom>
+            Oops! Something went wrong
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            {error instanceof Error ? error.message : 'Failed to load user data.'}
+          </Typography>
+        </Box>
+
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => refetchUser()}
+          sx={{
+            fontSize: 16,
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            minWidth: 140,
+            textTransform: 'none',
+            fontWeight: 600,
+            backgroundColor: 'error.main',
+            mt: 1, // Reduced margin top
+            '&:hover': {
+              backgroundColor: '#c62828', // Darker hex value for hover color
+            },
+          }}
+        >
+          Try Again
+        </Button>
+      </Stack>
     );
   }
 
-  // Si todo OK, render hijos
+  // Renderiza los hijos si ya está autenticado o no es necesario
   return <>{children}</>;
 };

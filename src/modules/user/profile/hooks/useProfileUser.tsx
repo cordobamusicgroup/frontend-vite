@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApiRequest } from '@/hooks/useApiRequest';
-import { apiRoutes } from '@/lib/api.routes';
+import { apiRoutes } from '@/routes/api.routes';
 import { formatError } from '@/lib/formatApiError.util';
 
 /**
