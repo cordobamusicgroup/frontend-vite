@@ -80,7 +80,7 @@ export default function BalancesBlock({ paymentMethod = 'N/A', currency = 'EUR' 
             <b>Payment Method:</b> {paymentMethod}
           </Typography>
           {showRequestPaymentButton ? <BasicButton onClick={handleRequestPaymentClick}>Request Payment</BasicButton> : <DisabledButton>Payment Not Available</DisabledButton>}
-          {numericBalance >= 100 && (
+          {numericBalance >= 100 && !isBlocked && !isPaymentInProgress && !isPaymentDataInValidation && (
             <Typography color={'#444444'}>
               Your royalties have reached the <b>$100 threshold</b>, and you can now request a withdrawal in your chosen payment method.
             </Typography>
