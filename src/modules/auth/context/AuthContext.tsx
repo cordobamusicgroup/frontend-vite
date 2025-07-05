@@ -4,7 +4,6 @@ import { apiRoutes } from '@/routes/api.routes';
 import { useUserStore } from '@/stores';
 import { useQuery } from '@tanstack/react-query';
 import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
-import FetchErrorBox from '@/components/ui/molecules/FetchErrorBox';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import { Box, Typography } from '@mui/material';

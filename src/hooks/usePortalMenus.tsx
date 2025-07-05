@@ -7,6 +7,7 @@ import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
 import ContactEmergencyIcon from '@mui/icons-material/ContactEmergency';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import AlbumIcon from '@mui/icons-material/Album';
+import { useUserStore } from '@/stores';
 
 export interface SubMenuType {
   text: string;
@@ -25,10 +26,9 @@ export interface MenuItemType {
 
 /**
  * Hook that generates the navigation menu based on the user's role.
- * @param userRole The user's role
  * @returns MenuItemType[] with the available menu options for the user
  */
-export const usePortalMenus = (userRole: Roles): MenuItemType[] => {
+export const usePortalMenus = (): MenuItemType[] => {
   const allMenuItems: MenuItemType[] = [
     {
       text: 'Overview',
@@ -97,9 +97,18 @@ export const usePortalMenus = (userRole: Roles): MenuItemType[] => {
     },
   ];
 
+  // Obtiene el rol del usuario directamente desde el store
+  const userRole = useUserStore((state) => state.userData?.role);
+
   const filterItemsByRole = <T extends { roles: Roles[] }>(items: T[], role: Roles): T[] => {
     return items.filter((item) => item.roles.includes(Roles.All) || item.roles.includes(role));
   };
 
-  return filterItemsByRole(allMenuItems, userRole);
+  // Validar que el rol del usuario no sea undefined y manejar el rol All
+  if (!userRole || (!Object.values(Roles).includes(userRole as Roles) && userRole !== Roles.All)) {
+    console.warn(`Rol inválido o no definido detectado: ${userRole}`);
+    return [];
+  }
+
+  return filterItemsByRole(allMenuItems, userRole as Roles);
 };

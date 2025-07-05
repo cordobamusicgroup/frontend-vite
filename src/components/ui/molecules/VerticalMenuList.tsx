@@ -1,9 +1,9 @@
-import { Roles } from "@/constants/roles";
-import { usePortalMenus } from "@/hooks/usePortalMenus";
-import { usePageDataStore, useUserStore } from "@/stores";
-import { List, Divider, styled } from "@mui/material";
-import { useNavigate } from "react-router";
-import VerticalMenuItem from "./VerticalMenuItem";
+import { Roles } from '@/constants/roles';
+import { usePortalMenus } from '@/hooks/usePortalMenus';
+import { usePageDataStore } from '@/stores';
+import { List, Divider, styled } from '@mui/material';
+import { useNavigate } from 'react-router';
+import VerticalMenuItem from './VerticalMenuItem';
 
 interface VerticalDrawerListProps {
   onItemClick: () => void;
@@ -11,19 +11,18 @@ interface VerticalDrawerListProps {
 
 const StyledDivider = styled(Divider)(({ theme }) => ({
   margin: theme.spacing(1, 0),
-  fontWeight: "bold",
-  fontSize: "13px",
+  fontWeight: 'bold',
+  fontSize: '13px',
   color: theme.palette.text.secondary,
-  textTransform: "uppercase",
+  textTransform: 'uppercase',
 }));
 
 const VerticalMenuList: React.FC<VerticalDrawerListProps> = ({ onItemClick }) => {
   const navigate = useNavigate();
-  const user = useUserStore().userData;
   const { openMenu: isOpen, openSubMenu, toggleSubMenu } = usePageDataStore();
 
-  // Obtenemos los ítems del menú basados en el rol del usuario
-  const menuItems = usePortalMenus(user?.role);
+  // Obtenemos los ítems del menú directamente desde el hook
+  const menuItems = usePortalMenus();
 
   const handleSubMenuClick = (text: string) => {
     toggleSubMenu(text);
