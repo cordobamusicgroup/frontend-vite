@@ -8,6 +8,7 @@ import ContactEmergencyIcon from '@mui/icons-material/ContactEmergency';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import AlbumIcon from '@mui/icons-material/Album';
 import { useUserStore } from '@/stores';
+import { filterItemsByRole } from '@/lib/filterItemsByRole.util';
 
 export interface SubMenuType {
   text: string;
@@ -98,17 +99,7 @@ export const usePortalMenus = (): MenuItemType[] => {
   ];
 
   // Obtiene el rol del usuario directamente desde el store
-  const userRole = useUserStore((state) => state.userData?.role);
-
-  const filterItemsByRole = <T extends { roles: Roles[] }>(items: T[], role: Roles): T[] => {
-    return items.filter((item) => item.roles.includes(Roles.All) || item.roles.includes(role));
-  };
-
-  // Validar que el rol del usuario no sea undefined y manejar el rol All
-  if (!userRole || (!Object.values(Roles).includes(userRole as Roles) && userRole !== Roles.All)) {
-    console.warn(`Rol inválido o no definido detectado: ${userRole}`);
-    return [];
-  }
+  const userRole = useUserStore((state) => state.userData?.role) || Roles.User; // userData.role ya es del tipo Roles
 
   return filterItemsByRole(allMenuItems, userRole as Roles);
 };
