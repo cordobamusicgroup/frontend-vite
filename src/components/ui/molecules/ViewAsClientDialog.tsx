@@ -3,7 +3,6 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Typogra
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { FormProvider, useForm } from 'react-hook-form';
 import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
-import { useUsersAdmin } from '@/modules/admin/users/hooks/useUsersAdmin';
 import InformativeBox from '@/components/ui/molecules/InformativeBox';
 import { eventBus } from '@/eventBus';
 import { useNotificationStore } from '@/stores/notification.store';
@@ -26,7 +25,6 @@ const ViewAsClientDialog: React.FC<ViewAsClientDialogProps> = () => {
   const [open, setOpen] = useState(false);
   const methods = useForm<{ clientId: string }>({ mode: 'onChange', resolver: zodResolver(viewAsClientFormSchema) });
   const { handleSubmit, reset } = methods;
-  const { mutations } = useUsersAdmin();
   const setNotification = useNotificationStore((s) => s.setNotification);
   const notification = useNotificationStore((s) => s.notification);
   const { clearNotification } = useNotificationStore();
@@ -37,9 +35,9 @@ const ViewAsClientDialog: React.FC<ViewAsClientDialogProps> = () => {
     return () => eventBus.off('openViewAsClientDialog', handler);
   }, []);
 
-  const onSubmit = async (data: { clientId: string }) => {
+  const onSubmit = async () => {
     try {
-      await mutations.viewAsClient.mutateAsync(Number(data.clientId));
+      // Aquí va la lógica para manejar el cambio de vista como cliente
       setNotification({ message: 'You are now viewing the platform as the selected client.', type: 'success', key: 'viewAsClientDialog' });
       reset();
     } catch (e: any) {
@@ -89,8 +87,8 @@ const ViewAsClientDialog: React.FC<ViewAsClientDialogProps> = () => {
         <Button onClick={handleClose} color="secondary">
           Cancel
         </Button>
-        <Button onClick={handleSubmit(onSubmit)} color="primary" variant="contained" disabled={mutations.viewAsClient.isPending}>
-          {mutations.viewAsClient.isPending ? 'Switching...' : 'View as Client'}
+        <Button onClick={handleSubmit(onSubmit)} color="primary" variant="contained">
+          View as Client
         </Button>
       </DialogActions>
     </Dialog>

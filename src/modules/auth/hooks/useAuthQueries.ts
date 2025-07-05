@@ -40,7 +40,7 @@ const useAuthQueries = () => {
         if (response && response.access_token) {
           setAccessTokenCookie(response.access_token);
           // Update auth store
-          useAuthStore.getState().checkAuth();
+          useAuthStore.getState().setAuthenticated(true); // Cambiado a setAuthenticated
         }
         return response;
       } catch (e) {
@@ -84,9 +84,9 @@ const useAuthQueries = () => {
       }
     },
     onSuccess: () => {
-      queryClient.clear();
-      useAuthStore.getState().checkAuth(); // Actualiza el estado de autenticación
       removeAccessTokenCookie(); // Usar importación estática para mayor claridad
+      useAuthStore.getState().setAuthenticated(false); // Cambiado a setAuthenticated
+      queryClient.clear();
       navigate(webRoutes.login, { replace: true }); // Asegura que la redirección no cause bucles
     },
   });

@@ -2,29 +2,33 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRoutes } from '@/routes/api.routes';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { formatError } from '@/lib/formatApiError.util';
-import { useUserStore } from '@/stores/user.store';
-import { Roles } from '@/constants/roles';
 
 // Unifica queries y mutations en un solo hook
 export const useUsersAdmin = (userId?: string) => {
   const { apiRequest } = useApiRequest();
   const queryClient = useQueryClient();
 
-  // Query para uno o todos los usuarios
+  const queryKey = userId ? ['user', userId] : ['users'];
+
   const fetchUsers = async () => {
-    const url = userId ? `${apiRoutes.users.admin.getById(Number(userId))}` : apiRoutes.users.admin.root;
-    return await apiRequest({
-      url,
-      method: 'get',
-      requireAuth: true,
-    });
+    try {
+      const url = userId ? `${apiRoutes.users.admin.getById(Number(userId))}` : apiRoutes.users.admin.root;
+      return await apiRequest({
+        url,
+        method: 'get',
+        requireAuth: true,
+      });
+    } catch (error) {
+      throw formatError(error);
+    }
   };
 
-  const usersQuery = useQuery({
-    queryKey: userId ? ['user', userId] : ['users'],
+  // By default, do not run the query unless explicitly requested
+  const query = useQuery({
+    queryKey,
     queryFn: fetchUsers,
     retry: false,
-    enabled: useUserStore.getState().userData?.role === Roles.Admin, // Solo se ejecuta si el usuario es admin
+    enabled: false, // Never run automatically
   });
 
   const registerUser = useMutation({
@@ -130,7 +134,23 @@ export const useUsersAdmin = (userId?: string) => {
   });
 
   return {
-    query: usersQuery,
+    query, // Use query.refetch() to trigger manually
+    loading: {
+      userFetch: query?.isLoading,
+      registerUser: registerUser.isPending,
+      updateUser: updateUser.isPending,
+      deleteUsers: deleteUsers.isPending,
+      viewAsClient: viewAsClient.isPending,
+      resendWelcomeEmail: resendWelcomeEmail.isPending,
+    },
+    errors: {
+      userFetch: query?.error,
+      registerUser: registerUser.error,
+      updateUser: updateUser.error,
+      deleteUsers: deleteUsers.error,
+      viewAsClient: viewAsClient.error,
+      resendWelcomeEmail: resendWelcomeEmail.error,
+    },
     mutations: {
       registerUser,
       updateUser,

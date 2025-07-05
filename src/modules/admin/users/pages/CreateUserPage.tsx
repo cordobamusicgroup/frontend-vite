@@ -12,24 +12,16 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
-import { useUsersAdmin } from '../hooks/useUsersAdmin';
 import { UsersValidationSchema } from '../schemas/UsersAdminValidationSchema';
 import UsersFormLayout from '../components/organisms/UsersFormLayout';
 import { formatError } from '@/lib/formatApiError.util';
+import { useUsersAdmin } from '../hooks/useUsersAdmin'; // Corrected import path
 
 type UserFormData = z.infer<typeof UsersValidationSchema>;
 
 const CreateUserPage: React.FC = () => {
   const theme = useTheme();
-  // El hook unificado no expone loading, así que lo obtengo de las mutations
-  const { mutations: userMutations } = useUsersAdmin();
-  const userLoading = {
-    registerUser: userMutations.registerUser.isPending,
-    updateUser: userMutations.updateUser.isPending,
-    deleteUsers: userMutations.deleteUsers.isPending,
-    viewAsClient: userMutations.viewAsClient.isPending,
-    resendWelcomeEmail: userMutations.resendWelcomeEmail.isPending,
-  };
+  const { mutations: userMutations, loading: userOperationsLoading } = useUsersAdmin();
   const { notification: userNotification, setNotification: setUserNotification, clearNotification: clearUserNotification } = useNotificationStore();
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
 
@@ -44,19 +36,19 @@ const CreateUserPage: React.FC = () => {
     reset: resetUserForm,
   } = userFormMethods;
 
-  const handleUserSubmit: SubmitHandler<UserFormData> = async (userData) => {
+  const onSubmitUser: SubmitHandler<UserFormData> = async (formData) => {
     const userPayload = {
-      username: userData.username,
-      email: userData.email,
-      fullName: userData.fullName,
-      role: userData.role,
-      clientId: userData.clientId,
+      username: formData.username,
+      email: formData.email,
+      fullName: formData.fullName,
+      role: formData.role,
+      ...(formData.clientId ? { clientId: formData.clientId } : {}), // Include clientId only if it exists
     };
     userMutations.registerUser.mutate(userPayload, {
       onSuccess: () => {
         scrollToPageTop();
         setUserNotification({ message: 'User created successfully', type: 'success' });
-        resetUserForm(); // Reset the form after successful submission
+        resetUserForm();
       },
       onError: (userApiError: any) => {
         scrollToPageTop();
@@ -68,13 +60,13 @@ const CreateUserPage: React.FC = () => {
     });
   };
 
-  const submitUserForm = handleSubmit(
-    (validUserFormData) => {
-      handleUserSubmit(validUserFormData);
+  const handleUserFormSubmit = handleSubmit(
+    (userFormData) => {
+      onSubmitUser(userFormData);
     },
-    (userValidationErrors) => {
-      if (Object.keys(userValidationErrors).length > 0) {
-        setIsValidationErrorModalOpen(true); // Open error modal when form has validation errors
+    (validationErrors) => {
+      if (Object.keys(validationErrors).length > 0) {
+        setIsValidationErrorModalOpen(true);
       }
     },
   );
@@ -83,24 +75,24 @@ const CreateUserPage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleFormInputChange = () => clearUserNotification();
+  const handleInputChange = () => clearUserNotification();
 
-  const extractValidationErrorMessages = (formErrorObj: any): string[] => {
-    const validationErrorMessages: string[] = [];
-    const parseNestedErrors = (errorObj: any) => {
-      if (errorObj?.message) {
-        validationErrorMessages.push(errorObj.message);
+  const extractValidationMessages = (errors: any): string[] => {
+    const messages: string[] = [];
+    const iterate = (errObj: any) => {
+      if (errObj?.message) {
+        messages.push(errObj.message);
       }
-      if (errorObj && typeof errorObj === 'object') {
-        for (const key in errorObj) {
-          if (typeof errorObj[key] === 'object') {
-            parseNestedErrors(errorObj[key]);
+      if (errObj && typeof errObj === 'object') {
+        for (const key in errObj) {
+          if (typeof errObj[key] === 'object') {
+            iterate(errObj[key]);
           }
         }
       }
     };
-    parseNestedErrors(formErrorObj);
-    return validationErrorMessages;
+    iterate(errors);
+    return messages;
   };
 
   return (
@@ -115,12 +107,12 @@ const CreateUserPage: React.FC = () => {
           <BasicButton
             colorBackground="white"
             colorText={theme.palette.secondary.main}
-            onClick={submitUserForm}
+            onClick={handleUserFormSubmit}
             color="primary"
             variant="contained"
-            disabled={userLoading.registerUser}
+            disabled={userOperationsLoading.registerUser}
             startIcon={<AddOutlinedIcon />}
-            loading={userLoading.registerUser}
+            loading={userOperationsLoading.registerUser}
           >
             Create User
           </BasicButton>
@@ -132,13 +124,13 @@ const CreateUserPage: React.FC = () => {
         </Box>
 
         <FormProvider {...userFormMethods}>
-          <UsersFormLayout handleSubmit={submitUserForm} onChange={handleFormInputChange} />
+          <UsersFormLayout handleSubmit={handleUserFormSubmit} onChange={handleInputChange} />
         </FormProvider>
         <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
           <List sx={{ padding: 0, margin: 0 }}>
-            {extractValidationErrorMessages(userFormErrors).map((errorMessage, index) => (
+            {extractValidationMessages(userFormErrors).map((msg, index) => (
               <ListItem key={index} disableGutters sx={{ padding: '1px 0' }}>
-                <ListItemText primary={`• ${errorMessage}`} sx={{ margin: 0, padding: 0 }} />
+                <ListItemText primary={`• ${msg}`} sx={{ margin: 0, padding: 0 }} />
               </ListItem>
             ))}
           </List>

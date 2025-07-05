@@ -22,10 +22,11 @@ const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ allowedRoles, c
   const allowAll = !allowedRoles || allowedRoles.length === 0 || allowedRoles.includes(Roles.All);
   const userRole = userData && typeof userData === 'object' && 'role' in userData ? userData.role : undefined;
 
-  if (!isAuthenticated || !userData) {
-    navigate('/auth/login', { replace: true, state: { from: location } });
-    return null;
-  }
+  React.useEffect(() => {
+    if (!isAuthenticated || !userData) {
+      navigate('/auth/login', { replace: true, state: { from: location } });
+    }
+  }, [isAuthenticated, userData, navigate, location]);
 
   if (!allowAll && userRole && !allowedRoles!.includes(userRole as Roles)) {
     return <Error403 />;
