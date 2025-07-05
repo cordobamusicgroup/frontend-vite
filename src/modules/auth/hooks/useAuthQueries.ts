@@ -9,7 +9,6 @@ import { ApiErrorResponse } from '@/types/api';
 import { logColor } from '@/lib/log.util';
 import { setAccessTokenCookie, removeAccessTokenCookie } from '@/lib/cookies.util';
 import { useAuthStore } from '@/stores/auth.store';
-
 interface LoginCredentials {
   username: string;
   password: string;
@@ -49,9 +48,6 @@ const useAuthQueries = () => {
       }
     },
     onSuccess: async () => {
-      // Invalida y refetchea la query del usuario para evitar datos cacheados
-      await queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
-      await queryClient.refetchQueries({ queryKey: ['auth', 'user'] });
       const from = (location.state as any)?.from?.pathname || webRoutes.backoffice.overview;
       navigate(from, { replace: true });
     },

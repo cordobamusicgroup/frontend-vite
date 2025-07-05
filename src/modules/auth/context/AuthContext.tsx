@@ -11,6 +11,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { getAccessTokenFromCookie, setAccessTokenCookie, removeAccessTokenCookie } from '@/lib/cookies.util';
 import { refreshAccessToken } from '@/modules/auth/lib/refreshAccessToken.util';
 import { useAuthStore } from '@/stores/auth.store';
+import { AuthContext } from './AuthContextType';
 
 // AuthProvider: Contexto global para autenticación y refresco de sesión.
 // - Al montar, intenta refrescar el access token si no existe.
@@ -81,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refetch: refetchUser,
     error,
   } = useQuery({
-    queryKey: ['auth', 'user', isAuthenticated],
+    queryKey: ['auth', 'user'],
     queryFn: async () => {
       const response = await apiRequest<any>({
         url: apiRoutes.auth.me,
@@ -91,6 +92,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return response ?? null;
     },
     enabled: isAuthenticated,
+    gcTime: 0, // Deshabilita el cache completamente (React Query v5)
+    staleTime: 0, // Siempre considera la query como stale
+    refetchOnMount: true, // Siempre refetch al montar
+    refetchOnWindowFocus: true, // Refetch al cambiar de pestaña
   });
 
   // Muestra loader mientras se resuelve el estado inicial o la query de usuario
@@ -153,5 +158,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   // Renderiza los hijos si ya está autenticado o no es necesario
-  return <>{children}</>;
+  return <AuthContext.Provider value={{ refetchUser, isLoading, error }}>{children}</AuthContext.Provider>;
 };

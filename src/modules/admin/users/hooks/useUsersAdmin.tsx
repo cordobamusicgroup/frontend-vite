@@ -2,11 +2,13 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRoutes } from '@/routes/api.routes';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { formatError } from '@/lib/formatApiError.util';
+import { useAuthContext } from '@/modules/auth/hooks/useAuthContext';
 
 // Unifica queries y mutations en un solo hook
 export const useUsersAdmin = (userId?: string) => {
   const { apiRequest } = useApiRequest();
   const queryClient = useQueryClient();
+  const { refetchUser } = useAuthContext();
 
   const queryKey = userId ? ['user', userId] : ['users'];
 
@@ -105,10 +107,11 @@ export const useUsersAdmin = (userId?: string) => {
         throw formatError(error);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      queryClient.invalidateQueries({ queryKey: ['balances'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['user'] });
+      await queryClient.invalidateQueries({ queryKey: ['balances'] });
+      await queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      refetchUser(); // Usar el refetch del contexto
     },
     onError: (err) => {
       throw formatError(err);

@@ -6,6 +6,7 @@ import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
 import InformativeBox from '@/components/ui/molecules/InformativeBox';
 import { eventBus } from '@/eventBus';
 import { useNotificationStore } from '@/stores/notification.store';
+import { useUsersAdmin } from '@/modules/admin/users/hooks/useUsersAdmin';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -28,6 +29,8 @@ const ViewAsClientDialog: React.FC<ViewAsClientDialogProps> = () => {
   const setNotification = useNotificationStore((s) => s.setNotification);
   const notification = useNotificationStore((s) => s.notification);
   const { clearNotification } = useNotificationStore();
+  const { mutations } = useUsersAdmin();
+  const { viewAsClient } = mutations;
 
   useEffect(() => {
     const handler = () => setOpen(true);
@@ -35,9 +38,9 @@ const ViewAsClientDialog: React.FC<ViewAsClientDialogProps> = () => {
     return () => eventBus.off('openViewAsClientDialog', handler);
   }, []);
 
-  const onSubmit = async () => {
+  const onSubmit = async (data: { clientId: string }) => {
     try {
-      // Aquí va la lógica para manejar el cambio de vista como cliente
+      await viewAsClient.mutateAsync(Number(data.clientId));
       setNotification({ message: 'You are now viewing the platform as the selected client.', type: 'success', key: 'viewAsClientDialog' });
       reset();
     } catch (e: any) {
@@ -87,8 +90,8 @@ const ViewAsClientDialog: React.FC<ViewAsClientDialogProps> = () => {
         <Button onClick={handleClose} color="secondary">
           Cancel
         </Button>
-        <Button onClick={handleSubmit(onSubmit)} color="primary" variant="contained">
-          View as Client
+        <Button onClick={handleSubmit(onSubmit)} color="primary" variant="contained" disabled={viewAsClient.isPending}>
+          {viewAsClient.isPending ? 'Loading...' : 'View as Client'}
         </Button>
       </DialogActions>
     </Dialog>
