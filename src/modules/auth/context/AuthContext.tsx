@@ -11,6 +11,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { getAccessTokenFromCookie, setAccessTokenCookie, removeAccessTokenCookie } from '@/lib/cookies.util';
 import { refreshAccessToken } from '@/modules/auth/lib/refreshAccessToken.util';
 import { useAuthStore } from '@/stores/auth.store';
+import { AuthContext } from './AuthContextType';
 
 // AuthProvider: Contexto global para autenticación y refresco de sesión.
 // - Al montar, intenta refrescar el access token si no existe.
@@ -50,14 +51,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const accessToken = await refreshAccessToken();
         if (accessToken) {
           setAccessTokenCookie(accessToken);
-          useAuthStore.getState().setAuthenticated(true);
+          useAuthStore.getState().setAuthenticated(true); // Cambiado a setAuthenticated
         } else {
           removeAccessTokenCookie();
-          useAuthStore.getState().setAuthenticated(false);
+          useAuthStore.getState().setAuthenticated(false); // Cambiado a setAuthenticated
         }
       } catch {
         removeAccessTokenCookie();
-        useAuthStore.getState().setAuthenticated(false);
+        useAuthStore.getState().setAuthenticated(false); // Cambiado a setAuthenticated
       }
     }
     setLoading(false);
@@ -68,8 +69,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAndRefresh();
   }, [checkAndRefresh]);
 
-  // Determina si hay access token para habilitar la query de usuario
-  const isAuthenticated = !!getAccessTokenFromCookie();
+  // Usa el valor reactivo del store para saber si está autenticado
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   /**
    * React Query: Obtiene los datos del usuario autenticado
@@ -91,8 +92,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return response ?? null;
     },
     enabled: isAuthenticated,
-    retry: 1,
-    staleTime: 5 * 60 * 1000,
+    gcTime: 0, // Deshabilita el cache completamente (React Query v5)
+    staleTime: 0, // Siempre considera la query como stale
+    refetchOnMount: true, // Siempre refetch al montar
+    refetchOnWindowFocus: true, // Refetch al cambiar de pestaña
   });
 
   // Muestra loader mientras se resuelve el estado inicial o la query de usuario
@@ -155,5 +158,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   // Renderiza los hijos si ya está autenticado o no es necesario
-  return <>{children}</>;
+  return <AuthContext.Provider value={{ refetchUser, isLoading, error }}>{children}</AuthContext.Provider>;
 };

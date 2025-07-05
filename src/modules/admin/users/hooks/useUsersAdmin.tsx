@@ -2,29 +2,35 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRoutes } from '@/routes/api.routes';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { formatError } from '@/lib/formatApiError.util';
+import { useAuthContext } from '@/modules/auth/hooks/useAuthContext';
 
 // Unifica queries y mutations en un solo hook
 export const useUsersAdmin = (userId?: string) => {
   const { apiRequest } = useApiRequest();
   const queryClient = useQueryClient();
+  const { refetchUser } = useAuthContext();
 
-  // Query para uno o todos los usuarios
+  const queryKey = userId ? ['user', userId] : ['users'];
+
   const fetchUsers = async () => {
-    const url = userId ? `${apiRoutes.users.admin.getById(Number(userId))}` : apiRoutes.users.admin.root;
-    return await apiRequest({
-      url,
-      method: 'get',
-      requireAuth: true,
-    });
+    try {
+      const url = userId ? `${apiRoutes.users.admin.getById(Number(userId))}` : apiRoutes.users.admin.root;
+      return await apiRequest({
+        url,
+        method: 'get',
+        requireAuth: true,
+      });
+    } catch (error) {
+      throw formatError(error);
+    }
   };
 
-  const usersQuery = useQuery({
-    queryKey: userId ? ['user', userId] : ['users'],
+  // By default, do not run the query unless explicitly requested
+  const query = useQuery({
+    queryKey,
     queryFn: fetchUsers,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    staleTime: 5 * 60 * 1000,
+    retry: false,
+    enabled: false, // Never run automatically
   });
 
   const registerUser = useMutation({
@@ -101,10 +107,11 @@ export const useUsersAdmin = (userId?: string) => {
         throw formatError(error);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      queryClient.invalidateQueries({ queryKey: ['balances'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['user'] });
+      await queryClient.invalidateQueries({ queryKey: ['balances'] });
+      await queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      refetchUser(); // Usar el refetch del contexto
     },
     onError: (err) => {
       throw formatError(err);
@@ -130,7 +137,23 @@ export const useUsersAdmin = (userId?: string) => {
   });
 
   return {
-    query: usersQuery,
+    query, // Use query.refetch() to trigger manually
+    loading: {
+      userFetch: query?.isLoading,
+      registerUser: registerUser.isPending,
+      updateUser: updateUser.isPending,
+      deleteUsers: deleteUsers.isPending,
+      viewAsClient: viewAsClient.isPending,
+      resendWelcomeEmail: resendWelcomeEmail.isPending,
+    },
+    errors: {
+      userFetch: query?.error,
+      registerUser: registerUser.error,
+      updateUser: updateUser.error,
+      deleteUsers: deleteUsers.error,
+      viewAsClient: viewAsClient.error,
+      resendWelcomeEmail: resendWelcomeEmail.error,
+    },
     mutations: {
       registerUser,
       updateUser,

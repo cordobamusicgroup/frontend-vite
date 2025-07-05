@@ -7,9 +7,8 @@ import { useErrorStore } from '@/stores';
 import { AxiosError } from 'axios';
 import { ApiErrorResponse } from '@/types/api';
 import { logColor } from '@/lib/log.util';
-import { setAccessTokenCookie } from '@/lib/cookies.util';
+import { setAccessTokenCookie, removeAccessTokenCookie } from '@/lib/cookies.util';
 import { useAuthStore } from '@/stores/auth.store';
-
 interface LoginCredentials {
   username: string;
   password: string;
@@ -48,12 +47,9 @@ const useAuthQueries = () => {
         throw error.response?.data.message || 'Login failed';
       }
     },
-    onSuccess: () => {
-      // Redirige a la ruta original si existe, si no al home
-      queryClient.invalidateQueries({ queryKey: ['auth', 'user'] }).then(() => {
-        const from = (location.state as any)?.from?.pathname || webRoutes.backoffice.overview;
-        navigate(from, { replace: true });
-      });
+    onSuccess: async () => {
+      const from = (location.state as any)?.from?.pathname || webRoutes.backoffice.overview;
+      navigate(from, { replace: true });
     },
     onError: (error: string | unknown) => {
       let errorMsg = 'Cannot connect to the server. Please try again later.';
@@ -84,12 +80,10 @@ const useAuthQueries = () => {
       }
     },
     onSuccess: () => {
+      removeAccessTokenCookie(); // Usar importación estática para mayor claridad
+      useAuthStore.getState().setAuthenticated(false); // Cambiado a setAuthenticated
       queryClient.clear();
-      import('@/lib/cookies.util').then((mod) => {
-        mod.removeAccessTokenCookie();
-        useAuthStore.getState().setAuthenticated(false);
-      });
-      navigate(webRoutes.login);
+      navigate(webRoutes.login, { replace: true }); // Asegura que la redirección no cause bucles
     },
   });
   // Forgot password mutation

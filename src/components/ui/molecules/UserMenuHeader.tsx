@@ -27,7 +27,7 @@ const UserMenuHeader: React.FC = () => {
 
   const theme = useTheme();
   const userData = useUserStore((state) => state.userData);
-  const menuItems = useUserMenuItems(userData?.role || 'User');
+  const menuItems = useUserMenuItems(); // Ya no recibe argumentos
 
   const isMobileView = isMobile();
   const isMenuOpen = Boolean(anchorEl);
@@ -123,9 +123,6 @@ const UserMenuHeader: React.FC = () => {
             style: {
               maxHeight: '300px',
               minWidth: menuWidth ? `${menuWidth}px` : undefined, // Usa el ancho guardado
-              [theme.breakpoints.down('sm')]: {
-                maxHeight: '200px',
-              },
             },
           },
           list: {

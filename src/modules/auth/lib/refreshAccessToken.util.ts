@@ -25,9 +25,10 @@ export async function refreshAccessToken() {
       const { access_token } = response.data;
       setAccessTokenCookie(access_token);
       useAuthStore.getState().setAuthenticated(true);
-      // Invalida la query de usuario para forzar refetch inmediato
+      // Invalida y refetchea la query de usuario para forzar actualización inmediata
       try {
-        queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
+        await queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
+        await queryClient.refetchQueries({ queryKey: ['auth', 'user'] });
       } catch {
         // Ignore errors during query invalidation
       }

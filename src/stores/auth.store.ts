@@ -3,13 +3,12 @@ import { getAccessTokenFromCookie } from '@/lib/cookies.util';
 
 interface AuthState {
   isAuthenticated: boolean;
-  setAuthenticated: (value: boolean) => void;
+  setAuthenticated: (authenticated: boolean) => void;
   checkAuth: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: !!getAccessTokenFromCookie(),
-  setAuthenticated: (value) => set({ isAuthenticated: value }),
+  setAuthenticated: (authenticated: boolean) => set({ isAuthenticated: authenticated }),
   checkAuth: () => set({ isAuthenticated: !!getAccessTokenFromCookie() }),
 }));
-

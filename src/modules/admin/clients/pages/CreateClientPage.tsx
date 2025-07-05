@@ -97,25 +97,24 @@ const CreateClientPage: React.FC = () => {
       <Helmet>
         <title>Create Client - Córdoba Music Group</title>
       </Helmet>
+      <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
+        <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Creating New Client</Typography>
+        <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
+        <BasicButton
+          colorBackground="white"
+          colorText={theme.palette.secondary.main}
+          onClick={handleClientFormSubmit}
+          color="primary"
+          variant="contained"
+          disabled={clientOperationsLoading.createClient}
+          startIcon={<AddOutlinedIcon />}
+          loading={clientOperationsLoading.createClient}
+        >
+          Create Client
+        </BasicButton>
+      </CustomPageHeader>
       <Paper sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
-            <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Creating New Client</Typography>
-            <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
-            <BasicButton
-              colorBackground="white"
-              colorText={theme.palette.secondary.main}
-              onClick={handleClientFormSubmit}
-              color="primary"
-              variant="contained"
-              disabled={clientOperationsLoading.createClient}
-              startIcon={<AddOutlinedIcon />}
-              loading={clientOperationsLoading.createClient}
-            >
-              Create Client
-            </BasicButton>
-          </CustomPageHeader>
-
           <Box>
             {clientNotification?.type === 'success' && <SuccessBox>{clientNotification.message}</SuccessBox>}
             {clientNotification?.type === 'error' && <ErrorBox>{clientNotification.message}</ErrorBox>}
