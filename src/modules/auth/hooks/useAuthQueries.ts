@@ -40,7 +40,7 @@ const useAuthQueries = () => {
         if (response && response.access_token) {
           setAccessTokenCookie(response.access_token);
           // Update auth store
-          useAuthStore.getState().setAuthenticated(true); // Cambiado a setAuthenticated
+          useAuthStore.getState().setAuthenticated(true);
         }
         return response;
       } catch (e) {
@@ -48,12 +48,12 @@ const useAuthQueries = () => {
         throw error.response?.data.message || 'Login failed';
       }
     },
-    onSuccess: () => {
-      // Redirige a la ruta original si existe, si no al home
-      queryClient.invalidateQueries({ queryKey: ['auth', 'user'] }).then(() => {
-        const from = (location.state as any)?.from?.pathname || webRoutes.backoffice.overview;
-        navigate(from, { replace: true });
-      });
+    onSuccess: async () => {
+      // Invalida y refetchea la query del usuario para evitar datos cacheados
+      await queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
+      await queryClient.refetchQueries({ queryKey: ['auth', 'user'] });
+      const from = (location.state as any)?.from?.pathname || webRoutes.backoffice.overview;
+      navigate(from, { replace: true });
     },
     onError: (error: string | unknown) => {
       let errorMsg = 'Cannot connect to the server. Please try again later.';

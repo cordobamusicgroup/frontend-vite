@@ -68,8 +68,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAndRefresh();
   }, [checkAndRefresh]);
 
-  // Determina si hay access token para habilitar la query de usuario
-  const isAuthenticated = !!getAccessTokenFromCookie();
+  // Usa el valor reactivo del store para saber si está autenticado
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   /**
    * React Query: Obtiene los datos del usuario autenticado
@@ -81,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refetch: refetchUser,
     error,
   } = useQuery({
-    queryKey: ['auth', 'user'],
+    queryKey: ['auth', 'user', isAuthenticated],
     queryFn: async () => {
       const response = await apiRequest<any>({
         url: apiRoutes.auth.me,
@@ -91,8 +91,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return response ?? null;
     },
     enabled: isAuthenticated,
-    retry: 1,
-    staleTime: 5 * 60 * 1000,
   });
 
   // Muestra loader mientras se resuelve el estado inicial o la query de usuario

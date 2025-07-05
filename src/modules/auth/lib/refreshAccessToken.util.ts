@@ -24,17 +24,18 @@ export async function refreshAccessToken() {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/refresh`, {}, { withCredentials: true });
       const { access_token } = response.data;
       setAccessTokenCookie(access_token);
-      useAuthStore.getState().checkAuth();
-      // Invalida la query de usuario para forzar refetch inmediato
+      useAuthStore.getState().setAuthenticated(true);
+      // Invalida y refetchea la query de usuario para forzar actualización inmediata
       try {
-        queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
+        await queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
+        await queryClient.refetchQueries({ queryKey: ['auth', 'user'] });
       } catch {
         // Ignore errors during query invalidation
       }
       return access_token;
     } catch (err) {
       removeAccessTokenCookie();
-      useAuthStore.getState().checkAuth();
+      useAuthStore.getState().setAuthenticated(false);
       throw err;
     } finally {
       refreshPromise = null;
