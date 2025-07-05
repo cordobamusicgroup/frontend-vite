@@ -2,6 +2,8 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRoutes } from '@/routes/api.routes';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import { formatError } from '@/lib/formatApiError.util';
+import { useUserStore } from '@/stores/user.store';
+import { Roles } from '@/constants/roles';
 
 // Unifica queries y mutations en un solo hook
 export const useUsersAdmin = (userId?: string) => {
@@ -21,10 +23,8 @@ export const useUsersAdmin = (userId?: string) => {
   const usersQuery = useQuery({
     queryKey: userId ? ['user', userId] : ['users'],
     queryFn: fetchUsers,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    staleTime: 5 * 60 * 1000,
+    retry: false,
+    enabled: useUserStore.getState().userData?.role === Roles.Admin, // Solo se ejecuta si el usuario es admin
   });
 
   const registerUser = useMutation({

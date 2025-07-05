@@ -7,7 +7,7 @@ import { useErrorStore } from '@/stores';
 import { AxiosError } from 'axios';
 import { ApiErrorResponse } from '@/types/api';
 import { logColor } from '@/lib/log.util';
-import { setAccessTokenCookie } from '@/lib/cookies.util';
+import { setAccessTokenCookie, removeAccessTokenCookie } from '@/lib/cookies.util';
 import { useAuthStore } from '@/stores/auth.store';
 
 interface LoginCredentials {
@@ -40,7 +40,7 @@ const useAuthQueries = () => {
         if (response && response.access_token) {
           setAccessTokenCookie(response.access_token);
           // Update auth store
-          useAuthStore.getState().setAuthenticated(true);
+          useAuthStore.getState().checkAuth();
         }
         return response;
       } catch (e) {
@@ -85,11 +85,9 @@ const useAuthQueries = () => {
     },
     onSuccess: () => {
       queryClient.clear();
-      import('@/lib/cookies.util').then((mod) => {
-        mod.removeAccessTokenCookie();
-        useAuthStore.getState().setAuthenticated(false);
-      });
-      navigate(webRoutes.login);
+      useAuthStore.getState().checkAuth(); // Actualiza el estado de autenticación
+      removeAccessTokenCookie(); // Usar importación estática para mayor claridad
+      navigate(webRoutes.login, { replace: true }); // Asegura que la redirección no cause bucles
     },
   });
   // Forgot password mutation

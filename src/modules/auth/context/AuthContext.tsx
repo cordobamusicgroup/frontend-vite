@@ -50,14 +50,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const accessToken = await refreshAccessToken();
         if (accessToken) {
           setAccessTokenCookie(accessToken);
-          useAuthStore.getState().setAuthenticated(true);
+          useAuthStore.getState().checkAuth(); // Reemplazamos setAuthenticated por checkAuth
         } else {
           removeAccessTokenCookie();
-          useAuthStore.getState().setAuthenticated(false);
+          useAuthStore.getState().checkAuth(); // Reemplazamos setAuthenticated por checkAuth
         }
       } catch {
         removeAccessTokenCookie();
-        useAuthStore.getState().setAuthenticated(false);
+        useAuthStore.getState().checkAuth(); // Reemplazamos setAuthenticated por checkAuth
       }
     }
     setLoading(false);
