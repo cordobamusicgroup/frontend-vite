@@ -4,6 +4,7 @@ import { Roles } from '@/constants/roles';
 import { useAuthStore } from '@/stores/auth.store';
 import { useUserStore } from '@/stores/user.store';
 import Error403 from '@/modules/portal/pages/error-403';
+import CenteredLoader from '@/components/ui/molecules/CenteredLoader';
 
 interface RoleProtectedRouteProps {
   allowedRoles?: Roles[];
@@ -27,6 +28,10 @@ const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ allowedRoles, c
       navigate('/auth/login', { replace: true, state: { from: location } });
     }
   }, [isAuthenticated, userData, navigate, location]);
+
+  if (!isAuthenticated || !userData) {
+    return <CenteredLoader open={true} text="Verifying access..." />;
+  }
 
   if (!allowAll && userRole && !allowedRoles!.includes(userRole as Roles)) {
     return <Error403 />;
