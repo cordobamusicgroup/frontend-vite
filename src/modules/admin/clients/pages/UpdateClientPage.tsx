@@ -26,6 +26,8 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { formatError } from '@/lib/formatApiError.util';
 import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
+import { Roles } from '@/constants/roles';
+import RoleProtectedRoute from '@/routes/RoleProtectedRoute';
 
 type ClientFormData = z.infer<typeof ClientValidationSchema>;
 
@@ -270,7 +272,7 @@ const UpdateClientPage: React.FC = () => {
   };
 
   return (
-    <>
+    <RoleProtectedRoute allowedRoles={[Roles.Admin]}>
       <Helmet>
         <title>{`Update Client: ${clientData?.clientName ?? 'Unknown'} - Córdoba Music Group`}</title>
       </Helmet>
@@ -337,7 +339,7 @@ const UpdateClientPage: React.FC = () => {
           </List>
         </ErrorModal2>
       </Box>
-    </>
+    </RoleProtectedRoute>
   );
 };
 

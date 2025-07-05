@@ -10,6 +10,8 @@ import ListClientsTable from '../components/organisms/ListClientsTable';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { Helmet } from 'react-helmet';
+import RoleProtectedRoute from '@/routes/RoleProtectedRoute';
+import { Roles } from '@/constants/roles';
 
 const ClientListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,7 +23,7 @@ const ClientListPage: React.FC = () => {
   };
 
   return (
-    <>
+    <RoleProtectedRoute allowedRoles={[Roles.Admin]}>
       <Helmet>
         <title>Clients - Córdoba Music Group</title>
       </Helmet>
@@ -42,7 +44,7 @@ const ClientListPage: React.FC = () => {
           <ListClientsTable setNotification={setClientNotification} />
         </Box>
       </Box>
-    </>
+    </RoleProtectedRoute>
   );
 };
 
