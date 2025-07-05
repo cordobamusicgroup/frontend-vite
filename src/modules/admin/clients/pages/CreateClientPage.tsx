@@ -17,6 +17,8 @@ import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ClientFormLayout from '../components/organisms/ClientFormLayout';
 import { formatError } from '@/lib/formatApiError.util';
 import { buildClientPayload } from '../utils/buildClientPayload.util';
+import { Roles } from '@/constants/roles';
+import RoleProtectedRoute from '@/routes/RoleProtectedRoute';
 
 type ClientFormData = z.infer<typeof ClientValidationSchema>;
 
@@ -91,7 +93,7 @@ const CreateClientPage: React.FC = () => {
   };
 
   return (
-    <>
+    <RoleProtectedRoute allowedRoles={[Roles.Admin]}>
       <Helmet>
         <title>Create Client - Córdoba Music Group</title>
       </Helmet>
@@ -133,7 +135,7 @@ const CreateClientPage: React.FC = () => {
           </ErrorModal2>
         </Box>
       </Paper>
-    </>
+    </RoleProtectedRoute>
   );
 };
 

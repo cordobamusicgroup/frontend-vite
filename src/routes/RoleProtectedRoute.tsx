@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { Roles } from '@/constants/roles';
 import { useAuthStore } from '@/stores/auth.store';
 import { useUserStore } from '@/stores/user.store';
+import Error403 from '@/modules/portal/pages/error-403';
 
 interface RoleProtectedRouteProps {
   allowedRoles?: Roles[];
@@ -23,15 +24,15 @@ const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ allowedRoles, c
   const allowAll = !allowedRoles || allowedRoles.length === 0 || allowedRoles.includes(Roles.All);
   const userRole = userData && typeof userData === 'object' && 'role' in userData ? userData.role : undefined;
 
-  useEffect(() => {
-    if (!isAuthenticated && !userData) {
-      navigate('/auth/login', { replace: true, state: { from: location } });
-      return;
-    }
-    if (!allowAll && userRole && !allowedRoles!.includes(userRole as Roles)) {
-      navigate('/backoffice/', { replace: true });
-    }
-  }, [isAuthenticated, userData, userRole, allowAll, allowedRoles, location, navigate]);
+  // Validación inicial
+  if (!isAuthenticated || !userData) {
+    navigate('/auth/login', { replace: true, state: { from: location } });
+    return null;
+  }
+
+  if (!allowAll && userRole && !allowedRoles!.includes(userRole as Roles)) {
+    return <Error403 />; // Renderizar directamente la página de error 403
+  }
 
   return <>{children}</>;
 };
