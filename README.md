@@ -1,94 +1,94 @@
 # CMG Frontend App
 
-This project is the front‑end application for **Córdoba Music Group**. It is built with [React](https://react.dev/) and [TypeScript](https://www.typescriptlang.org/) using [Vite](https://vitejs.dev/) for rapid development. The app relies on modern tools like React Router and Material UI and can be deployed to Cloudflare Workers.
+This project is the front-end application for **Córdoba Music Group**. It is built with [React](https://react.dev/) and [TypeScript](https://www.typescriptlang.org/) using [Vite](https://vitejs.dev/) for rapid development. The app relies on modern tools like React Router and Material UI and can be deployed to Cloudflare Workers.
 
-## Características principales
+## Main Features
 
-- **React 19 + TypeScript** para una experiencia de desarrollo tipada.
-- **React Router** para la navegación de la SPA.
-- **Material UI** y **styled-components** para la interfaz de usuario.
-- **React Query** y **Zod** para la gestión de datos y validaciones.
-- Configuración de **ESLint** lista para ampliar con reglas tipadas.
-- Preparado para funcionar en **Cloudflare Workers**.
+- **React 19 + TypeScript** for a fully typed development experience.
+- **React Router** for SPA navigation.
+- **Material UI** and **styled-components** for the user interface.
+- **React Query** and **Zod** for data management and validation.
+- **ESLint** configuration ready to extend with type-aware rules.
+- Ready to deploy on **Cloudflare Workers**.
 
-## Puesta en marcha
+## Getting Started
 
-1. Instala las dependencias con [pnpm](https://pnpm.io/):
+1. Install dependencies with [pnpm](https://pnpm.io/):
 
    ```bash
    pnpm install
    ```
 
-2. Arranca el servidor de desarrollo:
+2. Start the development server:
 
    ```bash
    pnpm run dev
    ```
 
-3. Lanza el linter para comprobar la calidad del código:
+3. Run the linter to check code quality:
 
    ```bash
    pnpm run lint
    ```
 
-4. Genera la versión optimizada para producción:
+4. Build the optimized production version:
 
    ```bash
    pnpm run build
    ```
 
-5. Previsualiza la aplicación compilada:
+5. Preview the compiled application:
 
    ```bash
    pnpm run preview
    ```
 
-## Ampliando la configuración de ESLint
+## Extending ESLint Configuration
 
-Si vas a desarrollar una aplicación para producción, recomendamos habilitar reglas sensibles al tipo:
+For production-grade applications, we recommend enabling type-aware rules:
 
 ```js
 export default tseslint.config({
   extends: [
-    // Sustituye ...tseslint.configs.recommended por esto
+    // Replace ...tseslint.configs.recommended with this
     ...tseslint.configs.recommendedTypeChecked,
-    // O usa estas reglas para un nivel más estricto
+    // Or use these for a stricter level
     ...tseslint.configs.strictTypeChecked,
-    // Opcionalmente, añade reglas de estilo
+    // Optionally, add stylistic rules
     ...tseslint.configs.stylisticTypeChecked,
   ],
   languageOptions: {
-    // otras opciones...
+    // other options...
     parserOptions: {
       project: ['./tsconfig.node.json', './tsconfig.app.json'],
       tsconfigRootDir: import.meta.dirname,
     },
   },
-})
+});
 ```
 
-También puedes instalar [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) y [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) para reglas específicas de React:
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific rules:
 
 ```js
 // eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+import reactX from 'eslint-plugin-react-x';
+import reactDom from 'eslint-plugin-react-dom';
 
 export default tseslint.config({
   plugins: {
-    // Añade los plugins react-x y react-dom
+    // Add react-x and react-dom plugins
     'react-x': reactX,
     'react-dom': reactDom,
   },
   rules: {
-    // otras reglas...
-    // Habilita las reglas recomendadas de typescript
+    // other rules...
+    // Enable recommended TypeScript rules
     ...reactX.configs['recommended-typescript'].rules,
     ...reactDom.configs.recommended.rules,
   },
-})
+});
 ```
 
 ---
 
-Todo el código está protegido por la licencia incluida en este repositorio y es propiedad exclusiva de **Córdoba Music Group**.
+All code is protected by the license included in this repository and is the exclusive property of **Córdoba Music Group**.
