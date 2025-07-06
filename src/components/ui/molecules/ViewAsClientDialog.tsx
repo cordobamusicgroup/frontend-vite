@@ -6,7 +6,7 @@ import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
 import InformativeBox from '@/components/ui/molecules/InformativeBox';
 import { eventBus } from '@/eventBus';
 import { useNotificationStore } from '@/stores/notification.store';
-import { useUsersAdmin } from '@/modules/admin/users/hooks/useUsersAdmin';
+import { useViewAsClient } from '@/modules/admin/users/hooks';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -29,8 +29,7 @@ const ViewAsClientDialog: React.FC<ViewAsClientDialogProps> = () => {
   const setNotification = useNotificationStore((s) => s.setNotification);
   const notification = useNotificationStore((s) => s.notification);
   const { clearNotification } = useNotificationStore();
-  const { mutations } = useUsersAdmin();
-  const { viewAsClient } = mutations;
+  const viewAsClient = useViewAsClient();
 
   useEffect(() => {
     const handler = () => setOpen(true);

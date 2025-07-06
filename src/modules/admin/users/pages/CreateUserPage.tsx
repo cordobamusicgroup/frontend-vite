@@ -15,13 +15,14 @@ import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import { UsersValidationSchema } from '../schemas/UsersAdminValidationSchema';
 import UsersFormLayout from '../components/organisms/UsersFormLayout';
 import { formatError } from '@/lib/formatApiError.util';
-import { useUsersAdmin } from '../hooks/useUsersAdmin'; // Corrected import path
+import { useRegisterUser } from '../hooks';
 
 type UserFormData = z.infer<typeof UsersValidationSchema>;
 
 const CreateUserPage: React.FC = () => {
   const theme = useTheme();
-  const { mutations: userMutations, loading: userOperationsLoading } = useUsersAdmin();
+  const registerUser = useRegisterUser();
+  const userOperationsLoading = { registerUser: registerUser.isPending };
   const { notification: userNotification, setNotification: setUserNotification, clearNotification: clearUserNotification } = useNotificationStore();
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
 
@@ -44,7 +45,7 @@ const CreateUserPage: React.FC = () => {
       role: formData.role,
       ...(formData.clientId ? { clientId: formData.clientId } : {}), // Include clientId only if it exists
     };
-    userMutations.registerUser.mutate(userPayload, {
+    registerUser.mutate(userPayload, {
       onSuccess: () => {
         scrollToPageTop();
         setUserNotification({ message: 'User created successfully', type: 'success' });

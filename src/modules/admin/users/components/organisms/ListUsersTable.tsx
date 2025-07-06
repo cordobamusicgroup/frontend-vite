@@ -8,7 +8,7 @@ import GridTables from '@/components/ui/organisms/GridTables';
 import SearchBoxTable from '@/components/ui/organisms/SearchBoxTable';
 import { ColDef } from 'ag-grid-community';
 import { useClientsAdmin } from '@/modules/admin/clients/hooks/useClientsAdmin';
-import { useUsersAdmin } from '../../hooks/useUsersAdmin';
+import { useFetchUsers, useDeleteUsers, useResendWelcomeEmail } from '../../hooks';
 import { logColor } from '@/lib/log.util';
 import UserAdminActionButtons from '../molecules/UserAdminActionButtons';
 import TableSkeletonLoader from '@/components/ui/atoms/TableSkeletonLoader';
@@ -22,7 +22,9 @@ interface Props {
 const ListUserTable: React.FC<Props> = ({ setNotification }) => {
   const navigate = useNavigate();
   const gridRef = useRef<AgGridReact>(null);
-  const { query: usersQuery, mutations } = useUsersAdmin();
+  const { query: usersQuery } = useFetchUsers();
+  const deleteUsers = useDeleteUsers();
+  const resendWelcomeEmail = useResendWelcomeEmail();
   const { data, error: fetchError, isPending: userFetchLoading } = usersQuery;
   const { clientsData, loading: clientLoading, errors: clientErrors } = useClientsAdmin();
   logColor('info', 'ListUserTable', 'rendered');
@@ -38,7 +40,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
   }
 
   const handleDelete = async (id: number): Promise<void> => {
-    await mutations.deleteUsers.mutateAsync([id], {
+    await deleteUsers.mutateAsync([id], {
       onSuccess: () => {
         setNotification({ message: 'User deleted successfully', type: 'success' });
       },
@@ -49,7 +51,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
   };
 
   const handleResendEmail = async (email: string): Promise<void> => {
-    await mutations.resendWelcomeEmail.mutateAsync(email, {
+    await resendWelcomeEmail.mutateAsync(email, {
       onSuccess: () => {
         setNotification({ message: 'Email sent successfully', type: 'success' });
       },
@@ -135,7 +137,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
         defaultColDef={defaultColDef}
         columns={columns}
         rowData={rowData}
-        loading={userFetchLoading || mutations.deleteUsers.isPending || mutations.resendWelcomeEmail.isPending}
+        loading={userFetchLoading || deleteUsers.isPending || resendWelcomeEmail.isPending}
         quickFilterText={quickFilterText}
       />
     </Box>
