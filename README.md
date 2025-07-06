@@ -1,28 +1,64 @@
-# React + TypeScript + Vite
+# CMG Frontend App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is the front‑end application for **Córdoba Music Group**. It is built with [React](https://react.dev/) and [TypeScript](https://www.typescriptlang.org/) using [Vite](https://vitejs.dev/) for rapid development. The app relies on modern tools like React Router and Material UI and can be deployed to Cloudflare Workers.
 
-Currently, two official plugins are available:
+## Características principales
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 19 + TypeScript** para una experiencia de desarrollo tipada.
+- **React Router** para la navegación de la SPA.
+- **Material UI** y **styled-components** para la interfaz de usuario.
+- **React Query** y **Zod** para la gestión de datos y validaciones.
+- Configuración de **ESLint** lista para ampliar con reglas tipadas.
+- Preparado para funcionar en **Cloudflare Workers**.
 
-## Expanding the ESLint configuration
+## Puesta en marcha
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. Instala las dependencias con [pnpm](https://pnpm.io/):
+
+   ```bash
+   pnpm install
+   ```
+
+2. Arranca el servidor de desarrollo:
+
+   ```bash
+   pnpm run dev
+   ```
+
+3. Lanza el linter para comprobar la calidad del código:
+
+   ```bash
+   pnpm run lint
+   ```
+
+4. Genera la versión optimizada para producción:
+
+   ```bash
+   pnpm run build
+   ```
+
+5. Previsualiza la aplicación compilada:
+
+   ```bash
+   pnpm run preview
+   ```
+
+## Ampliando la configuración de ESLint
+
+Si vas a desarrollar una aplicación para producción, recomendamos habilitar reglas sensibles al tipo:
 
 ```js
 export default tseslint.config({
   extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
+    // Sustituye ...tseslint.configs.recommended por esto
     ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
+    // O usa estas reglas para un nivel más estricto
     ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
+    // Opcionalmente, añade reglas de estilo
     ...tseslint.configs.stylisticTypeChecked,
   ],
   languageOptions: {
-    // other options...
+    // otras opciones...
     parserOptions: {
       project: ['./tsconfig.node.json', './tsconfig.app.json'],
       tsconfigRootDir: import.meta.dirname,
@@ -31,7 +67,7 @@ export default tseslint.config({
 })
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+También puedes instalar [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) y [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) para reglas específicas de React:
 
 ```js
 // eslint.config.js
@@ -40,15 +76,19 @@ import reactDom from 'eslint-plugin-react-dom'
 
 export default tseslint.config({
   plugins: {
-    // Add the react-x and react-dom plugins
+    // Añade los plugins react-x y react-dom
     'react-x': reactX,
     'react-dom': reactDom,
   },
   rules: {
-    // other rules...
-    // Enable its recommended typescript rules
+    // otras reglas...
+    // Habilita las reglas recomendadas de typescript
     ...reactX.configs['recommended-typescript'].rules,
     ...reactDom.configs.recommended.rules,
   },
 })
 ```
+
+---
+
+Todo el código está protegido por la licencia incluida en este repositorio y es propiedad exclusiva de **Córdoba Music Group**.
