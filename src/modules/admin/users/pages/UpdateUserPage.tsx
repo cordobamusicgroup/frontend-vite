@@ -15,7 +15,7 @@ import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
-import { useUsersAdmin } from '../hooks/useUsersAdmin';
+import { useFetchUsers, useUpdateUser } from '../hooks';
 import { UsersValidationSchema } from '../schemas/UsersAdminValidationSchema';
 import UsersFormLayout from '../components/organisms/UsersFormLayout';
 
@@ -33,9 +33,8 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
 const UpdateUserPage: React.FC = () => {
   const theme = useTheme();
   const { userId } = useParams();
-  // Unificado: ahora el hook recibe userId y expone query y mutations
-  const { query: usersQuery, mutations } = useUsersAdmin(userId);
-  const { updateUser } = mutations;
+  const { query: usersQuery } = useFetchUsers(userId);
+  const updateUser = useUpdateUser(userId!);
   const { data: userData, error: userFetchError, isPending: userFetchLoading } = usersQuery;
 
   const { notification: userNotification, setNotification: setUserNotification, clearNotification: clearUserNotification } = useNotificationStore();
@@ -120,7 +119,7 @@ const UpdateUserPage: React.FC = () => {
       ...modifiedFields,
     };
 
-    mutations.updateUser.mutate(userUpdatePayload, {
+    updateUser.mutate(userUpdatePayload, {
       onSuccess: () => {
         scrollToPageTop();
         setUserNotification({ message: 'User updated successfully', type: 'success' });
