@@ -8,7 +8,7 @@ export const useUpdateUser = (userId: string) => {
   return useMutation({
     mutationFn: async (data: any) =>
       apiRequest({
-        url: apiRoutes.users.admin.getById(Number(userId)),
+        url: `${apiRoutes.users.admin.root}/${userId}`,
         method: 'put',
         data,
         requireAuth: true,
