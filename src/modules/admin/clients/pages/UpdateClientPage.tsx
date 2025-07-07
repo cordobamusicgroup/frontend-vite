@@ -171,35 +171,9 @@ const UpdateClientPage: React.FC = () => {
     [setClientNotification, clearClientNotification],
   );
 
-  // Normalize object for deep comparison: sort keys, convert dates, replace undefined with null
-  function normalizeForCompare(obj: any): any {
-    if (obj instanceof Date) return obj.toISOString();
-    if (Array.isArray(obj)) return obj.map(normalizeForCompare);
-    if (obj && typeof obj === 'object') {
-      const sorted: Record<string, any> = {};
-      Object.keys(obj)
-        .sort()
-        .forEach((key) => {
-          const value = obj[key];
-          sorted[key] = value === undefined ? null : normalizeForCompare(value);
-        });
-      return sorted;
-    }
-    return obj;
-  }
-
   const onSubmitClientUpdate = async (formData: ClientFormData) => {
     if (!initialClientData) return;
     const compareData = initialClientData;
-    const normForm = normalizeForCompare(formData);
-    const normInitial = normalizeForCompare(compareData);
-    if (JSON.stringify(normForm) === JSON.stringify(normInitial)) {
-      setClientNotification({
-        message: 'No changes were made to submit.',
-        type: 'error',
-      });
-      return;
-    }
     const modifiedFields = getModifiedFields(formData, compareData);
     const clientUpdatePayload = buildClientPayload(modifiedFields);
     clientMutations.updateClient.mutate(clientUpdatePayload, {
