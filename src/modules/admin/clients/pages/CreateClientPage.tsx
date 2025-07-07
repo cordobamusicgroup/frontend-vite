@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { Box, List, ListItem, ListItemText, Typography, useTheme, Paper } from '@mui/material';
+import { useCallback } from 'react';
+import { useClientForm, ClientFormData } from '../hooks/useClientForm';
+import { Box, Typography, useTheme, Paper } from '@mui/material';
+import { FormProvider } from 'react-hook-form';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import ErrorBox from '@/components/ui/molecules/ErrorBox';
@@ -8,16 +10,11 @@ import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { Helmet } from 'react-helmet';
 import { useClientsAdmin } from '../hooks/useClientsAdmin';
-import { FormProvider, useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { ClientValidationYupSchema } from '../schemas/ClientValidationYupSchema';
-import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
+import ValidationErrorModal from '../components/ValidationErrorModal';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ClientFormLayout from '../components/organisms/ClientFormLayout';
 import { formatError } from '@/lib/formatApiError.util';
 import { buildClientPayload } from '../utils/buildClientPayload.util';
-import { extractValidationMessages } from '../utils/extractValidationMessages';
-
 import { Roles } from '@/constants/roles';
 import RoleProtectedRoute from '@/routes/RoleProtectedRoute';
 
@@ -25,56 +22,35 @@ const CreateClientPage: React.FC = () => {
   const theme = useTheme();
   const { mutations: clientMutations, loading: clientOperationsLoading } = useClientsAdmin();
   const { notification: clientNotification, setNotification: setClientNotification, clearNotification: clearClientNotification } = useNotificationStore();
-  const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
 
-  const clientFormMethods = useForm({
-    mode: 'all',
-    resolver: yupResolver(ClientValidationYupSchema),
-  });
+  const onSuccess = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setClientNotification({ message: 'Client created successfully', type: 'success' });
+  }, [setClientNotification]);
 
-  const {
-    handleSubmit,
-    formState: { errors: clientFormErrors },
-    reset: resetClientForm,
-  } = clientFormMethods;
+  const onError = useCallback(
+    (msg: string) => {
+      if (msg) setClientNotification({ message: msg, type: 'error' });
+      else clearClientNotification();
+    },
+    [setClientNotification, clearClientNotification],
+  );
 
-  const onSubmitClient = async (formData: any) => {
+  const onSubmitClient = async (formData: ClientFormData) => {
     const clientPayload = buildClientPayload(formData);
     clientMutations.createClient.mutate(clientPayload, {
       onSuccess: () => {
-        scrollToPageTop();
-        setClientNotification({ message: 'Client created successfully', type: 'success' });
-        resetClientForm(); // Reset the form after successful submission
+        onSuccess();
+        clientForm.reset();
       },
       onError: (clientApiError: any) => {
-        scrollToPageTop();
-        setClientNotification({
-          message: formatError(clientApiError).message.join('\n'),
-          type: 'error',
-        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        onError(formatError(clientApiError).message.join('\n'));
       },
     });
   };
 
-  const handleClientFormSubmit = handleSubmit(
-    (clientFormData) => {
-      onSubmitClient(clientFormData);
-    },
-    (validationErrors) => {
-      if (Object.keys(validationErrors).length > 0) {
-        console.log('clientFormErrors', validationErrors);
-        setIsValidationErrorModalOpen(true);
-      }
-    },
-  );
-
-  const scrollToPageTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleInputChange = () => clearClientNotification();
-
-  // Ahora importado desde utils/extractValidationMessages
+  const clientForm = useClientForm(onSubmitClient, onError, onSuccess);
 
   return (
     <RoleProtectedRoute allowedRoles={[Roles.Admin]}>
@@ -87,7 +63,7 @@ const CreateClientPage: React.FC = () => {
         <BasicButton
           colorBackground="white"
           colorText={theme.palette.secondary.main}
-          onClick={handleClientFormSubmit}
+          onClick={clientForm.handleClientFormSubmit}
           color="primary"
           variant="contained"
           disabled={clientOperationsLoading.createClient}
@@ -104,18 +80,10 @@ const CreateClientPage: React.FC = () => {
             {clientNotification?.type === 'error' && <ErrorBox>{clientNotification.message}</ErrorBox>}
           </Box>
 
-          <FormProvider {...clientFormMethods}>
-            <ClientFormLayout handleSubmit={handleClientFormSubmit} onChange={handleInputChange} />
+          <FormProvider {...clientForm}>
+            <ClientFormLayout handleSubmit={clientForm.handleClientFormSubmit} onChange={clientForm.handleInputChange} />
           </FormProvider>
-          <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
-            <List sx={{ padding: 0, margin: 0 }}>
-              {extractValidationMessages(clientFormErrors).map((msg, index) => (
-                <ListItem key={index} disableGutters sx={{ padding: '1px 0' }}>
-                  <ListItemText primary={`• ${msg}`} sx={{ margin: 0, padding: 0 }} />
-                </ListItem>
-              ))}
-            </List>
-          </ErrorModal2>
+          <ValidationErrorModal open={clientForm.isValidationErrorModalOpen} onClose={() => clientForm.setIsValidationErrorModalOpen(false)} errors={clientForm.formState.errors} />
         </Box>
       </Paper>
     </RoleProtectedRoute>
