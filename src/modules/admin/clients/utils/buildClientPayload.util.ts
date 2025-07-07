@@ -3,15 +3,7 @@ import { deepClean } from '@/lib/deepClean.util';
 import { ClientValidationYupSchema } from '../schemas/ClientValidationYupSchema';
 import { InferType } from 'yup';
 
-export type ClientFormData = z.infer<typeof ClientValidationSchema>;
-
-// Helper para limpiar valores null, undefined y strings vacíos
-function cleanValue(value: any) {
-  if (value === null || value === undefined || value === '') {
-    return undefined;
-  }
-  return value;
-}
+export type ClientFormData = InferType<typeof ClientValidationYupSchema>;
 
 /**
  * Construye el payload para crear o actualizar clientes.
@@ -20,7 +12,9 @@ function cleanValue(value: any) {
  * @param formData Datos del formulario (puede ser parcial para updates)
  * @returns Payload limpio para el backend
  */
-export function buildClientPayload(formData: Partial<ClientFormData>): any {
+
+// Puedes definir un tipo más estricto para el payload si lo deseas
+export function buildClientPayload(formData: Partial<ClientFormData>, allowNullKeys: string[] = []): any {
   if (!formData) return undefined;
 
   // Mapeo manual, serializando fechas con dayjs directamente

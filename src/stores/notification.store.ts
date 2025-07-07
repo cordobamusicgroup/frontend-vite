@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+export type NotificationType = 'success' | 'error' | 'warning' | 'info';
+
 interface NotificationPayload {
-  message: string | string[]; // puede ser string o array
-  type: 'success' | 'error';
-  key?: string; // clave opcional para identificar la notificación
+  message: string | string[];
+  type: NotificationType;
+  key?: string;
 }
 
 interface NotificationState {
