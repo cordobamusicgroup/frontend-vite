@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import dayjs from 'dayjs';
 import { Box, List, ListItem, ListItemText, Paper, Typography, useTheme, Table, TableHead, TableRow, TableCell, TableBody, Button, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { useParams, useNavigate } from 'react-router';
@@ -157,10 +158,10 @@ const UpdateClientPage: React.FC = () => {
         uuid: clientData.contract.uuid,
         type: clientData.contract.type,
         status: clientData.contract.status,
-        startDate: clientData.contract.startDate ? new Date(clientData.contract.startDate) : null,
-        endDate: clientData.contract.endDate ? new Date(clientData.contract.endDate) : null,
+        startDate: clientData.contract.startDate ? dayjs(clientData.contract.startDate).toDate() : dayjs().toDate(),
+        endDate: clientData.contract.endDate ? dayjs(clientData.contract.endDate).toDate() : dayjs().toDate(),
         signedBy: clientData.contract.signedBy,
-        signedAt: clientData.contract.signedAt ? new Date(clientData.contract.signedAt) : null,
+        signedAt: clientData.contract.signedAt ? dayjs(clientData.contract.signedAt).toDate() : undefined,
         ppd: clientData.contract.ppd !== undefined && clientData.contract.ppd !== null ? parseFloat(clientData.contract.ppd) : undefined,
         docUrl: clientData.contract.docUrl,
       },

@@ -62,8 +62,6 @@ const CreateClientPage: React.FC = () => {
     },
     (validationErrors) => {
       if (Object.keys(validationErrors).length > 0) {
-        // Log para debug: estructura real de los errores
-        // eslint-disable-next-line no-console
         console.log('clientFormErrors', validationErrors);
         setIsValidationErrorModalOpen(true);
       }
