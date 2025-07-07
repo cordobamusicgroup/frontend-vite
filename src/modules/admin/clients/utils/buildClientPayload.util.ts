@@ -1,15 +1,8 @@
-import { z } from 'zod';
-import { ClientValidationSchema } from '../schemas/ClientValidationSchema';
+import { deepClean } from '@/lib/deepClean.util';
+import { ClientValidationYupSchema } from '../schemas/ClientValidationYupSchema';
+import { InferType } from 'yup';
 
-export type ClientFormData = z.infer<typeof ClientValidationSchema>;
-
-// Helper para limpiar valores null, undefined y strings vacíos
-function cleanValue(value: any) {
-  if (value === null || value === undefined || value === '') {
-    return undefined;
-  }
-  return value;
-}
+export type ClientFormData = InferType<typeof ClientValidationYupSchema>;
 
 /**
  * Construye el payload para crear o actualizar clientes.
@@ -18,92 +11,45 @@ function cleanValue(value: any) {
  * @param formData Datos del formulario (puede ser parcial para updates)
  * @returns Payload limpio para el backend
  */
-export function buildClientPayload(formData: Partial<ClientFormData>): any {
+
+// Puedes definir un tipo más estricto para el payload si lo deseas
+export function buildClientPayload(formData: Partial<ClientFormData>, allowNullKeys: string[] = []): any {
   if (!formData) return undefined;
 
-  // Crear un objeto limpio para el payload
-  const payload: any = {};
+  // Mapeo manual, pero usando deepClean para limpiar el resultado final
+  const payload = {
+    clientName: formData.client?.clientName,
+    firstName: formData.client?.firstName,
+    lastName: formData.client?.lastName,
+    type: formData.client?.type,
+    taxIdType: formData.client?.taxIdType,
+    taxId: formData.client?.taxId,
+    vatRegistered: formData.client?.vatRegistered,
+    vatId: formData.client?.vatRegistered ? formData.client?.vatId : undefined,
+    address: formData.address && {
+      street: formData.address.street,
+      city: formData.address.city,
+      state: formData.address.state,
+      countryId: formData.address.countryId,
+      zip: formData.address.zip,
+    },
+    contract: formData.contract && {
+      type: formData.contract.type,
+      status: formData.contract.status,
+      startDate: formData.contract.startDate,
+      endDate: formData.contract.endDate,
+      ppd: formData.contract.ppd,
+      docUrl: formData.contract.docUrl,
+      signedBy: formData.contract.status !== 'DRAFT' ? formData.contract.signedBy : undefined,
+      signedAt: formData.contract.status !== 'DRAFT' ? formData.contract.signedAt : undefined,
+    },
+    dmb: formData.dmb && {
+      accessType: formData.dmb.accessType,
+      status: formData.dmb.status,
+      subclientName: formData.dmb.subclientName,
+      username: formData.dmb.username,
+    },
+  };
 
-  // Extraer y mapear las propiedades del cliente a nivel raíz
-  // IMPORTANTE: Omitir clientId como solicitado
-  if (formData.client) {
-    const client = formData.client;
-
-    // Mapeo manual de propiedades
-    payload.clientName = cleanValue(client.clientName);
-    payload.firstName = cleanValue(client.firstName);
-    payload.lastName = cleanValue(client.lastName);
-    payload.type = cleanValue(client.type);
-    payload.taxIdType = cleanValue(client.taxIdType);
-    payload.taxId = cleanValue(client.taxId);
-    payload.vatRegistered = client.vatRegistered;
-
-    // Solo agregar vatId si vatRegistered es true
-    if (client.vatRegistered && client.vatId) {
-      payload.vatId = cleanValue(client.vatId);
-    }
-  }
-
-  // Dirección
-  if (formData.address) {
-    const address = formData.address;
-    payload.address = {
-      street: cleanValue(address.street),
-      city: cleanValue(address.city),
-      state: cleanValue(address.state),
-      countryId: cleanValue(address.countryId),
-      zip: cleanValue(address.zip),
-    };
-
-    // Eliminar el objeto address si está vacío
-    if (Object.keys(payload.address).length === 0) {
-      delete payload.address;
-    }
-  }
-
-  // Contrato - omitir las propiedades uuid y signed como solicitado
-  if (formData.contract) {
-    const contract = formData.contract;
-    payload.contract = {
-      type: cleanValue(contract.type),
-      status: cleanValue(contract.status),
-      startDate: cleanValue(contract.startDate),
-      endDate: cleanValue(contract.endDate),
-      ppd: cleanValue(contract.ppd),
-      docUrl: cleanValue(contract.docUrl),
-    };
-
-    // Agregar signedBy y signedAt si están presentes
-    if (contract.status !== 'DRAFT') {
-      if (contract.signedBy) {
-        payload.contract.signedBy = cleanValue(contract.signedBy);
-      }
-      if (contract.signedAt) {
-        payload.contract.signedAt = cleanValue(contract.signedAt);
-      }
-    }
-
-    // Eliminar el objeto contract si está vacío
-    if (Object.keys(payload.contract).length === 0) {
-      delete payload.contract;
-    }
-  }
-
-  // DMB
-  if (formData.dmb) {
-    const dmb = formData.dmb;
-    payload.dmb = {
-      accessType: cleanValue(dmb.accessType),
-      status: cleanValue(dmb.status),
-      subclientName: cleanValue(dmb.subclientName),
-      username: cleanValue(dmb.username),
-    };
-
-    // Eliminar el objeto dmb si está vacío
-    if (Object.keys(payload.dmb).length === 0) {
-      delete payload.dmb;
-    }
-  }
-
-  return payload;
+  return deepClean(payload, allowNullKeys);
 }
