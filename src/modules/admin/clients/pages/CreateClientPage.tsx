@@ -10,7 +10,7 @@ import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { Helmet } from 'react-helmet';
 import { useClientsAdmin } from '../hooks/useClientsAdmin';
-import ValidationErrorModal from '../components/ValidationErrorModal';
+import FormValidationErrorModal from '../../../../components/ui/organisms/FormValidationErrorModal';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ClientFormLayout from '../components/organisms/ClientFormLayout';
 import { formatError } from '@/lib/formatApiError.util';
@@ -83,7 +83,7 @@ const CreateClientPage: React.FC = () => {
           <FormProvider {...clientForm}>
             <ClientFormLayout handleSubmit={clientForm.handleClientFormSubmit} onChange={clientForm.handleInputChange} />
           </FormProvider>
-          <ValidationErrorModal open={clientForm.isValidationErrorModalOpen} onClose={() => clientForm.setIsValidationErrorModalOpen(false)} errors={clientForm.formState.errors} />
+          <FormValidationErrorModal open={clientForm.isValidationErrorModalOpen} onClose={() => clientForm.setIsValidationErrorModalOpen(false)} errors={clientForm.formState.errors} />
         </Box>
       </Paper>
     </RoleProtectedRoute>

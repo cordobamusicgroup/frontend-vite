@@ -1,7 +1,7 @@
 import React from 'react';
 import { List, ListItem, ListItemText } from '@mui/material';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
-import { extractValidationMessages } from '../utils/extractValidationMessages';
+import { extractValidationMessages } from '../../../shared/utils/extractValidationMessages';
 import { FieldErrors } from 'react-hook-form';
 
 interface ValidationErrorModalProps {
@@ -10,7 +10,7 @@ interface ValidationErrorModalProps {
   errors: FieldErrors<any>;
 }
 
-const ValidationErrorModal: React.FC<ValidationErrorModalProps> = ({ open, onClose, errors }) => (
+const FormValidationErrorModal: React.FC<ValidationErrorModalProps> = ({ open, onClose, errors }) => (
   <ErrorModal2 open={open} onClose={onClose}>
     <List sx={{ padding: 0, margin: 0 }}>
       {extractValidationMessages(errors).map((msg, index) => (
@@ -22,4 +22,4 @@ const ValidationErrorModal: React.FC<ValidationErrorModalProps> = ({ open, onClo
   </ErrorModal2>
 );
 
-export default ValidationErrorModal;
+export default FormValidationErrorModal;

@@ -6,7 +6,8 @@ import { InferType } from 'yup';
 
 export type ClientFormData = InferType<typeof ClientValidationYupSchema>;
 
-export function useClientForm(onSubmitClient: (data: ClientFormData) => void, onError: (msg: string) => void, onSuccess: () => void) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useClientForm(onSubmitClient: (data: ClientFormData) => void, onError: (msg: string) => void, _onSuccess: () => void) {
   const methods = useForm<ClientFormData>({
     mode: 'all',
     resolver: yupResolver(ClientValidationYupSchema),

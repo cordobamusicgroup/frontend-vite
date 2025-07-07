@@ -11,7 +11,7 @@ import { Helmet } from 'react-helmet';
 import { useClientsAdmin } from '../hooks/useClientsAdmin';
 import { FormProvider } from 'react-hook-form';
 import { useClientForm, ClientFormData } from '../hooks/useClientForm';
-import ValidationErrorModal from '../components/ValidationErrorModal';
+import FormValidationErrorModal from '../../../../components/ui/organisms/FormValidationErrorModal';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ClientFormLayout from '../components/organisms/ClientFormLayout';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
@@ -292,7 +292,7 @@ const UpdateClientPage: React.FC = () => {
           )}
         </Box>
 
-        <ValidationErrorModal open={clientForm.isValidationErrorModalOpen} onClose={() => clientForm.setIsValidationErrorModalOpen(false)} errors={clientForm.formState.errors} />
+        <FormValidationErrorModal open={clientForm.isValidationErrorModalOpen} onClose={() => clientForm.setIsValidationErrorModalOpen(false)} errors={clientForm.formState.errors} />
       </Box>
     </RoleProtectedRoute>
   );

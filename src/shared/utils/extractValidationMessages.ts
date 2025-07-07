@@ -1,4 +1,3 @@
-// utils/extractValidationMessages.ts
 // Extrae todos los mensajes de error de un objeto de errores de react-hook-form + zod
 
 export function extractValidationMessages(errors: any): string[] {
