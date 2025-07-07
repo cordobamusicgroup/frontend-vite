@@ -1,25 +1,22 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useCallback, useState, useMemo } from 'react';
 import dayjs from 'dayjs';
-import { Box, List, ListItem, ListItemText, Paper, Typography, useTheme, Table, TableHead, TableRow, TableCell, TableBody, Button, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Box, Paper, Typography, useTheme, Table, TableHead, TableRow, TableCell, TableBody, Button, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { useParams, useNavigate } from 'react-router';
 import BasicButton from '@/components/ui/atoms/BasicButton';
-import ErrorBox from '@/components/ui/molecules/ErrorBox';
-import SuccessBox from '@/components/ui/molecules/SuccessBox';
+import NotificationBox from '@/components/ui/molecules/NotificationBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { Helmet } from 'react-helmet';
 import { useClientsAdmin } from '../hooks/useClientsAdmin';
-import { FormProvider, useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { ClientValidationYupSchema } from '../schemas/ClientValidationYupSchema';
-import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
+import { FormProvider } from 'react-hook-form';
+import { useClientForm, ClientFormData } from '../hooks/useClientForm';
+import ValidationErrorModal from '../components/ValidationErrorModal';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ClientFormLayout from '../components/organisms/ClientFormLayout';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 import { buildClientPayload } from '../utils/buildClientPayload.util';
-import { extractValidationMessages } from '../utils/extractValidationMessages';
 import webRoutes from '@/routes/web.routes';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -28,9 +25,6 @@ import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
 import { Roles } from '@/constants/roles';
 import RoleProtectedRoute from '@/routes/RoleProtectedRoute';
-
-import { InferType } from 'yup';
-type ClientFormData = InferType<typeof ClientValidationYupSchema>;
 
 const getModifiedFields = (currentFormData: any, initialData: any) => {
   return Object.keys(currentFormData).reduce((changedFields: any, key) => {
@@ -115,23 +109,8 @@ const UpdateClientPage: React.FC = () => {
   const { clientId } = useParams();
   const navigate = useNavigate();
   const { clientsData: clientData, mutations: clientMutations, loading: clientOperationsLoading, errors: clientApiErrors } = useClientsAdmin(clientId);
-  const { notification: clientNotification, setNotification: setClientNotification, clearNotification: clearClientNotification } = useNotificationStore();
-  const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
-
-  // Store the initial data for comparison
+  const { setNotification: setClientNotification, clearNotification: clearClientNotification } = useNotificationStore();
   const [initialClientData, setInitialClientData] = useState<ClientFormData | null>(null);
-
-  const clientFormMethods = useForm<ClientFormData>({
-    mode: 'onSubmit',
-    resolver: yupResolver(ClientValidationYupSchema),
-    reValidateMode: 'onChange',
-  });
-
-  const {
-    handleSubmit,
-    formState: { errors: clientFormErrors },
-    reset: resetClientForm,
-  } = clientFormMethods;
 
   const formattedClientData = useMemo(() => {
     if (!clientData) return null;
@@ -174,12 +153,77 @@ const UpdateClientPage: React.FC = () => {
     };
   }, [clientData]);
 
+  // --- HOOKS deben ir antes de cualquier return ---
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const onSuccess = useCallback(() => {
+    setClientNotification({ message: 'Client updated successfully', type: 'success' });
+    scrollToTop();
+  }, [setClientNotification]);
+
+  const onError = useCallback(
+    (msg: string) => {
+      if (msg) setClientNotification({ message: msg, type: 'error' });
+      else clearClientNotification();
+    },
+    [setClientNotification, clearClientNotification],
+  );
+
+  // Normalize object for deep comparison: sort keys, convert dates, replace undefined with null
+  function normalizeForCompare(obj: any): any {
+    if (obj instanceof Date) return obj.toISOString();
+    if (Array.isArray(obj)) return obj.map(normalizeForCompare);
+    if (obj && typeof obj === 'object') {
+      const sorted: Record<string, any> = {};
+      Object.keys(obj)
+        .sort()
+        .forEach((key) => {
+          const value = obj[key];
+          sorted[key] = value === undefined ? null : normalizeForCompare(value);
+        });
+      return sorted;
+    }
+    return obj;
+  }
+
+  const onSubmitClientUpdate = async (formData: ClientFormData) => {
+    if (!initialClientData) return;
+    const compareData = initialClientData;
+    const normForm = normalizeForCompare(formData);
+    const normInitial = normalizeForCompare(compareData);
+    if (JSON.stringify(normForm) === JSON.stringify(normInitial)) {
+      setClientNotification({
+        message: 'No changes were made to submit.',
+        type: 'error',
+      });
+      return;
+    }
+    const modifiedFields = getModifiedFields(formData, compareData);
+    const clientUpdatePayload = buildClientPayload(modifiedFields);
+    clientMutations.updateClient.mutate(clientUpdatePayload, {
+      onSuccess: () => {
+        onSuccess();
+      },
+      onError: (error: any) => {
+        onError(formatError(error).message.join('\n'));
+        scrollToTop();
+      },
+    });
+  };
+
+  const clientForm = useClientForm(onSubmitClientUpdate, onError, onSuccess);
+
   useEffect(() => {
     if (formattedClientData) {
-      resetClientForm(formattedClientData);
+      clientForm.reset(formattedClientData);
       setInitialClientData(formattedClientData);
     }
-  }, [formattedClientData, resetClientForm]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formattedClientData]);
+
+  // --- END HOOKS ---
 
   if (clientApiErrors.clientFetch) {
     return (
@@ -217,42 +261,6 @@ const UpdateClientPage: React.FC = () => {
     return <SkeletonLoader />;
   }
 
-  const onSubmitClientUpdate = async (formData: any) => {
-    if (!initialClientData) return;
-    const modifiedFields = getModifiedFields(formData, initialClientData);
-    const clientUpdatePayload = buildClientPayload(modifiedFields);
-    clientMutations.updateClient.mutate(clientUpdatePayload, {
-      onSuccess: () => {
-        setClientNotification({ message: 'Client updated successfully', type: 'success' });
-        scrollToTop();
-      },
-      onError: (error: any) => {
-        setClientNotification({
-          message: formatError(error).message.join('\n'),
-          type: 'error',
-        });
-        scrollToTop();
-      },
-    });
-  };
-
-  const handleClientFormSubmit = handleSubmit(
-    (data) => {
-      onSubmitClientUpdate(data); // Llama a la función onSubmit si no hay errores
-    },
-    (errors) => {
-      if (Object.keys(errors).length > 0) {
-        setIsValidationErrorModalOpen(true); // Abre el popup si hay errores
-      }
-    },
-  );
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleInputChange = () => clearClientNotification();
-
   // Ahora importado desde utils/extractValidationMessages
 
   return (
@@ -267,7 +275,7 @@ const UpdateClientPage: React.FC = () => {
           <BasicButton
             colorBackground="white"
             colorText={theme.palette.secondary.main}
-            onClick={handleClientFormSubmit}
+            onClick={clientForm.handleClientFormSubmit}
             color="primary"
             variant="contained"
             startIcon={<AddOutlinedIcon />}
@@ -277,10 +285,7 @@ const UpdateClientPage: React.FC = () => {
           </BasicButton>
         </CustomPageHeader>
 
-        <Box>
-          {clientNotification?.type === 'success' && <SuccessBox>{clientNotification.message}</SuccessBox>}
-          {clientNotification?.type === 'error' && <ErrorBox>{clientNotification.message}</ErrorBox>}
-        </Box>
+        <NotificationBox />
 
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: 500 }}>
           <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
@@ -288,8 +293,8 @@ const UpdateClientPage: React.FC = () => {
               <AccordionTitle icon={<PersonIcon sx={{ color: 'primary.main' }} />} text="Client Form" />
             </AccordionSummary>
             <AccordionDetails sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 1 }}>
-              <FormProvider {...clientFormMethods}>
-                <ClientFormLayout handleSubmit={handleClientFormSubmit} onChange={handleInputChange} />
+              <FormProvider {...clientForm}>
+                <ClientFormLayout handleSubmit={clientForm.handleClientFormSubmit} onChange={clientForm.handleInputChange} />
               </FormProvider>
             </AccordionDetails>
           </Accordion>
@@ -313,15 +318,7 @@ const UpdateClientPage: React.FC = () => {
           )}
         </Box>
 
-        <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
-          <List sx={{ padding: 0, margin: 0 }}>
-            {extractValidationMessages(clientFormErrors).map((msg, index) => (
-              <ListItem key={index} disableGutters sx={{ padding: '1px 0' }}>
-                <ListItemText primary={`• ${msg}`} sx={{ margin: 0, padding: 0 }} />
-              </ListItem>
-            ))}
-          </List>
-        </ErrorModal2>
+        <ValidationErrorModal open={clientForm.isValidationErrorModalOpen} onClose={() => clientForm.setIsValidationErrorModalOpen(false)} errors={clientForm.formState.errors} />
       </Box>
     </RoleProtectedRoute>
   );

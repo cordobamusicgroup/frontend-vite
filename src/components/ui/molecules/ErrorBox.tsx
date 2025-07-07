@@ -1,12 +1,16 @@
-import { Alert, AlertTitle, Box, Typography, IconButton } from "@mui/material";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import CloseIcon from "@mui/icons-material/Close";
-import { useNotificationStore } from "../../../stores";
+import { Alert, AlertTitle, Box, Typography, IconButton } from '@mui/material';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import CloseIcon from '@mui/icons-material/Close';
+import { useNotificationStore } from '../../../stores';
 
 interface ErrorBoxProps {
   children: React.ReactNode;
 }
 
+/**
+ * @deprecated Use NotificationBox instead for unified notifications.
+ * ErrorBox will be removed in future versions.
+ */
 const ErrorBox: React.FC<ErrorBoxProps> = ({ children }) => {
   const notificationState = useNotificationStore();
 
@@ -23,14 +27,14 @@ const ErrorBox: React.FC<ErrorBoxProps> = ({ children }) => {
           </IconButton>
         }
         sx={{
-          backgroundColor: "#fdecea",
-          color: "#d32f2f",
-          borderLeft: "6px solid #d32f2f",
-          padding: "16px",
+          backgroundColor: '#fdecea',
+          color: '#d32f2f',
+          borderLeft: '6px solid #d32f2f',
+          padding: '16px',
         }}
       >
-        <AlertTitle sx={{ fontWeight: 700, display: "flex", alignItems: "center" }}>
-          <Typography variant="h6" component="span" sx={{ fontWeight: "bold" }}>
+        <AlertTitle sx={{ fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+          <Typography variant="h6" component="span" sx={{ fontWeight: 'bold' }}>
             ERROR
           </Typography>
         </AlertTitle>
