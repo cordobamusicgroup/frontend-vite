@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { ClientValidationSchema } from '../schemas/ClientValidationSchema';
+import { ClientValidationYupSchema } from '../schemas/ClientValidationYupSchema';
+import { InferType } from 'yup';
 
-export type ClientFormData = z.infer<typeof ClientValidationSchema>;
+export type ClientFormData = InferType<typeof ClientValidationYupSchema>;
 
 // Helper para limpiar valores null, undefined y strings vacíos
 function cleanValue(value: any) {

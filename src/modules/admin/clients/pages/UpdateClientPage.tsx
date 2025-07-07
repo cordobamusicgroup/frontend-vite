@@ -9,17 +9,16 @@ import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { Helmet } from 'react-helmet';
 import { useClientsAdmin } from '../hooks/useClientsAdmin';
-import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ClientValidationSchema } from '../schemas/ClientValidationSchema';
+import { FormProvider, useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { ClientValidationYupSchema } from '../schemas/ClientValidationYupSchema';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ClientFormLayout from '../components/organisms/ClientFormLayout';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import dayjs from 'dayjs';
 import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 import { buildClientPayload } from '../utils/buildClientPayload.util';
+import { extractValidationMessages } from '../utils/extractValidationMessages';
 import webRoutes from '@/routes/web.routes';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -29,7 +28,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import { Roles } from '@/constants/roles';
 import RoleProtectedRoute from '@/routes/RoleProtectedRoute';
 
-type ClientFormData = z.infer<typeof ClientValidationSchema>;
+import { InferType } from 'yup';
+type ClientFormData = InferType<typeof ClientValidationYupSchema>;
 
 const getModifiedFields = (currentFormData: any, initialData: any) => {
   return Object.keys(currentFormData).reduce((changedFields: any, key) => {
@@ -122,7 +122,7 @@ const UpdateClientPage: React.FC = () => {
 
   const clientFormMethods = useForm<ClientFormData>({
     mode: 'onSubmit',
-    resolver: zodResolver(ClientValidationSchema),
+    resolver: yupResolver(ClientValidationYupSchema),
     reValidateMode: 'onChange',
   });
 
@@ -134,7 +134,6 @@ const UpdateClientPage: React.FC = () => {
 
   const formattedClientData = useMemo(() => {
     if (!clientData) return null;
-
     return {
       client: {
         clientId: clientData.id,
@@ -158,11 +157,11 @@ const UpdateClientPage: React.FC = () => {
         uuid: clientData.contract.uuid,
         type: clientData.contract.type,
         status: clientData.contract.status,
-        startDate: dayjs(clientData.contract.startDate),
-        endDate: clientData.contract.endDate ? dayjs(clientData.contract.endDate) : undefined,
+        startDate: clientData.contract.startDate ? new Date(clientData.contract.startDate) : null,
+        endDate: clientData.contract.endDate ? new Date(clientData.contract.endDate) : null,
         signedBy: clientData.contract.signedBy,
-        signedAt: clientData.contract.signedAt ? dayjs(clientData.contract.signedAt) : undefined,
-        ppd: parseFloat(clientData.contract.ppd),
+        signedAt: clientData.contract.signedAt ? new Date(clientData.contract.signedAt) : null,
+        ppd: clientData.contract.ppd !== undefined && clientData.contract.ppd !== null ? parseFloat(clientData.contract.ppd) : undefined,
         docUrl: clientData.contract.docUrl,
       },
       dmb: {
@@ -217,7 +216,7 @@ const UpdateClientPage: React.FC = () => {
     return <SkeletonLoader />;
   }
 
-  const onSubmitClientUpdate: SubmitHandler<ClientFormData> = async (formData) => {
+  const onSubmitClientUpdate = async (formData: any) => {
     if (!initialClientData) return;
     const modifiedFields = getModifiedFields(formData, initialClientData);
     const clientUpdatePayload = buildClientPayload(modifiedFields);
@@ -253,23 +252,7 @@ const UpdateClientPage: React.FC = () => {
 
   const handleInputChange = () => clearClientNotification();
 
-  const extractValidationMessages = (errors: any): string[] => {
-    const messages: string[] = [];
-    const iterate = (errObj: any) => {
-      if (errObj?.message) {
-        messages.push(errObj.message);
-      }
-      if (errObj && typeof errObj === 'object') {
-        for (const key in errObj) {
-          if (typeof errObj[key] === 'object') {
-            iterate(errObj[key]);
-          }
-        }
-      }
-    };
-    iterate(errors);
-    return messages;
-  };
+  // Ahora importado desde utils/extractValidationMessages
 
   return (
     <RoleProtectedRoute allowedRoles={[Roles.Admin]}>

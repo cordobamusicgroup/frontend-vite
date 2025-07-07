@@ -8,19 +8,18 @@ import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { Helmet } from 'react-helmet';
 import { useClientsAdmin } from '../hooks/useClientsAdmin';
-import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ClientValidationSchema } from '../schemas/ClientValidationSchema';
+import { FormProvider, useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { ClientValidationYupSchema } from '../schemas/ClientValidationYupSchema';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ClientFormLayout from '../components/organisms/ClientFormLayout';
 import { formatError } from '@/lib/formatApiError.util';
 import { buildClientPayload } from '../utils/buildClientPayload.util';
+import { extractValidationMessages } from '../utils/extractValidationMessages';
+
 import { Roles } from '@/constants/roles';
 import RoleProtectedRoute from '@/routes/RoleProtectedRoute';
-
-type ClientFormData = z.infer<typeof ClientValidationSchema>;
 
 const CreateClientPage: React.FC = () => {
   const theme = useTheme();
@@ -28,9 +27,9 @@ const CreateClientPage: React.FC = () => {
   const { notification: clientNotification, setNotification: setClientNotification, clearNotification: clearClientNotification } = useNotificationStore();
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
 
-  const clientFormMethods = useForm<ClientFormData>({
+  const clientFormMethods = useForm({
     mode: 'all',
-    resolver: zodResolver(ClientValidationSchema),
+    resolver: yupResolver(ClientValidationYupSchema),
   });
 
   const {
@@ -39,7 +38,7 @@ const CreateClientPage: React.FC = () => {
     reset: resetClientForm,
   } = clientFormMethods;
 
-  const onSubmitClient: SubmitHandler<ClientFormData> = async (formData) => {
+  const onSubmitClient = async (formData: any) => {
     const clientPayload = buildClientPayload(formData);
     clientMutations.createClient.mutate(clientPayload, {
       onSuccess: () => {
@@ -63,6 +62,9 @@ const CreateClientPage: React.FC = () => {
     },
     (validationErrors) => {
       if (Object.keys(validationErrors).length > 0) {
+        // Log para debug: estructura real de los errores
+        // eslint-disable-next-line no-console
+        console.log('clientFormErrors', validationErrors);
         setIsValidationErrorModalOpen(true);
       }
     },
@@ -74,23 +76,7 @@ const CreateClientPage: React.FC = () => {
 
   const handleInputChange = () => clearClientNotification();
 
-  const extractValidationMessages = (errors: any): string[] => {
-    const messages: string[] = [];
-    const iterate = (errObj: any) => {
-      if (errObj?.message) {
-        messages.push(errObj.message);
-      }
-      if (errObj && typeof errObj === 'object') {
-        for (const key in errObj) {
-          if (typeof errObj[key] === 'object') {
-            iterate(errObj[key]);
-          }
-        }
-      }
-    };
-    iterate(errors);
-    return messages;
-  };
+  // Ahora importado desde utils/extractValidationMessages
 
   return (
     <RoleProtectedRoute allowedRoles={[Roles.Admin]}>
