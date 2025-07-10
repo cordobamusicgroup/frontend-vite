@@ -30,6 +30,8 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
   }, {});
 };
 
+// TODO: La pagina de actualizacion de usuario no funciona, no esta llamando a la API correctamente y no trae la informacion del usuario, ademas debe protegerse con la validacion de roles
+
 const UpdateUserPage: React.FC = () => {
   const theme = useTheme();
   const { userId } = useParams();
