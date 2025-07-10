@@ -30,6 +30,11 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
   }, {});
 };
 
+// TODO:
+// ! Implementar ruta de validación por rol (RoleProtectedRoute global y/o wrapper de rutas)
+// ? Reemplazar SuccessBox y ErrorBox por NotificationBox (los otros están deprecated)
+// ? Llevar getModifiedFields a un util global en shared/utils, ya que se repite en varios componentes
+
 const UpdateUserPage: React.FC = () => {
   const theme = useTheme();
   const { userId } = useParams();
