@@ -24,13 +24,11 @@ export const useFetchUsers = (userId?: string) => {
     });
   };
 
-  // Si userId está presente, la query está deshabilitada por defecto y debe activarse manualmente
-  // Si no hay userId, la query se ejecuta automáticamente
+  // La query siempre se ejecuta: si hay userId trae uno, si no trae la lista
   const query = useQuery({
     queryKey,
     queryFn: fetchUsers,
     retry: false,
-    enabled: !userId, // true para lista, false para detalle (fetch manual)
   });
 
   return {
