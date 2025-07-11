@@ -1,5 +1,5 @@
 import { Grid, Paper, Typography } from '@mui/material';
-import UserDetailsForm from '../molecules/UserDetailsForm';
+import UserDetailsForm from '../molecules/UserFormFields';
 
 type Props = {
   handleSubmit: () => void;

@@ -12,17 +12,10 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
-// Yup validation schema for user creation
-const UsersValidationSchema = yup.object({
-  clientId: yup.mixed().nullable().optional(),
-  username: yup.string().required('Username is required'),
-  email: yup.string().required('Email is required').email('Invalid email'),
-  fullName: yup.string().required('Full name is required').min(3, 'Full name must be at least 3 characters long').max(50, 'Full name must be at most 50 characters long'),
-  role: yup.string().oneOf(['ADMIN', 'USER'], 'Invalid role').required('Role is required'),
-});
-import UsersFormLayout from '../components/form/UsersFormLayout';
 import { formatError } from '@/lib/formatApiError.util';
 import { useRegisterUser } from '../hooks';
+import UsersFormLayout from '../components/organisms/UsersFormLayout';
+import { UsersValidationSchema } from '../schemas/UsersAdminValidationSchema';
 
 type UserFormData = yup.InferType<typeof UsersValidationSchema>;
 

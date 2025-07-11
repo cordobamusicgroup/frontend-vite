@@ -16,7 +16,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 import { useFetchUsers, useUpdateUser } from '../hooks';
 import { UsersValidationSchema } from '../schemas/UsersAdminValidationSchema';
-import UsersFormLayout from '../components/form/UsersFormLayout';
+import UsersFormLayout from '../components/organisms/UsersFormLayout';
 
 type UserFormData = yup.InferType<typeof UsersValidationSchema>;
 
