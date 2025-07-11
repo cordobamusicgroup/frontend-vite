@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import dayjs from 'dayjs';
-import { Box, Paper, Typography, useTheme, Table, TableHead, TableRow, TableCell, TableBody, Button, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Box, Paper, Typography, useTheme, Table, TableHead, TableRow, TableCell, TableBody, Button } from '@mui/material';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { useParams, useNavigate } from 'react-router';
 import BasicButton from '@/components/ui/atoms/BasicButton';
@@ -18,7 +18,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 import { buildClientPayload } from '../utils/buildClientPayload.util';
 import webRoutes from '@/routes/web.routes';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FormSectionAccordion from '@/components/ui/molecules/FormSectionAccordion';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { formatError } from '@/lib/formatApiError.util';
 import GroupIcon from '@mui/icons-material/Group';
@@ -33,15 +33,6 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
     return changedFields;
   }, {});
 };
-
-const AccordionTitle = ({ icon, text }: { icon: React.ReactElement; text: string }) => (
-  <Box display="flex" alignItems="center">
-    {icon as any}
-    <Typography variant="subtitle1" sx={{ fontSize: '16px', ml: 1 }}>
-      {text}
-    </Typography>
-  </Box>
-);
 
 function BalancesBlock({ balances }: { balances: any[] }) {
   const usd = balances?.find((b: any) => b.currency === 'USD') || {};
@@ -163,10 +154,12 @@ const UpdateClientPage: React.FC = () => {
     const clientUpdatePayload = buildClientPayload(modifiedFields);
     clientMutations.updateClient.mutate(clientUpdatePayload, {
       onSuccess: () => {
+        clearClientNotification();
         setClientNotification({ message: 'Client updated successfully', type: 'success' });
         scrollToTop();
       },
       onError: (error: any) => {
+        clearClientNotification();
         const msg = formatError(error).message.join('\n');
         if (msg) setClientNotification({ message: msg, type: 'error' });
         else clearClientNotification();
@@ -251,23 +244,13 @@ const UpdateClientPage: React.FC = () => {
           <FormProvider {...clientForm}>
             <form onChange={clientForm.handleInputChange} onSubmit={clientForm.handleClientFormSubmit}>
               <ClientFormLayout />
-              <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <AccordionTitle icon={<AttachMoneyIcon sx={{ color: 'secondary.main' }} />} text="Balances" />
-                </AccordionSummary>
-                <AccordionDetails sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
-                  <BalancesBlock balances={clientData.balances} />
-                </AccordionDetails>
-              </Accordion>
+              <FormSectionAccordion title="Balances" icon={<AttachMoneyIcon sx={{ color: 'secondary.main' }} />} defaultExpanded={false}>
+                <BalancesBlock balances={clientData.balances} />
+              </FormSectionAccordion>
               {Array.isArray(clientData.users) && clientData.users.length > 0 && (
-                <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <AccordionTitle icon={<GroupIcon sx={{ color: 'primary.main' }} />} text="Users" />
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
-                    <UsersTable users={clientData.users} onEdit={(id) => navigate(`${webRoutes.admin.users.edit}/${id}`)} />
-                  </AccordionDetails>
-                </Accordion>
+                <FormSectionAccordion title="Users" icon={<GroupIcon sx={{ color: 'primary.main' }} />} defaultExpanded={false}>
+                  <UsersTable users={clientData.users} onEdit={(id) => navigate(`${webRoutes.admin.users.edit}/${id}`)} />
+                </FormSectionAccordion>
               )}
             </form>
           </FormProvider>

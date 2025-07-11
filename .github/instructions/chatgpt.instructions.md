@@ -14,4 +14,4 @@ Coding standards, domain knowledge, and preferences that AI should follow.
 - Follow accessibility best practices (e.g., ARIA roles, keyboard navigation).
 - Use a consistent code formatting tool (e.g., Prettier) and linting tool (e.g., ESLint).
 - Use descriptive commit messages that explain the purpose of the changes.
-
+- Talk in spanish, write code in english.
