@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import ClientDetailsForm from '../components/molecules/ClientDetailsForm';
 import AddressDetailsForm from '../components/molecules/AddressDetailsForm';
@@ -30,15 +29,7 @@ const CreateClientPage: React.FC = () => {
   const { mutations: clientMutations, loading: clientOperationsLoading } = useClientsAdmin();
   const { setNotification: setClientNotification, clearNotification: clearClientNotification } = useNotificationStore();
 
-  const onError = useCallback(
-    (msg: string) => {
-      if (msg) setClientNotification({ message: msg, type: 'error' });
-      else clearClientNotification();
-    },
-    [setClientNotification, clearClientNotification],
-  );
-
-  const onSubmitClient = async (formData: ClientFormData) => {
+  const clientForm = useClientForm(async (formData: ClientFormData) => {
     const clientPayload = buildClientPayload(formData);
     clientMutations.createClient.mutate(clientPayload, {
       onSuccess: () => {
@@ -48,12 +39,12 @@ const CreateClientPage: React.FC = () => {
       },
       onError: (clientApiError: any) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        onError(formatError(clientApiError).message.join('\n'));
+        const msg = formatError(clientApiError).message.join('\n');
+        if (msg) setClientNotification({ message: msg, type: 'error' });
+        else clearClientNotification();
       },
     });
-  };
-
-  const clientForm = useClientForm(onSubmitClient, onError);
+  });
 
   return (
     <RoleProtectedRoute allowedRoles={[Roles.Admin]}>

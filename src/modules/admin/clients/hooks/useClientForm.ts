@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ClientValidationYupSchema } from '../schemas/ClientValidationYupSchema';
@@ -6,16 +6,14 @@ import { InferType } from 'yup';
 
 export type ClientFormData = InferType<typeof ClientValidationYupSchema>;
 
-export function useClientForm(onSubmitClient: (data: ClientFormData) => void, onError: (msg: string) => void) {
+export function useClientForm(onSubmitClient: (data: ClientFormData) => void) {
   const methods = useForm<ClientFormData>({
     mode: 'all',
     resolver: yupResolver(ClientValidationYupSchema),
   });
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
 
-  const handleInputChange = useCallback(() => {
-    onError('');
-  }, [onError]);
+  const handleInputChange = () => {};
 
   const handleClientFormSubmit = methods.handleSubmit(
     (formData) => {

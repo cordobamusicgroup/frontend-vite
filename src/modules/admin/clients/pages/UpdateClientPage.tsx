@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import dayjs from 'dayjs';
 import { Box, Paper, Typography, useTheme, Table, TableHead, TableRow, TableCell, TableBody, Button, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
@@ -157,37 +157,27 @@ const UpdateClientPage: React.FC = () => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const onSuccess = useCallback(() => {
-    setClientNotification({ message: 'Client updated successfully', type: 'success' });
-    scrollToTop();
-  }, [setClientNotification]);
-
-  const onError = useCallback(
-    (msg: string) => {
-      if (msg) setClientNotification({ message: msg, type: 'error' });
-      else clearClientNotification();
-    },
-    [setClientNotification, clearClientNotification],
+  const clientForm = useClientForm(
+    async (formData: ClientFormData) => {
+      if (!initialClientData) return;
+      const compareData = initialClientData;
+      const modifiedFields = getModifiedFields(formData, compareData);
+      const clientUpdatePayload = buildClientPayload(modifiedFields);
+      clientMutations.updateClient.mutate(clientUpdatePayload, {
+        onSuccess: () => {
+          setClientNotification({ message: 'Client updated successfully', type: 'success' });
+          scrollToTop();
+        },
+        onError: (error: any) => {
+          const msg = formatError(error).message.join('\n');
+          if (msg) setClientNotification({ message: msg, type: 'error' });
+          else clearClientNotification();
+          scrollToTop();
+        },
+      });
+    }
   );
-
-  const onSubmitClientUpdate = async (formData: ClientFormData) => {
-    if (!initialClientData) return;
-    const compareData = initialClientData;
-    const modifiedFields = getModifiedFields(formData, compareData);
-    const clientUpdatePayload = buildClientPayload(modifiedFields);
-    clientMutations.updateClient.mutate(clientUpdatePayload, {
-      onSuccess: () => {
-        onSuccess();
-      },
-      onError: (error: any) => {
-        onError(formatError(error).message.join('\n'));
-        scrollToTop();
-      },
-    });
-  };
-
-  const clientForm = useClientForm(onSubmitClientUpdate, onError);
+  );
 
   useEffect(() => {
     if (formattedClientData) {
