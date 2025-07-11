@@ -177,7 +177,6 @@ const UpdateClientPage: React.FC = () => {
       });
     }
   );
-  );
 
   useEffect(() => {
     if (formattedClientData) {
