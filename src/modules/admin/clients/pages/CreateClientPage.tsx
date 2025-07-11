@@ -1,16 +1,7 @@
-import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
-import ClientDetailsForm from '../components/molecules/ClientDetailsForm';
-import AddressDetailsForm from '../components/molecules/AddressDetailsForm';
-import ContractDetailsForm from '../components/molecules/ContractDetailsForm';
-import DmbDetailsForm from '../components/molecules/DmbDetailsForm';
 import { useClientForm, ClientFormData } from '../hooks/useClientForm';
 import { Box, Typography, useTheme } from '@mui/material';
 import { FormProvider } from 'react-hook-form';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
-import PersonIcon from '@mui/icons-material/Person';
-import HomeIcon from '@mui/icons-material/Home';
-import DescriptionIcon from '@mui/icons-material/Description';
-import DnsIcon from '@mui/icons-material/Dns';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
@@ -23,6 +14,7 @@ import { buildClientPayload } from '../utils/buildClientPayload.util';
 import { Roles } from '@/constants/roles';
 import RoleProtectedRoute from '@/routes/RoleProtectedRoute';
 import NotificationBox from '@/components/ui/molecules/NotificationBox';
+import ClientFormLayout from '../components/organisms/ClientFormLayout';
 
 const CreateClientPage: React.FC = () => {
   const theme = useTheme();
@@ -71,60 +63,7 @@ const CreateClientPage: React.FC = () => {
         <NotificationBox />
         <FormProvider {...clientForm}>
           <form onChange={clientForm.handleInputChange} onSubmit={clientForm.handleClientFormSubmit}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: 500 }}>
-              <Accordion defaultExpanded={true} sx={{ width: '100%' }}>
-                <AccordionSummary expandIcon={<AddOutlinedIcon />}>
-                  <Box display="flex" alignItems="center">
-                    <PersonIcon sx={{ color: 'primary.main' }} />
-                    <Typography variant="subtitle1" sx={{ fontSize: '16px', ml: 1 }}>
-                      Personal Details
-                    </Typography>
-                  </Box>
-                </AccordionSummary>
-                <AccordionDetails sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 1 }}>
-                  <ClientDetailsForm />
-                </AccordionDetails>
-              </Accordion>
-              <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
-                <AccordionSummary expandIcon={<AddOutlinedIcon />}>
-                  <Box display="flex" alignItems="center">
-                    <HomeIcon sx={{ color: 'primary.main' }} />
-                    <Typography variant="subtitle1" sx={{ fontSize: '16px', ml: 1 }}>
-                      Address
-                    </Typography>
-                  </Box>
-                </AccordionSummary>
-                <AccordionDetails sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 1 }}>
-                  <AddressDetailsForm />
-                </AccordionDetails>
-              </Accordion>
-              <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
-                <AccordionSummary expandIcon={<AddOutlinedIcon />}>
-                  <Box display="flex" alignItems="center">
-                    <DescriptionIcon sx={{ color: 'secondary.main' }} />
-                    <Typography variant="subtitle1" sx={{ fontSize: '16px', ml: 1 }}>
-                      Contract Details
-                    </Typography>
-                  </Box>
-                </AccordionSummary>
-                <AccordionDetails sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 1 }}>
-                  <ContractDetailsForm />
-                </AccordionDetails>
-              </Accordion>
-              <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
-                <AccordionSummary expandIcon={<AddOutlinedIcon />}>
-                  <Box display="flex" alignItems="center">
-                    <DnsIcon sx={{ color: 'secondary.main' }} />
-                    <Typography variant="subtitle1" sx={{ fontSize: '16px', ml: 1 }}>
-                      DMB Data
-                    </Typography>
-                  </Box>
-                </AccordionSummary>
-                <AccordionDetails sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 1 }}>
-                  <DmbDetailsForm />
-                </AccordionDetails>
-              </Accordion>
-            </Box>
+            <ClientFormLayout />
             <FormValidationErrorModal open={clientForm.isValidationErrorModalOpen} onClose={() => clientForm.setIsValidationErrorModalOpen(false)} errors={clientForm.formState.errors} />
           </form>
         </FormProvider>

@@ -22,7 +22,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { formatError } from '@/lib/formatApiError.util';
 import GroupIcon from '@mui/icons-material/Group';
-import PersonIcon from '@mui/icons-material/Person';
 import { Roles } from '@/constants/roles';
 import RoleProtectedRoute from '@/routes/RoleProtectedRoute';
 
@@ -157,26 +156,24 @@ const UpdateClientPage: React.FC = () => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  const clientForm = useClientForm(
-    async (formData: ClientFormData) => {
-      if (!initialClientData) return;
-      const compareData = initialClientData;
-      const modifiedFields = getModifiedFields(formData, compareData);
-      const clientUpdatePayload = buildClientPayload(modifiedFields);
-      clientMutations.updateClient.mutate(clientUpdatePayload, {
-        onSuccess: () => {
-          setClientNotification({ message: 'Client updated successfully', type: 'success' });
-          scrollToTop();
-        },
-        onError: (error: any) => {
-          const msg = formatError(error).message.join('\n');
-          if (msg) setClientNotification({ message: msg, type: 'error' });
-          else clearClientNotification();
-          scrollToTop();
-        },
-      });
-    }
-  );
+  const clientForm = useClientForm(async (formData: ClientFormData) => {
+    if (!initialClientData) return;
+    const compareData = initialClientData;
+    const modifiedFields = getModifiedFields(formData, compareData);
+    const clientUpdatePayload = buildClientPayload(modifiedFields);
+    clientMutations.updateClient.mutate(clientUpdatePayload, {
+      onSuccess: () => {
+        setClientNotification({ message: 'Client updated successfully', type: 'success' });
+        scrollToTop();
+      },
+      onError: (error: any) => {
+        const msg = formatError(error).message.join('\n');
+        if (msg) setClientNotification({ message: msg, type: 'error' });
+        else clearClientNotification();
+        scrollToTop();
+      },
+    });
+  });
 
   useEffect(() => {
     if (formattedClientData) {
@@ -251,34 +248,29 @@ const UpdateClientPage: React.FC = () => {
         <NotificationBox />
 
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: 500 }}>
-          <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <AccordionTitle icon={<PersonIcon sx={{ color: 'primary.main' }} />} text="Client Form" />
-            </AccordionSummary>
-            <AccordionDetails sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 1 }}>
-              <FormProvider {...clientForm}>
-                <ClientFormLayout handleSubmit={clientForm.handleClientFormSubmit} onChange={clientForm.handleInputChange} />
-              </FormProvider>
-            </AccordionDetails>
-          </Accordion>
-          <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <AccordionTitle icon={<AttachMoneyIcon sx={{ color: 'secondary.main' }} />} text="Balances" />
-            </AccordionSummary>
-            <AccordionDetails sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
-              <BalancesBlock balances={clientData.balances} />
-            </AccordionDetails>
-          </Accordion>
-          {Array.isArray(clientData.users) && clientData.users.length > 0 && (
-            <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <AccordionTitle icon={<GroupIcon sx={{ color: 'primary.main' }} />} text="Users" />
-              </AccordionSummary>
-              <AccordionDetails sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
-                <UsersTable users={clientData.users} onEdit={(id) => navigate(`${webRoutes.admin.users.edit}/${id}`)} />
-              </AccordionDetails>
-            </Accordion>
-          )}
+          <FormProvider {...clientForm}>
+            <form onChange={clientForm.handleInputChange} onSubmit={clientForm.handleClientFormSubmit}>
+              <ClientFormLayout />
+              <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <AccordionTitle icon={<AttachMoneyIcon sx={{ color: 'secondary.main' }} />} text="Balances" />
+                </AccordionSummary>
+                <AccordionDetails sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
+                  <BalancesBlock balances={clientData.balances} />
+                </AccordionDetails>
+              </Accordion>
+              {Array.isArray(clientData.users) && clientData.users.length > 0 && (
+                <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <AccordionTitle icon={<GroupIcon sx={{ color: 'primary.main' }} />} text="Users" />
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
+                    <UsersTable users={clientData.users} onEdit={(id) => navigate(`${webRoutes.admin.users.edit}/${id}`)} />
+                  </AccordionDetails>
+                </Accordion>
+              )}
+            </form>
+          </FormProvider>
         </Box>
 
         <FormValidationErrorModal open={clientForm.isValidationErrorModalOpen} onClose={() => clientForm.setIsValidationErrorModalOpen(false)} errors={clientForm.formState.errors} />
