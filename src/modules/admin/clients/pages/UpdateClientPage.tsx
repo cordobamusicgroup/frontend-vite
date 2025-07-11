@@ -187,7 +187,7 @@ const UpdateClientPage: React.FC = () => {
     });
   };
 
-  const clientForm = useClientForm(onSubmitClientUpdate, onError, onSuccess);
+  const clientForm = useClientForm(onSubmitClientUpdate, onError);
 
   useEffect(() => {
     if (formattedClientData) {
