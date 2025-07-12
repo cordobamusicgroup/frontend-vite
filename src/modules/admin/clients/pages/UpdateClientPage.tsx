@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import dayjs from 'dayjs';
-import { Box, Paper, Typography, useTheme, Table, TableHead, TableRow, TableCell, TableBody, Button } from '@mui/material';
+import { Box, Paper, Typography, useTheme } from '@mui/material';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { useParams, useNavigate } from 'react-router';
 import BasicButton from '@/components/ui/atoms/BasicButton';
@@ -24,6 +24,7 @@ import { formatError } from '@/lib/formatApiError.util';
 import GroupIcon from '@mui/icons-material/Group';
 import { Roles } from '@/constants/roles';
 import RoleProtectedRoute from '@/routes/RoleProtectedRoute';
+import UsersGridTable from '../components/molecules/UsersGridTable';
 
 const getModifiedFields = (currentFormData: any, initialData: any) => {
   return Object.keys(currentFormData).reduce((changedFields: any, key) => {
@@ -61,38 +62,7 @@ function BalancesBlock({ balances }: { balances: any[] }) {
   );
 }
 
-function UsersTable({ users, onEdit }: { users: any[]; onEdit: (id: number) => void }) {
-  return (
-    <Table size="small" sx={{ minWidth: 300, borderCollapse: 'separate', borderSpacing: 0 }}>
-      <TableHead>
-        <TableRow>
-          <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Username</TableCell>
-          <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Email</TableCell>
-          <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Full Name</TableCell>
-          <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Role</TableCell>
-          <TableCell align="center" sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>
-            Actions
-          </TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {users.map((user: any, idx: number) => (
-          <TableRow key={user.id} sx={{ backgroundColor: idx % 2 === 0 ? '#fafbfc' : 'white' }}>
-            <TableCell>{user.username}</TableCell>
-            <TableCell>{user.email}</TableCell>
-            <TableCell>{user.fullName}</TableCell>
-            <TableCell>{user.role}</TableCell>
-            <TableCell align="center">
-              <Button variant="outlined" size="small" onClick={() => onEdit(user.id)} sx={{ minWidth: 80 }}>
-                Edit
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-}
+// UsersTable removed, now using UsersGridTable
 
 const UpdateClientPage: React.FC = () => {
   const theme = useTheme();
@@ -249,7 +219,7 @@ const UpdateClientPage: React.FC = () => {
               </FormSectionAccordion>
               {Array.isArray(clientData.users) && clientData.users.length > 0 && (
                 <FormSectionAccordion title="Users" icon={<GroupIcon sx={{ color: 'primary.main' }} />} defaultExpanded={false}>
-                  <UsersTable users={clientData.users} onEdit={(id) => navigate(`${webRoutes.admin.users.edit}/${id}`)} />
+                  <UsersGridTable users={clientData.users} onEdit={(id) => navigate(`${webRoutes.admin.users.edit}/${id}`)} />
                 </FormSectionAccordion>
               )}
             </form>
