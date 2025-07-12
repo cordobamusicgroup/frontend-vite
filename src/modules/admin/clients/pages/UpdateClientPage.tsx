@@ -7,7 +7,6 @@ import BasicButton from '@/components/ui/atoms/BasicButton';
 import NotificationBox from '@/components/ui/molecules/NotificationBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { Helmet } from 'react-helmet';
 import { useClientsAdmin } from '../hooks/useClientsAdmin';
 import { FormProvider } from 'react-hook-form';
 import { useClientForm, ClientFormData } from '../hooks/useClientForm';
@@ -143,8 +142,7 @@ const UpdateClientPage: React.FC = () => {
       clientForm.reset(formattedClientData);
       setInitialClientData(formattedClientData);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formattedClientData]);
+  }, [formattedClientData, clientForm]);
 
   // --- END HOOKS ---
 
@@ -158,6 +156,7 @@ const UpdateClientPage: React.FC = () => {
           textAlign: 'center',
         }}
       >
+        <title>Error - Córdoba Music Group</title>
         <Paper
           elevation={0}
           sx={{
@@ -188,9 +187,7 @@ const UpdateClientPage: React.FC = () => {
 
   return (
     <RoleProtectedRoute allowedRoles={[Roles.Admin]}>
-      <Helmet>
-        <title>{`Update Client: ${clientData?.clientName ?? 'Unknown'} - Córdoba Music Group`}</title>
-      </Helmet>
+      <title>{`Update Client: ${clientData?.clientName ?? 'Unknown'} - Córdoba Music Group`}</title>
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Update Client: ID {clientData?.id}</Typography>
