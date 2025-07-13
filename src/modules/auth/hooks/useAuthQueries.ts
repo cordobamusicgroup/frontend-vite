@@ -44,7 +44,7 @@ const useAuthQueries = () => {
         return response;
       } catch (e) {
         const error = e as AxiosError<ApiErrorResponse>;
-        throw error.response?.data.message || 'Login failed';
+        throw error.response?.data.message || 'An unexpected error occurred. Please try again later.';
       }
     },
     onSuccess: async () => {
