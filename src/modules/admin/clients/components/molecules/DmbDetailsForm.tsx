@@ -6,6 +6,8 @@ import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
 const DmbDetailsForm: React.FC = () => {
   return (
     <Box>
+      <TextFieldForm type="number" name="dmb.clientId" label="DMB Client ID" slotProps={{ htmlInput: { min: 1, step: 0 } }} />
+
       <TextFieldForm required name="dmb.accessType" label="DMB Access Type" select>
         {AccessTypeDMB.map((option) => (
           <MenuItem key={option.value} value={option.value}>
@@ -23,7 +25,6 @@ const DmbDetailsForm: React.FC = () => {
       </TextFieldForm>
 
       <TextFieldForm name="dmb.subclientName" label="DMB Client Name" />
-
     </Box>
   );
 };

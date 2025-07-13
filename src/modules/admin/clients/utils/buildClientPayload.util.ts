@@ -45,6 +45,7 @@ export function buildClientPayload(formData: Partial<ClientFormData>, allowNullK
       signedAt: formData.contract.status !== 'DRAFT' && formData.contract.signedAt ? dayjs(formData.contract.signedAt).toISOString() : undefined,
     },
     dmb: formData.dmb && {
+      clientId: formData.dmb.clientId,
       accessType: formData.dmb.accessType,
       status: formData.dmb.status,
       subclientName: formData.dmb.subclientName,
