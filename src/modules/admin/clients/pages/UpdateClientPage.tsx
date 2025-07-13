@@ -82,7 +82,7 @@ const UpdateClientPage: React.FC = () => {
         type: clientData.type,
         taxIdType: clientData.taxIdType,
         taxId: clientData.taxId,
-        vatRegistered: clientData.vatRegistered,
+        vatRegistered: typeof clientData.vatRegistered === 'boolean' ? clientData.vatRegistered : false,
         vatId: clientData.vatId,
       },
       address: {
@@ -92,17 +92,20 @@ const UpdateClientPage: React.FC = () => {
         countryId: clientData.address?.countryId,
         zip: clientData.address?.zip,
       },
-      contract: {
-        uuid: clientData.contract.uuid,
-        type: clientData.contract.type,
-        status: clientData.contract.status,
-        startDate: clientData.contract.startDate ? dayjs(clientData.contract.startDate).toDate() : dayjs().toDate(),
-        endDate: clientData.contract.endDate ? dayjs(clientData.contract.endDate).toDate() : dayjs().toDate(),
-        signedBy: clientData.contract.signedBy,
-        signedAt: clientData.contract.signedAt ? dayjs(clientData.contract.signedAt).toDate() : undefined,
-        ppd: clientData.contract.ppd !== undefined && clientData.contract.ppd !== null ? parseFloat(clientData.contract.ppd) : undefined,
-        docUrl: clientData.contract.docUrl,
-      },
+      contract: (() => {
+        const contract = Array.isArray(clientData.contract) ? clientData.contract[0] : clientData.contract;
+        return {
+          uuid: contract?.uuid ?? '',
+          type: contract?.type ?? '',
+          status: contract?.status ?? '',
+          startDate: contract?.startDate ? dayjs(contract.startDate).toDate() : dayjs().toDate(),
+          endDate: contract?.endDate ? dayjs(contract.endDate).toDate() : dayjs().toDate(),
+          signedBy: contract?.signedBy ?? '',
+          signedAt: contract?.signedAt ? dayjs(contract.signedAt).toDate() : undefined,
+          ppd: contract?.ppd !== undefined && contract?.ppd !== null ? parseFloat(contract.ppd) : undefined,
+          docUrl: contract?.docUrl ?? '',
+        };
+      })(),
       dmb: {
         accessType: clientData.dmb?.accessType,
         status: clientData.dmb?.status,
@@ -138,11 +141,11 @@ const UpdateClientPage: React.FC = () => {
   });
 
   useEffect(() => {
-    if (formattedClientData) {
+    if (formattedClientData && !initialClientData) {
       clientForm.reset(formattedClientData);
       setInitialClientData(formattedClientData);
     }
-  }, [formattedClientData, clientForm]);
+  }, [formattedClientData, initialClientData, clientForm]);
 
   // --- END HOOKS ---
 
