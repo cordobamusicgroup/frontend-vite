@@ -10,7 +10,6 @@ const ContractDetailsForm: React.FC = () => {
 
   // Observamos los campos necesarios
   const status: string = useWatch({ name: 'contract.status' });
-  const signed: boolean = useWatch({ name: 'contract.signed' });
   const startDate = useWatch({ name: 'contract.startDate' });
 
   // Determinar si es DRAFT
@@ -18,17 +17,12 @@ const ContractDetailsForm: React.FC = () => {
 
   useEffect(() => {
     const shouldBeSigned = status && status !== 'DRAFT';
-
-    // Si no hay status aún, lo tomamos como DRAFT (signed = false)
     const desiredSigned = shouldBeSigned ? true : false;
-
-    if (signed !== desiredSigned) {
-      setValue('contract.signed', desiredSigned, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-    }
-  }, [status, signed, setValue]);
+    setValue('contract.signed', desiredSigned, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }, [status, setValue]);
 
   return (
     <Box>
@@ -72,7 +66,9 @@ const ContractDetailsForm: React.FC = () => {
       <Controller
         name="contract.signed"
         control={control}
-        render={({ field }) => <FormControlLabel control={<Switch checked={field.value} name="contractSigned" color="primary" disabled />} label="Contract Signed" />}
+        render={({ field: { onChange, value } }) => (
+          <FormControlLabel control={<Switch checked={!!value} onChange={onChange} name="contractSigned" color="primary" disabled />} label="Contract Signed" />
+        )}
       />
       {!isDraft && (
         <>
