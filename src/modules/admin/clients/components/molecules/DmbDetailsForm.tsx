@@ -6,7 +6,13 @@ import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
 const DmbDetailsForm: React.FC = () => {
   return (
     <Box>
-      <TextFieldForm type="number" name="dmb.clientId" label="DMB Client ID" slotProps={{ htmlInput: { min: 1, step: 0 } }} />
+      <TextFieldForm
+        name="dmb.clientId"
+        label="DMB Client ID"
+        type="number"
+        inputProps={{ min: 1, step: 1 }}
+        // value controlado por React Hook Form, pero si usas Controller aquí, asegúrate que value nunca sea undefined
+      />
 
       <TextFieldForm required name="dmb.accessType" label="DMB Access Type" select>
         {AccessTypeDMB.map((option) => (
