@@ -24,7 +24,6 @@ const DmbDetailsForm: React.FC = () => {
 
       <TextFieldForm name="dmb.subclientName" label="DMB Client Name" />
 
-      <TextFieldForm name="dmb.username" label="DMB Username" />
     </Box>
   );
 };

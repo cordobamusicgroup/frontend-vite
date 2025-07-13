@@ -48,7 +48,6 @@ export function buildClientPayload(formData: Partial<ClientFormData>, allowNullK
       accessType: formData.dmb.accessType,
       status: formData.dmb.status,
       subclientName: formData.dmb.subclientName,
-      username: formData.dmb.username,
     },
   };
 
