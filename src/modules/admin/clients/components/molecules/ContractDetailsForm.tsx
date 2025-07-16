@@ -72,7 +72,7 @@ const ContractDetailsForm: React.FC = () => {
       <Controller
         name="contract.signed"
         control={control}
-        render={({ field }) => <FormControlLabel control={<Switch checked={field.value} name="contractSigned" color="primary" disabled />} label="Contract Signed" />}
+        render={({ field }) => <FormControlLabel control={<Switch {...field} checked={Boolean(field.value)} name="contractSigned" color="primary" disabled />} label="Contract Signed" />}
       />
       {!isDraft && (
         <>

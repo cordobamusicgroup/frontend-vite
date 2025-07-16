@@ -49,9 +49,9 @@ const ClientDetailsForm: React.FC = () => {
             control={
               <Switch
                 {...field}
-                checked={vatRegistered}
+                checked={Boolean(field.value)}
                 onChange={(event) => {
-                  field.onChange(event);
+                  field.onChange(event.target.checked);
                   handleVatToggle(event);
                 }}
                 color="primary"
