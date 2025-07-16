@@ -1,19 +1,13 @@
 import { forwardRef } from 'react';
 import {
   AllCommunityModule,
-  ClientSideRowModelModule,
-  DateFilterModule,
   ModuleRegistry,
-  NumberFilterModule,
-  PaginationModule,
-  QuickFilterModule,
-  TextFilterModule,
-  ValidationModule,
 } from 'ag-grid-community';
 import { AgGridReact, AgGridReactProps } from 'ag-grid-react';
 import { Box } from '@mui/material';
 import LoadingSpinner from '../atoms/LoadingSpinner';
 import { cmgThemeGrid } from '@/styles/grid-royalties';
+import '@/styles/ag-grid.css';
 
 interface GridTablesProps extends AgGridReactProps {
   columns: any[];

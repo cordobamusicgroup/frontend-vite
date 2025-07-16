@@ -2,7 +2,6 @@ import * as yup from 'yup';
 
 export const ClientValidationYupSchema = yup.object({
   client: yup.object({
-    clientId: yup.mixed().notRequired(),
     clientName: yup.string().required('Client nickname is required'),
     firstName: yup.string().required('First name is required'),
     lastName: yup.string().required('Last name is required'),
@@ -70,9 +69,16 @@ export const ClientValidationYupSchema = yup.object({
       }),
   }),
   dmb: yup.object({
+    clientId: yup
+      .number()
+      .nullable()
+      .transform((value, originalValue) => (originalValue === '' || originalValue === null ? null : value))
+      .typeError('DMB Client ID must be a number')
+      .integer('DMB Client ID must be an integer')
+      .min(1, 'DMB Client ID must be a positive integer')
+      .notRequired(),
     accessType: yup.string().required('DMB Access Type is required'),
     status: yup.string().required('DMB Status is required'),
     subclientName: yup.string().nullable(),
-    username: yup.string().nullable(),
   }),
 });
