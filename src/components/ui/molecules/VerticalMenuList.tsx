@@ -1,5 +1,5 @@
 import { Roles } from '@/constants/roles';
-import { usePortalMenus } from '@/hooks/usePortalMenus';
+import { useVerticalNavigation } from '@/hooks/useVerticalNavigation';
 import { usePageDataStore } from '@/stores';
 import { List, Divider, styled } from '@mui/material';
 import { useNavigate } from 'react-router';
@@ -22,7 +22,7 @@ const VerticalMenuList: React.FC<VerticalDrawerListProps> = ({ onItemClick }) =>
   const { openMenu: isOpen, openSubMenu, toggleSubMenu } = usePageDataStore();
 
   // Obtenemos los ítems del menú directamente desde el hook
-  const menuItems = usePortalMenus();
+  const menuItems = useVerticalNavigation();
 
   const handleSubMenuClick = (text: string) => {
     toggleSubMenu(text);

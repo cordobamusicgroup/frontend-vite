@@ -16,7 +16,10 @@ export default [
         route('reports', 'modules/user/financial/reports/pages/ReportsUserPage.tsx'),
       ]),
       ...prefix('distribution', [route('dmb-submission-qc', 'modules/user/distribution/dmb-submission-qc/pages/DMBSubmissionQCUser.tsx')]),
-      ...prefix('user', [route('profile', 'modules/user/profile/pages/UserProfilePage.tsx')]),
+      ...prefix('account-settings', [
+        route('profile', 'modules/user/account-settings/profile/pages/UserProfilePage.tsx'),
+        route('payment-information', 'modules/user/account-settings/payment-information/pages/UserPaymentInformationPage.tsx'),
+      ]),
       ...prefix('admin', [
         ...prefix('clients', [
           index('modules/admin/clients/pages/ListClientsPage.tsx'),

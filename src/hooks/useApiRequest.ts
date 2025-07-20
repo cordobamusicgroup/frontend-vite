@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
-import { ApiErrorResponse } from '@/types/api';
+import { ApiErrorResponse } from '@/types/api-error-response';
 import { refreshAccessToken } from '@/modules/auth/lib/refreshAccessToken.util';
 
 const api = axios.create({

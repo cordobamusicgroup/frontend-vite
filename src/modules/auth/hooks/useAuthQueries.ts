@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router';
 import { useErrorStore } from '@/stores';
 import { AxiosError } from 'axios';
-import { ApiErrorResponse } from '@/types/api';
+import { ApiErrorResponse } from '@/types/api-error-response';
 import { logColor } from '@/lib/log.util';
 import { setAccessTokenCookie, removeAccessTokenCookie } from '@/lib/cookies.util';
 import { useAuthStore } from '@/stores/auth.store';
