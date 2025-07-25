@@ -15,7 +15,7 @@ export const usePaymentsUser = () => {
 
   const fetchWithdrawalAuthorized = async () => {
     try {
-      const url = apiRoutes.users.withdrawalAuthorized;
+      const url = apiRoutes.financial.payments.withdrawalAuthorized;
       return await apiRequest({
         url,
         method: 'get',

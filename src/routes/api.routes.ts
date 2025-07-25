@@ -11,8 +11,6 @@ export const apiRoutes = {
   users: {
     editProfile: '/users/edit-profile',
     getCurrent: '/users/current',
-    withdrawalAuthorized: '/users/withdrawal-authorized',
-    currentPaymentInfo: '/users/current-payment-info',
     admin: {
       root: '/users/admin',
       getById: (id: number) => `/users/admin/${id}`,
@@ -34,6 +32,8 @@ export const apiRoutes = {
     },
     payments: {
       root: '/financial/payments',
+      withdrawalAuthorized: '/financial/payments/withdrawal-authorized',
+      currentPaymentInfo: '/financial/payments/current-payment-info',
     },
     reports: {
       user: {
