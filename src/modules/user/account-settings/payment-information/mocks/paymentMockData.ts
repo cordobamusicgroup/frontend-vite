@@ -130,7 +130,11 @@ export const mockInvalidPaymentMethod: any = {
   }
 };
 
-export const mockEmptyData: any = null;
+// Nueva respuesta del backend cuando no hay información de pago
+export const mockEmptyData: any = {
+  paymentMethod: null,
+  data: null
+};
 
 export const mockCorruptedData: any = {
   paymentMethod: PaymentMethodDto.BANK_TRANSFER,
@@ -162,7 +166,7 @@ export const allMockData = [
   { name: "✅ Crypto Tron (TRC20)", data: mockCryptoTron },
   { name: "✅ Crypto TON", data: mockCryptoTon },
   { name: "⚠️ Invalid Payment Method", data: mockInvalidPaymentMethod },
-  { name: "⚠️ Empty/Null Data", data: mockEmptyData },
+  { name: "⚠️ No Payment Info (null/null)", data: mockEmptyData },
   { name: "⚠️ Corrupted Data", data: mockCorruptedData },
   { name: "⚠️ Missing Data Field", data: mockMissingData },
   { name: "🔄 Loading State", data: mockLoadingState },

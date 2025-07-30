@@ -91,12 +91,10 @@ const UserPaymentInformationPage: React.FC = () => {
 
     logColor('info', 'UserPaymentInformationPage', 'PaymentInfo exists:', currentPaymentInfo);
     
-    // Validación de estructura de datos
+    // El backend ahora devuelve { paymentMethod: null, data: null } cuando no hay info de pago
     if (!currentPaymentInfo.paymentMethod || !currentPaymentInfo.data) {
-      logColor('warn', 'UserPaymentInformationPage', 'Invalid payment info structure:', currentPaymentInfo);
-      return (
-        <FetchErrorBox message="Payment information is currently unavailable." />
-      );
+      logColor('info', 'UserPaymentInformationPage', 'No payment method configured (paymentMethod or data is null)');
+      return null; // Retornar null para mostrar el estado "No Payment Information"
     }
     
     const { paymentMethod, data } = currentPaymentInfo;
@@ -224,7 +222,7 @@ const UserPaymentInformationPage: React.FC = () => {
             <FetchErrorBox message="Unable to load payment information. Please try again later." />
           )}
 
-          {!currentIsLoading && !currentError && !currentPaymentInfo && (
+          {!currentIsLoading && !currentError && (!currentPaymentInfo || !currentPaymentInfo.paymentMethod || !currentPaymentInfo.data) && (
             <Paper
               elevation={3}
               sx={{
@@ -273,7 +271,7 @@ const UserPaymentInformationPage: React.FC = () => {
             </Paper>
           )}
 
-          {!currentIsLoading && !currentError && currentPaymentInfo && (
+          {!currentIsLoading && !currentError && currentPaymentInfo && currentPaymentInfo.paymentMethod && currentPaymentInfo.data && (
             <Paper
               elevation={3}
               sx={{
