@@ -1,6 +1,5 @@
-import React from 'react';
-import { Box, Typography, Paper, Divider, Chip, Skeleton } from '@mui/material';
-// import { Select, MenuItem, FormControl, InputLabel } from '@mui/material'; // Para el sistema de testing
+import React, { useState } from 'react';
+import { Box, Typography, Paper, Divider, Chip, Skeleton, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import PaymentIcon from '@mui/icons-material/Payment';
 import FetchErrorBox from '@/components/ui/molecules/FetchErrorBox';
 import { Helmet } from 'react-helmet';
@@ -14,7 +13,7 @@ import { useCurrentPaymentInfo, PaymentMethodDto, PaypalData, BankTransferData, 
 import BankTransferPaymentDisplay from '../components/BankTransferPaymentDisplay';
 import PaypalPaymentDisplay from '../components/PaypalPaymentDisplay';
 import CryptoPaymentDisplay from '../components/CryptoPaymentDisplay';
-// import { allMockData } from '../mocks/paymentMockData'; // Para el sistema de testing
+import { allMockData } from '../mocks/paymentMockData';
 
 /**
  * Página de información de pagos del usuario.
@@ -23,18 +22,18 @@ import CryptoPaymentDisplay from '../components/CryptoPaymentDisplay';
  * con sus métodos de pago y configuración de facturación.
  * 
  * SISTEMA DE TESTING MOCK:
- * Esta página incluye un sistema de testing completo con datos mock para desarrollo.
- * El sistema está comentado para producción pero puede activarse fácilmente:
+ * Esta página incluye un sistema de testing completo con datos mock que se activa
+ * automáticamente SOLO en modo desarrollo (import.meta.env.MODE === 'development').
+ * En producción, el sistema de mock está completamente deshabilitado.
  * 
- * 1. Descomenta las variables de estado: useMockData y selectedMockIndex
- * 2. Descomenta el import de allMockData desde './mocks/paymentMockData'
- * 3. Descomenta el selector UI en el render
- * 4. Descomenta los imports de MUI necesarios para el selector
- * 
- * El sistema incluye 13 casos de prueba:
- * - ✅ Casos válidos: PayPal, Bank Transfer (USD/EUR), Crypto (TRX/TON)
- * - ⚠️ Casos edge: métodos inválidos, datos corruptos, campos faltantes
- * - 🔄 Estados de sistema: loading, error
+ * Características del sistema de testing:
+ * - 🔧 Se activa automáticamente en desarrollo
+ * - 🚫 Completamente deshabilitado en producción
+ * - 🎛️ UI de control para alternar entre API real y datos mock
+ * - 📊 13 casos de prueba disponibles:
+ *   - ✅ Casos válidos: PayPal, Bank Transfer (USD/EUR), Crypto (TRX/TON)
+ *   - ⚠️ Casos edge: métodos inválidos, datos corruptos, campos faltantes
+ *   - 🔄 Estados de sistema: loading, error
  *
  * @returns {React.FC} El componente UserPaymentInformationPage
  */
@@ -42,18 +41,17 @@ const UserPaymentInformationPage: React.FC = () => {
   const theme = useTheme();
   const { data: paymentInfo, isLoading, error } = useCurrentPaymentInfo();
 
-  // Estado para testing con mocks - Comentado para uso futuro
-  // const [useMockData, setUseMockData] = useState(true);
-  // const [selectedMockIndex, setSelectedMockIndex] = useState(0);
-  const useMockData = false;
-  const selectedMockIndex = 0;
+  // Sistema de mock basado en environment - solo disponible en desarrollo
+  const isMockingEnabled = import.meta.env.MODE === 'development';
+  const [useMockData, setUseMockData] = useState(false);
+  const [selectedMockIndex, setSelectedMockIndex] = useState(0);
 
   // Development logging para debug de estados de la API
   logColor('info', 'UserPaymentInformationPage', 'PaymentInfo state:', { paymentInfo, isLoading, error });
 
   // Función para obtener los datos (reales o mock)
   const getCurrentPaymentInfo = () => {
-    if (useMockData) {
+    if (isMockingEnabled && useMockData) {
       const mockData = allMockData[selectedMockIndex]?.data;
       
       // Casos especiales para simular estados
@@ -67,7 +65,7 @@ const UserPaymentInformationPage: React.FC = () => {
 
   // Función para obtener el estado de loading simulado
   const getCurrentLoadingState = () => {
-    if (useMockData) {
+    if (isMockingEnabled && useMockData) {
       return allMockData[selectedMockIndex]?.data === "LOADING";
     }
     return isLoading;
@@ -75,7 +73,7 @@ const UserPaymentInformationPage: React.FC = () => {
 
   // Función para obtener el estado de error simulado
   const getCurrentErrorState = () => {
-    if (useMockData) {
+    if (isMockingEnabled && useMockData) {
       return allMockData[selectedMockIndex]?.data === "ERROR" ? { message: "Simulated API Error" } : null;
     }
     return error;
@@ -156,37 +154,36 @@ const UserPaymentInformationPage: React.FC = () => {
         </CustomPageHeader>
 
         <Box my={4}>
-          {/* Mock Data Selector - Comentado para uso futuro */}
-          {/* Para activar el sistema de testing, descomenta el siguiente bloque y las variables de estado arriba */}
-          {/*
-          <Box mb={3} p={2} bgcolor="grey.100" borderRadius={1}>
-            <Typography variant="h6" mb={2}>
-              🧪 Testing Mode
-            </Typography>
-            <Box display="flex" gap={2} alignItems="center">
-              <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>Data Source</InputLabel>
-                <Select value={useMockData ? 'mock' : 'api'} label="Data Source" onChange={(e) => setUseMockData(e.target.value === 'mock')}>
-                  <MenuItem value="api">Real API</MenuItem>
-                  <MenuItem value="mock">Mock Data</MenuItem>
-                </Select>
-              </FormControl>
-
-              {useMockData && (
-                <FormControl size="small" sx={{ minWidth: 200 }}>
-                  <InputLabel>Mock Type</InputLabel>
-                  <Select value={selectedMockIndex} label="Mock Type" onChange={(e) => setSelectedMockIndex(Number(e.target.value))}>
-                    {allMockData.map((mock, index) => (
-                      <MenuItem key={index} value={index}>
-                        {mock.name}
-                      </MenuItem>
-                    ))}
+          {/* Mock Data Selector - Solo disponible en desarrollo */}
+          {isMockingEnabled && (
+            <Box mb={3} p={2} bgcolor="grey.100" borderRadius={1}>
+              <Typography variant="h6" mb={2}>
+                🧪 Development Testing Mode
+              </Typography>
+              <Box display="flex" gap={2} alignItems="center">
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel>Data Source</InputLabel>
+                  <Select value={useMockData ? 'mock' : 'api'} label="Data Source" onChange={(e) => setUseMockData(e.target.value === 'mock')}>
+                    <MenuItem value="api">Real API</MenuItem>
+                    <MenuItem value="mock">Mock Data</MenuItem>
                   </Select>
                 </FormControl>
-              )}
+
+                {useMockData && (
+                  <FormControl size="small" sx={{ minWidth: 200 }}>
+                    <InputLabel>Mock Type</InputLabel>
+                    <Select value={selectedMockIndex} label="Mock Type" onChange={(e) => setSelectedMockIndex(Number(e.target.value))}>
+                      {allMockData.map((mock, index) => (
+                        <MenuItem key={index} value={index}>
+                          {mock.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              </Box>
             </Box>
-          </Box>
-          */}
+          )}
 
           {currentIsLoading && (
             <Paper
