@@ -9,7 +9,11 @@
       "Bash(mv:*)",
       "Bash(pnpm run lint:*)",
       "Bash(rmdir:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npx tsc:*)",
+      "Bash(pnpm run:*)",
+      "Bash(npx eslint:*)"
     ],
     "deny": []
   }

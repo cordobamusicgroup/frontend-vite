@@ -14,7 +14,7 @@ interface SuccessModalProps {
 }
 
 const style = {
-  position: "absolute" as "absolute",
+  position: "absolute" as const,
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
@@ -25,7 +25,7 @@ const style = {
   boxShadow: 24,
   p: 4,
   borderRadius: 2,
-  textAlign: "center" as "center",
+  textAlign: "center" as const,
 };
 
 const SuccessModal: React.FC<SuccessModalProps> = ({ open, onClose, title, message, showCloseButton = true }) => {

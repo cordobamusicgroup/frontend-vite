@@ -4,7 +4,7 @@
  * @param context Context string, object, or function (optional, for source identification)
  * @param {...any} args
  */
-export function logColor(type: 'log' | 'warn' | 'error' | 'info' | 'success', contextOrMsg?: string | object | Function, ...args: any[]) {
+export function logColor(type: 'log' | 'warn' | 'error' | 'info' | 'success', contextOrMsg?: string | object | (() => void), ...args: any[]) {
   if (import.meta.env.MODE === 'production') return;
   let style = '';
   let label = '[LOG]';
@@ -52,10 +52,8 @@ export function logColor(type: 'log' | 'warn' | 'error' | 'info' | 'success', co
     args = [contextOrMsg, ...args];
   }
   if (contextLabel) {
-    // eslint-disable-next-line no-console
     console.log(`%c${label}%c ${contextLabel}`, style, contextStyle, ...args);
   } else {
-    // eslint-disable-next-line no-console
     console.log(`%c${label}`, style, ...args);
   }
 }

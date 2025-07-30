@@ -10,12 +10,12 @@ interface LabelStatusChipProps {
 const statusConfig = {
   ACTIVE: {
     label: 'Active',
-    color: 'success' as 'success',
+    color: 'success' as const,
     icon: <CheckCircleOutlineIcon style={{ color: 'white' }} />,
   },
   DISABLED: {
     label: 'Disabled',
-    color: 'default' as 'default',
+    color: 'default' as const,
     icon: <CancelOutlinedIcon style={{ color: 'gray' }} />,
   },
 };
