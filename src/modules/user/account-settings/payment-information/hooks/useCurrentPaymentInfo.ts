@@ -114,19 +114,13 @@ export const useCurrentPaymentInfo = () => {
    * Function to fetch current payment information
    */
   const fetchCurrentPaymentInfo = async (): Promise<PaymentInfo | null> => {
-    try {
-      const url = apiRoutes.financial.payments.currentPaymentInfo;
-      const response = await apiRequest({
-        url,
-        method: 'get',
-        requireAuth: true,
-      });
-      console.log('API Response:', response);
-      return response;
-    } catch (error) {
-      console.error('Error fetching payment info:', error);
-      throw error;
-    }
+    const url = apiRoutes.financial.payments.currentPaymentInfo;
+    const response = await apiRequest({
+      url,
+      method: 'get',
+      requireAuth: true,
+    });
+    return response;
   };
 
   const query = useQuery({
