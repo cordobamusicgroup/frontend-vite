@@ -20,12 +20,12 @@ import { allMockData } from '../mocks/paymentMockData';
  *
  * Esta página permite al usuario gestionar y ver información relacionada
  * con sus métodos de pago y configuración de facturación.
- * 
+ *
  * SISTEMA DE TESTING MOCK:
  * Esta página incluye un sistema de testing completo con datos mock que se activa
  * automáticamente SOLO en modo desarrollo (import.meta.env.MODE === 'development').
  * En producción, el sistema de mock está completamente deshabilitado.
- * 
+ *
  * Características del sistema de testing:
  * - 🔧 Se activa automáticamente en desarrollo
  * - 🚫 Completamente deshabilitado en producción
@@ -53,11 +53,11 @@ const UserPaymentInformationPage: React.FC = () => {
   const getCurrentPaymentInfo = () => {
     if (isMockingEnabled && useMockData) {
       const mockData = allMockData[selectedMockIndex]?.data;
-      
+
       // Casos especiales para simular estados
-      if (mockData === "LOADING") return null;
-      if (mockData === "ERROR") return null;
-      
+      if (mockData === 'LOADING') return null;
+      if (mockData === 'ERROR') return null;
+
       return mockData || null;
     }
     return paymentInfo;
@@ -66,7 +66,7 @@ const UserPaymentInformationPage: React.FC = () => {
   // Función para obtener el estado de loading simulado
   const getCurrentLoadingState = () => {
     if (isMockingEnabled && useMockData) {
-      return allMockData[selectedMockIndex]?.data === "LOADING";
+      return allMockData[selectedMockIndex]?.data === 'LOADING';
     }
     return isLoading;
   };
@@ -74,7 +74,7 @@ const UserPaymentInformationPage: React.FC = () => {
   // Función para obtener el estado de error simulado
   const getCurrentErrorState = () => {
     if (isMockingEnabled && useMockData) {
-      return allMockData[selectedMockIndex]?.data === "ERROR" ? { message: "Simulated API Error" } : null;
+      return allMockData[selectedMockIndex]?.data === 'ERROR' ? { message: 'Simulated API Error' } : null;
     }
     return error;
   };
@@ -90,13 +90,13 @@ const UserPaymentInformationPage: React.FC = () => {
     }
 
     logColor('info', 'UserPaymentInformationPage', 'PaymentInfo exists:', currentPaymentInfo);
-    
+
     // El backend ahora devuelve { paymentMethod: null, data: null } cuando no hay info de pago
     if (!currentPaymentInfo.paymentMethod || !currentPaymentInfo.data) {
       logColor('info', 'UserPaymentInformationPage', 'No payment method configured (paymentMethod or data is null)');
       return null; // Retornar null para mostrar el estado "No Payment Information"
     }
-    
+
     const { paymentMethod, data } = currentPaymentInfo;
     logColor('info', 'UserPaymentInformationPage', 'PaymentMethod:', paymentMethod);
     logColor('info', 'UserPaymentInformationPage', 'PaymentData:', data);
@@ -145,9 +145,9 @@ const UserPaymentInformationPage: React.FC = () => {
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'rgba(0,79,131,1)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '16px' }}>Payment Information</Typography>
-          <BasicButton colorBackground="white" colorText={'#164723'} color="primary" variant="contained" startIcon={<SettingsIcon />}>
+          {/* <BasicButton colorBackground="white" colorText={'#164723'} color="primary" variant="contained" startIcon={<SettingsIcon />}>
             Update Payment Information
-          </BasicButton>
+          </BasicButton> */}
           <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
         </CustomPageHeader>
 
@@ -195,13 +195,13 @@ const UserPaymentInformationPage: React.FC = () => {
               <Box display="flex" alignItems="center" justifyContent="flex-end" mb={2}>
                 <Skeleton variant="rectangular" width={100} height={24} sx={{ borderRadius: 1 }} />
               </Box>
-              
+
               <Box mb={3}>
                 <Skeleton variant="text" width="40%" height={32} sx={{ mb: 2 }} />
                 <Skeleton variant="text" width="60%" height={24} sx={{ mb: 1 }} />
                 <Skeleton variant="text" width="80%" height={24} sx={{ mb: 1 }} />
                 <Skeleton variant="text" width="50%" height={24} sx={{ mb: 3 }} />
-                
+
                 <Box display="flex" gap={2} mb={2}>
                   <Skeleton variant="text" width="30%" height={24} />
                   <Skeleton variant="text" width="40%" height={24} />
@@ -218,9 +218,7 @@ const UserPaymentInformationPage: React.FC = () => {
             </Paper>
           )}
 
-          {currentError && (
-            <FetchErrorBox message="Unable to load payment information. Please try again later." />
-          )}
+          {currentError && <FetchErrorBox message="Unable to load payment information. Please try again later." />}
 
           {!currentIsLoading && !currentError && (!currentPaymentInfo || !currentPaymentInfo.paymentMethod || !currentPaymentInfo.data) && (
             <Paper
@@ -265,7 +263,8 @@ const UserPaymentInformationPage: React.FC = () => {
                     fontSize: '1.05rem',
                   }}
                 >
-                  You haven't set up your payment information yet. Click "Update Payment Information" to get started.
+                  You haven't set up your payment information yet.
+                  {/* Click "Update Payment Information" to get started. */}
                 </Typography>
               </Box>
             </Paper>
