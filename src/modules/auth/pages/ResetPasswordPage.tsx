@@ -67,6 +67,19 @@ export default function ResetPasswordPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [countdown, setCountdown] = useState(3);
 
+  // Cuenta regresiva y redirección al login
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
+    if (showSuccess && countdown > 0) {
+      timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    } else if (showSuccess && countdown === 0) {
+      navigate(webRoutes.login);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [showSuccess, countdown, navigate]);
+
   if (!resetToken) {
     console.error('Reset token is missing');
     return (
@@ -96,19 +109,6 @@ export default function ResetPasswordPage() {
       },
     );
   });
-
-  // Cuenta regresiva y redirección al login
-  React.useEffect(() => {
-    let timer: NodeJS.Timeout | undefined;
-    if (showSuccess && countdown > 0) {
-      timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    } else if (showSuccess && countdown === 0) {
-      navigate(webRoutes.login);
-    }
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [showSuccess, countdown, navigate]);
 
   const passwordCriteria = {
     isLengthValid: {

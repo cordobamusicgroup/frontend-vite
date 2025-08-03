@@ -38,9 +38,10 @@ const baseRoutes = {
     distribution: {
       dmbSubmissionQC: '/distribution/dmb-submission-qc',
     },
-    user: {
-      root: '/user',
-      profile: '/user/profile',
+    userSettings: {
+      root: '/account-settings',
+      profile: '/account-settings/profile',
+      paymentInformation: '/account-settings/payment-information',
     },
   },
   admin: {
@@ -84,7 +85,7 @@ function createProtectedRoutes(): ProtectedRouteConfig[] {
     { path: '/auth/login', public: true },
     { path: '/auth/reset', public: true },
     { path: prefixedRoutes.admin.root as string, roles: [Roles.Admin] },
-    { path: prefixedRoutes.backoffice.user.root as string, roles: [Roles.User, Roles.Admin] },
+    { path: prefixedRoutes.backoffice.userSettings.root as string, roles: [Roles.User, Roles.Admin] },
     { path: prefixedRoutes.backoffice.financial.invoices as string, roles: [Roles.All] },
     { path: prefixedRoutes.backoffice.financial.reports as string, roles: [Roles.All] },
   ];

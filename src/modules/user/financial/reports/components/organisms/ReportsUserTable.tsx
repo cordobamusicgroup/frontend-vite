@@ -8,7 +8,7 @@ import { FiberManualRecord as DotIcon } from '@mui/icons-material';
 import GridTables from '@/components/ui/organisms/GridTables';
 import { AgGridReact } from 'ag-grid-react';
 import { useNotificationStore } from '@/stores';
-import { useReportsUser } from '../../hooks/useReportsUser';
+import { useFetchReports, useDownloadReport } from '../../hooks';
 import { formatError } from '@/lib/formatApiError.util';
 
 interface ReportsTableProps {
@@ -17,7 +17,8 @@ interface ReportsTableProps {
 
 const ReportsTable: React.FC<ReportsTableProps> = ({ distributor }) => {
   const { setNotification } = useNotificationStore();
-  const { downloadReport, reportData, reportFetchLoading, reportFetchError } = useReportsUser(distributor);
+  const { reportData, reportFetchLoading, reportFetchError } = useFetchReports(distributor);
+  const { downloadReport } = useDownloadReport();
   const gridRef = useRef<AgGridReact>(null);
 
   const handleDownload = async (reportId: number): Promise<void> => {

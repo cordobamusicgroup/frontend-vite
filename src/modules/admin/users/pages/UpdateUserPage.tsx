@@ -3,14 +3,13 @@ import { Box, List, ListItem, ListItemText, Paper, Typography, useTheme } from '
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { useParams } from 'react-router';
 import BasicButton from '@/components/ui/atoms/BasicButton';
-import ErrorBox from '@/components/ui/molecules/ErrorBox';
-import SuccessBox from '@/components/ui/molecules/SuccessBox';
+import NotificationBox from '@/components/ui/molecules/NotificationBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { Helmet } from 'react-helmet';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
@@ -19,7 +18,7 @@ import { useFetchUsers, useUpdateUser } from '../hooks';
 import { UsersValidationSchema } from '../schemas/UsersAdminValidationSchema';
 import UsersFormLayout from '../components/organisms/UsersFormLayout';
 
-type UserFormData = z.infer<typeof UsersValidationSchema>;
+type UserFormData = yup.InferType<typeof UsersValidationSchema>;
 
 const getModifiedFields = (currentFormData: any, initialData: any) => {
   return Object.keys(currentFormData).reduce((changedFields: any, key) => {
@@ -32,7 +31,6 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
 
 // TODO:
 // ! Implementar ruta de validación por rol (RoleProtectedRoute global y/o wrapper de rutas)
-// ? Reemplazar SuccessBox y ErrorBox por NotificationBox (los otros están deprecated)
 // ? Llevar getModifiedFields a un util global en shared/utils, ya que se repite en varios componentes
 
 const UpdateUserPage: React.FC = () => {
@@ -42,7 +40,7 @@ const UpdateUserPage: React.FC = () => {
   const updateUser = useUpdateUser(userId!);
   const { data: userData, error: userFetchError, isPending: userFetchLoading } = usersQuery;
 
-  const { notification: userNotification, setNotification: setUserNotification, clearNotification: clearUserNotification } = useNotificationStore();
+  const { setNotification: setUserNotification, clearNotification: clearUserNotification } = useNotificationStore();
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
 
   // Store the initial data for comparison
@@ -50,7 +48,7 @@ const UpdateUserPage: React.FC = () => {
 
   const userFormMethods = useForm<UserFormData>({
     mode: 'all',
-    resolver: zodResolver(UsersValidationSchema),
+    resolver: yupResolver(UsersValidationSchema),
     reValidateMode: 'onChange',
   });
 
@@ -197,10 +195,7 @@ const UpdateUserPage: React.FC = () => {
           </BasicButton>
         </CustomPageHeader>
 
-        <Box>
-          {userNotification?.type === 'success' && <SuccessBox>{userNotification.message}</SuccessBox>}
-          {userNotification?.type === 'error' && <ErrorBox>{userNotification.message}</ErrorBox>}
-        </Box>
+        <NotificationBox />
 
         <FormProvider {...userFormMethods}>
           <UsersFormLayout handleSubmit={submitUserForm} onChange={handleFormInputChange} />

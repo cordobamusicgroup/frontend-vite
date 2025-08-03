@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ApiErrorResponse } from '@/types/api';
+import { ApiErrorResponse } from '@/types/api-error-response';
 
 export type FormattedApiError = {
   message: string[]; // always an array, even if only one message

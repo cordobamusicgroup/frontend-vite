@@ -1,25 +1,12 @@
-import { z } from 'zod';
+import * as yup from 'yup';
 
 /**
- * Validation schema for user-related data using Zod.
+ * Validation schema for user-related data using Yup.
  */
-export const UsersValidationSchema = z.object({
-  clientId: z.any().nullable().optional(), // Revert to `any` type for flexibility
-  username: z.string({
-    required_error: 'Username is required',
-  }),
-  email: z
-    .string({
-      required_error: 'Email is required',
-    })
-    .email('Invalid email'),
-  fullName: z
-    .string({
-      required_error: 'Full name is required',
-    })
-    .min(3, 'Full name must be at least 3 characters long')
-    .max(50, 'Full name must be at most 50 characters long'),
-  role: z.enum(['ADMIN', 'USER'], {
-    errorMap: () => ({ message: 'Invalid role' }),
-  }),
+export const UsersValidationSchema = yup.object({
+  clientId: yup.mixed().nullable().optional(),
+  username: yup.string().required('Username is required'),
+  email: yup.string().required('Email is required').email('Invalid email'),
+  fullName: yup.string().required('Full name is required').min(3, 'Full name must be at least 3 characters long').max(50, 'Full name must be at most 50 characters long'),
+  role: yup.string().oneOf(['ADMIN', 'USER'], 'Invalid role').required('Role is required'),
 });

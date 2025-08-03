@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 import { royaltiesgrid } from '@/styles/grid-royalties';
 import { FiberManualRecord as DotIcon } from '@mui/icons-material';
 import { AgGridReact } from 'ag-grid-react';
-import { useTransactionsUser } from '../../hooks/useTransactionsUser';
+import { useFetchTransactions } from '../../hooks';
 import GridTables from '@/components/ui/organisms/GridTables';
 
 interface TransactionsTableProps {
@@ -15,7 +15,7 @@ interface TransactionsTableProps {
 
 const TransactionsTable: React.FC<TransactionsTableProps> = ({ currency }) => {
   const gridRef = useRef<AgGridReact>(null);
-  const { transactionsData, transactionsFetchLoading, transactionsFetchError } = useTransactionsUser(currency);
+  const { transactionsData, transactionsFetchLoading, transactionsFetchError } = useFetchTransactions(currency);
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 80, filter: false },

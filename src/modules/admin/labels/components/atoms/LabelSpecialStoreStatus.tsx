@@ -11,22 +11,22 @@ interface LabelSpecialStoreStatusProps {
 const statusConfig = {
   NO_REGISTRATION: {
     label: 'Unregistered',
-    color: 'default' as 'default',
+    color: 'default' as const,
     icon: <CancelOutlinedIcon style={{ color: 'gray' }} />,
   },
   PENDING: {
     label: 'Pending',
-    color: 'warning' as 'warning',
+    color: 'warning' as const,
     icon: <ScheduleOutlinedIcon />,
   },
   ACTIVE: {
     label: 'Active',
-    color: 'success' as 'success',
+    color: 'success' as const,
     icon: <CheckCircleOutlineIcon style={{ color: 'white' }} />,
   },
   REJECTED: {
     label: 'Rejected',
-    color: 'error' as 'error',
+    color: 'error' as const,
     icon: <PriorityHighOutlinedIcon style={{ color: 'white' }} />,
   },
 };

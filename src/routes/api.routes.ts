@@ -33,6 +33,7 @@ export const apiRoutes = {
     payments: {
       root: '/financial/payments',
       withdrawalAuthorized: '/financial/payments/withdrawal-authorized',
+      currentPaymentInfo: '/financial/payments/current-payment-info',
     },
     reports: {
       user: {

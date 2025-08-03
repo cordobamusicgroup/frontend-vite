@@ -4,9 +4,8 @@ import { styled } from '@mui/material/styles';
 import { Block, MoneyOff, Pending, ScheduleSend, WarningAmber } from '@mui/icons-material';
 import { useState } from 'react';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
-import { usePaymentsUser } from '../../hooks/usePaymentsUser';
+import { useFetchWithdrawalAuth, useFetchBalances } from '../../hooks';
 import BasicButton from '@/components/ui/atoms/BasicButton';
-import { useBalancesUser } from '../../hooks/useBalancesUser';
 
 interface BalancesBlockProps {
   paymentMethod?: string;
@@ -28,8 +27,8 @@ export default function BalancesBlock({ paymentMethod = 'N/A', currency = 'EUR' 
   const [open, setOpen] = useState(false);
   const date = dayjs().format('DD MMMM YYYY');
   const currencySymbol = currency === 'USD' ? '$' : '€';
-  const { withdrawalData } = usePaymentsUser();
-  const { balancesData } = useBalancesUser();
+  const { withdrawalData } = useFetchWithdrawalAuth();
+  const { balancesData } = useFetchBalances();
 
   // Buscar el balance y retained para la currency seleccionada
   const balanceObj = Array.isArray(balancesData) ? balancesData.find((b: any) => b.currency === currency) : null;

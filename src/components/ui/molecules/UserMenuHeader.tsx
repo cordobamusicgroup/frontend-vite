@@ -5,7 +5,7 @@ import { Menu, MenuItem, ListItemIcon, ListItemText, Box, Typography, IconButton
 import { useTheme } from '@mui/material/styles';
 
 // Custom hooks and utilities
-import { useUserMenuItems } from '@/hooks/userMenuItems';
+import { useUserNavigation } from '@/hooks/useUserNavigation';
 import { useUserStore } from '@/stores';
 import { isMobile } from '@/theme';
 
@@ -27,7 +27,7 @@ const UserMenuHeader: React.FC = () => {
 
   const theme = useTheme();
   const userData = useUserStore((state) => state.userData);
-  const menuItems = useUserMenuItems(); // Ya no recibe argumentos
+  const menuItems = useUserNavigation(); // Ya no recibe argumentos
 
   const isMobileView = isMobile();
   const isMenuOpen = Boolean(anchorEl);

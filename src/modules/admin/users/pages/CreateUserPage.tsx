@@ -8,16 +8,16 @@ import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { Helmet } from 'react-helmet';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
-import { UsersValidationSchema } from '../schemas/UsersAdminValidationSchema';
-import UsersFormLayout from '../components/organisms/UsersFormLayout';
 import { formatError } from '@/lib/formatApiError.util';
 import { useRegisterUser } from '../hooks';
+import UsersFormLayout from '../components/organisms/UsersFormLayout';
+import { UsersValidationSchema } from '../schemas/UsersAdminValidationSchema';
 
-type UserFormData = z.infer<typeof UsersValidationSchema>;
+type UserFormData = yup.InferType<typeof UsersValidationSchema>;
 
 const CreateUserPage: React.FC = () => {
   const theme = useTheme();
@@ -28,7 +28,7 @@ const CreateUserPage: React.FC = () => {
 
   const userFormMethods = useForm<UserFormData>({
     mode: 'all',
-    resolver: zodResolver(UsersValidationSchema),
+    resolver: yupResolver(UsersValidationSchema),
   });
 
   const {

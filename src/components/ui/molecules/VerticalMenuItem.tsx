@@ -1,10 +1,10 @@
-import React, { useCallback } from "react";
-import { ListItemIcon, ListItemText, Collapse, List, Link, ListItemButton } from "@mui/material";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ArrowForwardOutlinedIcon from "@mui/icons-material/ArrowForwardOutlined";
-import { MenuItemType, SubMenuType } from "@/hooks/usePortalMenus";
-import { useNavigate } from "react-router";
+import React, { useCallback } from 'react';
+import { ListItemIcon, ListItemText, Collapse, List, Link, ListItemButton } from '@mui/material';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
+import { MenuItemType, SubMenuType } from '@/hooks/useVerticalNavigation';
+import { useNavigate } from 'react-router';
 
 interface VerticalMenuItemProps {
   item: MenuItemType;
@@ -23,10 +23,10 @@ const SubMenuItem: React.FC<{
   onItemClick: (e: React.MouseEvent, path: string) => void;
 }> = ({ subItem, onItemClick }) => (
   <ListItemButton key={subItem.text} component={Link} href={subItem.path} onClick={(e: React.MouseEvent) => onItemClick(e, subItem.path)} sx={{ pl: 3, py: 0.5 }}>
-    <ListItemIcon sx={{ mr: 2, minWidth: "auto" }}>
-      <ArrowForwardOutlinedIcon sx={{ fontSize: "1rem" }} />
+    <ListItemIcon sx={{ mr: 2, minWidth: 'auto' }}>
+      <ArrowForwardOutlinedIcon sx={{ fontSize: '1rem' }} />
     </ListItemIcon>
-    <ListItemText primary={subItem.text} primaryTypographyProps={{ fontSize: "14px" }} />
+    <ListItemText primary={subItem.text} primaryTypographyProps={{ fontSize: '14px' }} />
   </ListItemButton>
 );
 
@@ -39,9 +39,11 @@ const MenuItemContent: React.FC<{
   isSubMenuOpen: boolean;
 }> = ({ item, isOpen, isSubMenuOpen }) => (
   <>
-    <ListItemIcon sx={{ mr: 2, minWidth: "auto" }}>{React.isValidElement(item.icon) ? React.cloneElement(item.icon as React.ReactElement<any>, { sx: { fontSize: "1.3rem" } }) : item.icon}</ListItemIcon>
+    <ListItemIcon sx={{ mr: 2, minWidth: 'auto' }}>
+      {React.isValidElement(item.icon) ? React.cloneElement(item.icon as React.ReactElement<any>, { sx: { fontSize: '1.3rem' } }) : item.icon}
+    </ListItemIcon>
 
-    {isOpen && <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: "14px" }} />}
+    {isOpen && <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '14px' }} />}
 
     {/* Fixed undefined check */}
     {isOpen && item.subMenuItems && item.subMenuItems.length > 0 && (isSubMenuOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />)}
@@ -77,7 +79,7 @@ const VerticalMenuItem: React.FC<VerticalMenuItemProps> = ({ item, open, isSubMe
         onClick();
       }
     },
-    [item.path, hasNoSubmenus, navigate, onClick]
+    [item.path, hasNoSubmenus, navigate, onClick],
   );
 
   const handleSubItemClick = useCallback(
@@ -88,14 +90,14 @@ const VerticalMenuItem: React.FC<VerticalMenuItemProps> = ({ item, open, isSubMe
         onSubItemClick();
       }
     },
-    [navigate, onSubItemClick]
+    [navigate, onSubItemClick],
   );
 
   return (
     <>
       {/* Main menu item - either as a link or regular item */}
       {shouldRenderAsLink ? (
-        <ListItemButton component={Link} href={item.path || "#"} onClick={handleMainItemClick}>
+        <ListItemButton component={Link} href={item.path || '#'} onClick={handleMainItemClick}>
           <MenuItemContent item={item} isOpen={open} isSubMenuOpen={isSubMenuOpen} />
         </ListItemButton>
       ) : (

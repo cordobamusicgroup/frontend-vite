@@ -1,13 +1,12 @@
-import { useEffect, useCallback, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import dayjs from 'dayjs';
-import { Box, Paper, Typography, useTheme, Table, TableHead, TableRow, TableCell, TableBody, Button, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Box, Paper, Typography, useTheme } from '@mui/material';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { useParams, useNavigate } from 'react-router';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import NotificationBox from '@/components/ui/molecules/NotificationBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { Helmet } from 'react-helmet';
 import { useClientsAdmin } from '../hooks/useClientsAdmin';
 import { FormProvider } from 'react-hook-form';
 import { useClientForm, ClientFormData } from '../hooks/useClientForm';
@@ -18,13 +17,13 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
 import { buildClientPayload } from '../utils/buildClientPayload.util';
 import webRoutes from '@/routes/web.routes';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FormSectionAccordion from '@/components/ui/molecules/FormSectionAccordion';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { formatError } from '@/lib/formatApiError.util';
 import GroupIcon from '@mui/icons-material/Group';
-import PersonIcon from '@mui/icons-material/Person';
 import { Roles } from '@/constants/roles';
 import RoleProtectedRoute from '@/routes/RoleProtectedRoute';
+import UsersGridTable from '../components/molecules/UsersGridTable';
 
 const getModifiedFields = (currentFormData: any, initialData: any) => {
   return Object.keys(currentFormData).reduce((changedFields: any, key) => {
@@ -34,15 +33,6 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
     return changedFields;
   }, {});
 };
-
-const AccordionTitle = ({ icon, text }: { icon: React.ReactElement; text: string }) => (
-  <Box display="flex" alignItems="center">
-    {icon as any}
-    <Typography variant="subtitle1" sx={{ fontSize: '16px', ml: 1 }}>
-      {text}
-    </Typography>
-  </Box>
-);
 
 function BalancesBlock({ balances }: { balances: any[] }) {
   const usd = balances?.find((b: any) => b.currency === 'USD') || {};
@@ -71,38 +61,7 @@ function BalancesBlock({ balances }: { balances: any[] }) {
   );
 }
 
-function UsersTable({ users, onEdit }: { users: any[]; onEdit: (id: number) => void }) {
-  return (
-    <Table size="small" sx={{ minWidth: 300, borderCollapse: 'separate', borderSpacing: 0 }}>
-      <TableHead>
-        <TableRow>
-          <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Username</TableCell>
-          <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Email</TableCell>
-          <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Full Name</TableCell>
-          <TableCell sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>Role</TableCell>
-          <TableCell align="center" sx={{ fontWeight: 'bold', borderBottom: '2px solid #e0e0e0' }}>
-            Actions
-          </TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {users.map((user: any, idx: number) => (
-          <TableRow key={user.id} sx={{ backgroundColor: idx % 2 === 0 ? '#fafbfc' : 'white' }}>
-            <TableCell>{user.username}</TableCell>
-            <TableCell>{user.email}</TableCell>
-            <TableCell>{user.fullName}</TableCell>
-            <TableCell>{user.role}</TableCell>
-            <TableCell align="center">
-              <Button variant="outlined" size="small" onClick={() => onEdit(user.id)} sx={{ minWidth: 80 }}>
-                Edit
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-}
+// UsersTable removed, now using UsersGridTable
 
 const UpdateClientPage: React.FC = () => {
   const theme = useTheme();
@@ -123,7 +82,7 @@ const UpdateClientPage: React.FC = () => {
         type: clientData.type,
         taxIdType: clientData.taxIdType,
         taxId: clientData.taxId,
-        vatRegistered: clientData.vatRegistered,
+        vatRegistered: typeof clientData.vatRegistered === 'boolean' ? clientData.vatRegistered : false,
         vatId: clientData.vatId,
       },
       address: {
@@ -133,17 +92,20 @@ const UpdateClientPage: React.FC = () => {
         countryId: clientData.address?.countryId,
         zip: clientData.address?.zip,
       },
-      contract: {
-        uuid: clientData.contract.uuid,
-        type: clientData.contract.type,
-        status: clientData.contract.status,
-        startDate: clientData.contract.startDate ? dayjs(clientData.contract.startDate).toDate() : dayjs().toDate(),
-        endDate: clientData.contract.endDate ? dayjs(clientData.contract.endDate).toDate() : dayjs().toDate(),
-        signedBy: clientData.contract.signedBy,
-        signedAt: clientData.contract.signedAt ? dayjs(clientData.contract.signedAt).toDate() : undefined,
-        ppd: clientData.contract.ppd !== undefined && clientData.contract.ppd !== null ? parseFloat(clientData.contract.ppd) : undefined,
-        docUrl: clientData.contract.docUrl,
-      },
+      contract: (() => {
+        const contract = Array.isArray(clientData.contract) ? clientData.contract[0] : clientData.contract;
+        return {
+          uuid: contract?.uuid ?? '',
+          type: contract?.type ?? '',
+          status: contract?.status ?? '',
+          startDate: contract?.startDate ? dayjs(contract.startDate).toDate() : dayjs().toDate(),
+          endDate: contract?.endDate ? dayjs(contract.endDate).toDate() : dayjs().toDate(),
+          signedBy: contract?.signedBy ?? '',
+          signedAt: contract?.signedAt ? dayjs(contract.signedAt).toDate() : undefined,
+          ppd: contract?.ppd !== undefined && contract?.ppd !== null ? parseFloat(contract.ppd) : undefined,
+          docUrl: contract?.docUrl ?? '',
+        };
+      })(),
       dmb: {
         accessType: clientData.dmb?.accessType,
         status: clientData.dmb?.status,
@@ -157,45 +119,33 @@ const UpdateClientPage: React.FC = () => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const onSuccess = useCallback(() => {
-    setClientNotification({ message: 'Client updated successfully', type: 'success' });
-    scrollToTop();
-  }, [setClientNotification]);
-
-  const onError = useCallback(
-    (msg: string) => {
-      if (msg) setClientNotification({ message: msg, type: 'error' });
-      else clearClientNotification();
-    },
-    [setClientNotification, clearClientNotification],
-  );
-
-  const onSubmitClientUpdate = async (formData: ClientFormData) => {
+  const clientForm = useClientForm(async (formData: ClientFormData) => {
     if (!initialClientData) return;
     const compareData = initialClientData;
     const modifiedFields = getModifiedFields(formData, compareData);
     const clientUpdatePayload = buildClientPayload(modifiedFields);
     clientMutations.updateClient.mutate(clientUpdatePayload, {
       onSuccess: () => {
-        onSuccess();
+        clearClientNotification();
+        setClientNotification({ message: 'Client updated successfully', type: 'success' });
+        scrollToTop();
       },
       onError: (error: any) => {
-        onError(formatError(error).message.join('\n'));
+        clearClientNotification();
+        const msg = formatError(error).message.join('\n');
+        if (msg) setClientNotification({ message: msg, type: 'error' });
+        else clearClientNotification();
         scrollToTop();
       },
     });
-  };
-
-  const clientForm = useClientForm(onSubmitClientUpdate, onError, onSuccess);
+  });
 
   useEffect(() => {
-    if (formattedClientData) {
+    if (formattedClientData && !initialClientData) {
       clientForm.reset(formattedClientData);
       setInitialClientData(formattedClientData);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formattedClientData]);
+  }, [formattedClientData, initialClientData, clientForm]);
 
   // --- END HOOKS ---
 
@@ -209,6 +159,7 @@ const UpdateClientPage: React.FC = () => {
           textAlign: 'center',
         }}
       >
+        <title>Error - Córdoba Music Group</title>
         <Paper
           elevation={0}
           sx={{
@@ -239,9 +190,7 @@ const UpdateClientPage: React.FC = () => {
 
   return (
     <RoleProtectedRoute allowedRoles={[Roles.Admin]}>
-      <Helmet>
-        <title>{`Update Client: ${clientData?.clientName ?? 'Unknown'} - Córdoba Music Group`}</title>
-      </Helmet>
+      <title>{`Update Client: ${clientData?.clientName ?? 'Unknown'} - Córdoba Music Group`}</title>
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Update Client: ID {clientData?.id}</Typography>
@@ -262,34 +211,19 @@ const UpdateClientPage: React.FC = () => {
         <NotificationBox />
 
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: 500 }}>
-          <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <AccordionTitle icon={<PersonIcon sx={{ color: 'primary.main' }} />} text="Client Form" />
-            </AccordionSummary>
-            <AccordionDetails sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 1 }}>
-              <FormProvider {...clientForm}>
-                <ClientFormLayout handleSubmit={clientForm.handleClientFormSubmit} onChange={clientForm.handleInputChange} />
-              </FormProvider>
-            </AccordionDetails>
-          </Accordion>
-          <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <AccordionTitle icon={<AttachMoneyIcon sx={{ color: 'secondary.main' }} />} text="Balances" />
-            </AccordionSummary>
-            <AccordionDetails sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
-              <BalancesBlock balances={clientData.balances} />
-            </AccordionDetails>
-          </Accordion>
-          {Array.isArray(clientData.users) && clientData.users.length > 0 && (
-            <Accordion defaultExpanded={false} sx={{ width: '100%' }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <AccordionTitle icon={<GroupIcon sx={{ color: 'primary.main' }} />} text="Users" />
-              </AccordionSummary>
-              <AccordionDetails sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
-                <UsersTable users={clientData.users} onEdit={(id) => navigate(`${webRoutes.admin.users.edit}/${id}`)} />
-              </AccordionDetails>
-            </Accordion>
-          )}
+          <FormProvider {...clientForm}>
+            <form onChange={clientForm.handleInputChange} onSubmit={clientForm.handleClientFormSubmit}>
+              <ClientFormLayout />
+              <FormSectionAccordion title="Balances" icon={<AttachMoneyIcon sx={{ color: 'secondary.main' }} />} defaultExpanded={false}>
+                <BalancesBlock balances={clientData.balances} />
+              </FormSectionAccordion>
+              {Array.isArray(clientData.users) && clientData.users.length > 0 && (
+                <FormSectionAccordion title="Users" icon={<GroupIcon sx={{ color: 'primary.main' }} />} defaultExpanded={false}>
+                  <UsersGridTable users={clientData.users} onEdit={(id) => navigate(`${webRoutes.admin.users.edit}/${id}`)} />
+                </FormSectionAccordion>
+              )}
+            </form>
+          </FormProvider>
         </Box>
 
         <FormValidationErrorModal open={clientForm.isValidationErrorModalOpen} onClose={() => clientForm.setIsValidationErrorModalOpen(false)} errors={clientForm.formState.errors} />
