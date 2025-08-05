@@ -4,6 +4,10 @@ import {
   InfiniteRowModelModule,
   CsvExportModule,
   ModuleRegistry,
+  QuickFilterModule,
+  PaginationModule,
+  ExternalFilterModule,
+  ColumnAutoSizeModule,
 } from 'ag-grid-community';
 import { AgGridReact, AgGridReactProps } from 'ag-grid-react';
 import { Box } from '@mui/material';
@@ -24,7 +28,12 @@ interface GridTablesProps extends AgGridReactProps {
 ModuleRegistry.registerModules([
   ClientSideRowModelModule, // Para datos del lado del cliente
   InfiniteRowModelModule,   // Para scroll infinito si se necesita
+  QuickFilterModule,     // Para filtrado rápido
   CsvExportModule,         // Para exportar CSV si se necesita
+  PaginationModule,       // Para paginación
+  ExternalFilterModule,   // Para filtros externos si se necesita
+  ColumnAutoSizeModule,   // Para autoajustar columnas
+  
 ]);
 
 const GridTables = memo(forwardRef<AgGridReact, GridTablesProps>(({ columns, rowData, height = '500px', width = '100%', ...props }, ref) => {
