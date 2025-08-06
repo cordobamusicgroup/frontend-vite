@@ -19,6 +19,7 @@ import PaymentUpdateModal from '../components/PaymentUpdateModal';
 import { usePaymentUpdateRequest } from '../hooks/usePaymentUpdateRequest';
 import { PaymentUpdateFormData } from '../schemas/PaymentUpdateValidationSchema';
 import { useFetchWithdrawalAuth } from '@/modules/user/financial/payments-operations/hooks/queries/useFetchWithdrawalAuth';
+import { useQueryClient } from '@tanstack/react-query';
 
 /**
  * Página de información de pagos del usuario.
@@ -44,6 +45,7 @@ import { useFetchWithdrawalAuth } from '@/modules/user/financial/payments-operat
  */
 const UserPaymentInformationPage: React.FC = () => {
   const theme = useTheme();
+  const queryClient = useQueryClient();
   const { data: paymentInfo, isLoading, error } = useCurrentPaymentInfo();
   const { submitPaymentUpdateAsync, isLoading: isSubmittingUpdate, error: paymentUpdateError, isSuccess: paymentUpdateSuccess, reset: resetPaymentUpdate } = usePaymentUpdateRequest();
   const { withdrawalData, withdrawalLoading } = useFetchWithdrawalAuth();
@@ -157,6 +159,8 @@ const UserPaymentInformationPage: React.FC = () => {
 
   const handleSubmitPaymentUpdate = async (data: PaymentUpdateFormData) => {
     await submitPaymentUpdateAsync(data);
+    // Refresh withdrawal auth data to get updated isPaymentDataInValidation status
+    queryClient.invalidateQueries({ queryKey: ['payments', 'withdrawal-authorized'] });
     // Don't close modal - let user see the success/error message inside modal
   };
 
@@ -369,20 +373,20 @@ const UserPaymentInformationPage: React.FC = () => {
                   sx={{ 
                     mb: 2, 
                     p: 2, 
-                    border: '0.5px solid #e0e0e0', 
+                    border: '0.5px solid #fff4d6', 
                     borderRadius: 1, 
-                    bgcolor: '#f9f9f9',
+                    bgcolor: '#fefdf8',
                     display: 'flex',
                     alignItems: 'flex-start',
                     gap: 1.5
                   }}
                 >
-                  <PendingIcon sx={{ color: '#757575', mt: 0.25, fontSize: '20px' }} />
+                  <PendingIcon sx={{ color: '#664d03', mt: 0.25, fontSize: '20px' }} />
                   <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#424242', mb: 0.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#664d03', mb: 0.5 }}>
                       Payment information update in progress
                     </Typography>
-                    <Typography variant="body2" sx={{ fontSize: '0.875rem', color: '#616161', lineHeight: 1.4 }}>
+                    <Typography variant="body2" sx={{ fontSize: '0.875rem', color: '#664d03', lineHeight: 1.4 }}>
                       Please wait for validation of the submitted data before making new changes. Current information is shown below.
                     </Typography>
                   </Box>
