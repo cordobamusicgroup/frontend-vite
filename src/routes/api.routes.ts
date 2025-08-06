@@ -50,4 +50,9 @@ export const apiRoutes = {
     },
   },
   countries: '/countries',
+  workflow: {
+    uppi: {
+      request: '/v1/workflow/uppi/request',
+    },
+  },
 };
