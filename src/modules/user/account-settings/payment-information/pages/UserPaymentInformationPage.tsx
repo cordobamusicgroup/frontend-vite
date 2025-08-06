@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Paper, Divider, Chip, Skeleton, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Box, Typography, Paper, Divider, Chip, Skeleton, Select, MenuItem, FormControl, InputLabel, Alert } from '@mui/material';
 import PaymentIcon from '@mui/icons-material/Payment';
 import PendingIcon from '@mui/icons-material/Pending';
 import FetchErrorBox from '@/components/ui/molecules/FetchErrorBox';
@@ -17,7 +17,6 @@ import CryptoPaymentDisplay from '../components/CryptoPaymentDisplay';
 import { allMockData } from '../mocks/paymentMockData';
 import PaymentUpdateModal from '../components/PaymentUpdateModal';
 import { usePaymentUpdateRequest } from '../hooks/usePaymentUpdateRequest';
-import { useNotificationStore } from '@/stores';
 import { PaymentUpdateFormData } from '../schemas/PaymentUpdateValidationSchema';
 import { useFetchWithdrawalAuth } from '@/modules/user/financial/payments-operations/hooks/queries/useFetchWithdrawalAuth';
 
@@ -363,22 +362,50 @@ const UserPaymentInformationPage: React.FC = () => {
           )}
 
           {!currentIsLoading && !currentError && currentPaymentInfo && currentPaymentInfo.paymentMethod && currentPaymentInfo.data && (
-            <Paper
-              elevation={3}
-              sx={{
-                p: 4,
-                borderRadius: 2,
-                bgcolor: 'background.paper',
-              }}
-            >
-              <Box mb={3}>
-                <Box display="flex" alignItems="center" justifyContent="flex-end" mb={2}>
-                  <Chip label={getPaymentMethodLabel(currentPaymentInfo.paymentMethod)} color="primary" variant="outlined" size="small" />
+            <>
+              {/* Show pending validation message outside paper if there's a pending request */}
+              {!withdrawalLoading && withdrawalData?.isPaymentDataInValidation && (
+                <Box 
+                  sx={{ 
+                    mb: 2, 
+                    p: 2, 
+                    border: '0.5px solid #e0e0e0', 
+                    borderRadius: 1, 
+                    bgcolor: '#f9f9f9',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 1.5
+                  }}
+                >
+                  <PendingIcon sx={{ color: '#757575', mt: 0.25, fontSize: '20px' }} />
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#424242', mb: 0.5 }}>
+                      Payment information update in progress
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontSize: '0.875rem', color: '#616161', lineHeight: 1.4 }}>
+                      Please wait for validation of the submitted data before making new changes. Current information is shown below.
+                    </Typography>
+                  </Box>
                 </Box>
+              )}
 
-                {renderPaymentData()}
-              </Box>
-            </Paper>
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 4,
+                  borderRadius: 2,
+                  bgcolor: 'background.paper',
+                }}
+              >
+                <Box mb={3}>
+                  <Box display="flex" alignItems="center" justifyContent="flex-end" mb={2}>
+                    <Chip label={getPaymentMethodLabel(currentPaymentInfo.paymentMethod)} color="primary" variant="outlined" size="small" />
+                  </Box>
+
+                  {renderPaymentData()}
+                </Box>
+              </Paper>
+            </>
           )}
         </Box>
 

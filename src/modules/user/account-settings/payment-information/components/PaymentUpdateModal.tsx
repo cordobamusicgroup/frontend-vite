@@ -6,7 +6,6 @@ import {
   DialogActions,
   Box,
   Typography,
-  TextField,
   FormControl,
   InputLabel,
   Select,
@@ -17,10 +16,11 @@ import {
   ListItemText,
   Alert,
 } from '@mui/material';
-import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+import { useForm, FormProvider, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
+import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
 import { PaymentUpdateValidationSchema, PaymentUpdateFormData } from '../schemas/PaymentUpdateValidationSchema';
 import { PaymentMethodDto } from '../hooks/useCurrentPaymentInfo';
 import { logColor } from '@/lib/log.util';
@@ -35,19 +35,16 @@ interface PaymentUpdateModalProps {
   isSuccess?: boolean;
 }
 
-const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({
-  open,
-  onClose,
-  onSubmit,
-  loading = false,
-  error,
-  isSuccess = false
-}) => {
+const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, onSubmit, loading = false, error, isSuccess = false }) => {
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  
+
   const { withdrawalData, withdrawalLoading, withdrawalError } = useFetchWithdrawalAuth();
+
+  const methods = useForm<PaymentUpdateFormData>({
+    resolver: yupResolver(PaymentUpdateValidationSchema),
+  });
 
   const {
     control,
@@ -55,13 +52,7 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({
     formState: { errors },
     reset,
     watch,
-  } = useForm<PaymentUpdateFormData>({
-    resolver: yupResolver(PaymentUpdateValidationSchema),
-    defaultValues: {
-      paymentMethod: '',
-      paymentData: {}
-    }
-  });
+  } = methods;
 
   const selectedPaymentMethod = watch('paymentMethod');
 
@@ -108,7 +99,7 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({
       if (Object.keys(validationErrors).length > 0) {
         setIsValidationErrorModalOpen(true);
       }
-    }
+    },
   );
 
   const handleClose = () => {
@@ -156,20 +147,11 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({
   const renderPaymentDataFields = () => {
     if (selectedPaymentMethod === PaymentMethodDto.PAYPAL) {
       return (
-        <Controller
+        <TextFieldForm
           name="paymentData.paypalEmail"
-          control={control}
-          render={({ field, fieldState: { error } }) => (
-            <TextField
-              {...field}
-              fullWidth
-              label="PayPal Email"
-              type="email"
-              error={!!error}
-              helperText={error?.message}
-              margin="normal"
-            />
-          )}
+          label="PayPal Email"
+          type="email"
+          variant="outlined"
         />
       );
     }
@@ -193,7 +175,6 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({
     return null;
   };
 
-
   return (
     <>
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -202,97 +183,77 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({
             Update Payment Information
           </Typography>
         </DialogTitle>
-        
+
         <DialogContent>
-          <Box component="form" sx={{ mt: 1 }}>
-            {/* Success Message */}
-            {submitSuccess && (
-              <Alert severity="success" sx={{ mb: 2 }}>
-                Payment update request submitted successfully! Your request is being processed.
-              </Alert>
-            )}
+          <FormProvider {...methods}>
+            <Box component="form" sx={{ mt: 1 }}>
+              {/* Success Message */}
+              {submitSuccess && (
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  Payment update request submitted successfully! Your request is being processed.
+                </Alert>
+              )}
 
-            {/* Error Messages */}
-            {submitError && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {submitError}
-              </Alert>
-            )}
+              {/* Error Messages */}
+              {submitError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {submitError}
+                </Alert>
+              )}
 
-            {/* Validation Status */}
-            {getValidationMessage() && (
-              <Alert 
-                severity={withdrawalData?.isPaymentDataInValidation ? "warning" : withdrawalError ? "error" : "info"} 
-                sx={{ mb: 2 }}
-              >
-                {getValidationMessage()}
-              </Alert>
-            )}
+              {/* Validation Status - Only show non-pending messages since pending is shown on main page */}
+              {getValidationMessage() && !withdrawalData?.isPaymentDataInValidation && (
+                <Alert severity={withdrawalError ? 'error' : 'info'} sx={{ mb: 2 }}>
+                  {getValidationMessage()}
+                </Alert>
+              )}
 
-            {/* Loading state */}
-            {withdrawalLoading && (
-              <Box sx={{ textAlign: 'center', py: 3 }}>
-                <Typography color="text.secondary">
-                  Checking payment status...
-                </Typography>
-              </Box>
-            )}
+              {/* Loading state */}
+              {withdrawalLoading && (
+                <Box sx={{ textAlign: 'center', py: 3 }}>
+                  <Typography color="text.secondary">Checking payment status...</Typography>
+                </Box>
+              )}
 
-            {/* Only show form if there's no pending payment validation */}
-            {!withdrawalData?.isPaymentDataInValidation && !withdrawalLoading && (
-              <>
-                <Controller
-                  name="paymentMethod"
-                  control={control}
-                  render={({ field, fieldState: { error } }) => (
-                    <FormControl fullWidth margin="normal" error={!!error}>
-                      <InputLabel>Payment Method</InputLabel>
-                      <Select
-                        {...field}
-                        label="Payment Method"
-                      >
-                        <MenuItem value={PaymentMethodDto.PAYPAL}>PayPal</MenuItem>
-                        <MenuItem value={PaymentMethodDto.BANK_TRANSFER}>Bank Transfer</MenuItem>
-                        <MenuItem value={PaymentMethodDto.CRYPTO}>Cryptocurrency</MenuItem>
-                      </Select>
-                      {error && <FormHelperText>{error.message}</FormHelperText>}
-                    </FormControl>
-                  )}
-                />
+              {/* Only show form if there's no pending payment validation and not successful */}
+              {!withdrawalData?.isPaymentDataInValidation && !withdrawalLoading && !submitSuccess && (
+                <>
+                  <Controller
+                    name="paymentMethod"
+                    control={control}
+                    render={({ field, fieldState: { error } }) => (
+                      <FormControl fullWidth margin="normal" error={!!error}>
+                        <InputLabel>Payment Method</InputLabel>
+                        <Select {...field} label="Payment Method">
+                          <MenuItem value={PaymentMethodDto.PAYPAL}>PayPal</MenuItem>
+                          <MenuItem value={PaymentMethodDto.BANK_TRANSFER}>Bank Transfer</MenuItem>
+                          <MenuItem value={PaymentMethodDto.CRYPTO}>Cryptocurrency</MenuItem>
+                        </Select>
+                        {error && <FormHelperText>{error.message}</FormHelperText>}
+                      </FormControl>
+                    )}
+                  />
 
-                {renderPaymentDataFields()}
-              </>
-            )}
-          </Box>
+                  {renderPaymentDataFields()}
+                </>
+              )}
+            </Box>
+          </FormProvider>
         </DialogContent>
 
         <DialogActions sx={{ p: 3 }}>
-          <BasicButton
-            onClick={handleClose}
-            color="secondary"
-            variant="outlined"
-            disabled={loading}
-          >
+          <BasicButton onClick={handleClose} color="secondary" variant="outlined" disabled={loading}>
             {submitSuccess ? 'Close' : 'Cancel'}
           </BasicButton>
           {!submitSuccess && !withdrawalData?.isPaymentDataInValidation && !withdrawalLoading && (
-            <BasicButton
-              onClick={handleFormSubmit}
-              color="primary"
-              variant="contained"
-              loading={loading}
-              disabled={loading || !canSubmitRequest()}
-            >
+            <BasicButton onClick={handleFormSubmit} color="primary" variant="contained" loading={loading} disabled={loading || !canSubmitRequest()}>
               Submit Request
             </BasicButton>
           )}
         </DialogActions>
       </Dialog>
 
-      <ErrorModal2 
-        open={isValidationErrorModalOpen} 
-        onClose={() => setIsValidationErrorModalOpen(false)}
-      >
+      <ErrorModal2 open={isValidationErrorModalOpen} onClose={() => setIsValidationErrorModalOpen(false)}>
         <List sx={{ padding: 0, margin: 0 }}>
           {extractValidationMessages(errors).map((msg, index) => (
             <ListItem key={index} disableGutters sx={{ padding: '1px 0' }}>
