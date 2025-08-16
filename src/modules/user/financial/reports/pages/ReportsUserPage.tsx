@@ -41,11 +41,6 @@ export default function ReportsPage() {
           </Select>
         </FormControl>
 
-        <Box>
-          {notification?.type === 'success' && <SuccessBox>{notification.message}</SuccessBox>}
-          {notification?.type === 'error' && <ErrorBox>{notification.message}</ErrorBox>}
-        </Box>
-
         <InformativeBox collapsible>
           <Typography variant="body2" sx={{ mb: 1 }}>
             Here you can view your financial reports. The <b>"Debit State"</b> column shows whether the report amount has already been credited to your balance:
