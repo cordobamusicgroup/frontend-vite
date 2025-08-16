@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Box, Typography, Paper, Divider, Chip, Skeleton, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Box, Typography, Paper, Divider, Chip, Skeleton, Select, MenuItem, FormControl, InputLabel, Alert } from '@mui/material';
 import PaymentIcon from '@mui/icons-material/Payment';
+import PendingIcon from '@mui/icons-material/Pending';
 import FetchErrorBox from '@/components/ui/molecules/FetchErrorBox';
 import { Helmet } from 'react-helmet';
 import { logColor } from '@/lib/log.util';
@@ -14,6 +15,11 @@ import BankTransferPaymentDisplay from '../components/BankTransferPaymentDisplay
 import PaypalPaymentDisplay from '../components/PaypalPaymentDisplay';
 import CryptoPaymentDisplay from '../components/CryptoPaymentDisplay';
 import { allMockData } from '../mocks/paymentMockData';
+import PaymentUpdateModal from '../components/PaymentUpdateModal';
+import { usePaymentUpdateRequest } from '../hooks/usePaymentUpdateRequest';
+import { PaymentUpdateFormData } from '../schemas/PaymentUpdateValidationSchema';
+import { useFetchWithdrawalAuth } from '@/modules/user/financial/payments-operations/hooks/queries/useFetchWithdrawalAuth';
+import { useQueryClient } from '@tanstack/react-query';
 
 /**
  * Página de información de pagos del usuario.
@@ -39,7 +45,13 @@ import { allMockData } from '../mocks/paymentMockData';
  */
 const UserPaymentInformationPage: React.FC = () => {
   const theme = useTheme();
+  const queryClient = useQueryClient();
   const { data: paymentInfo, isLoading, error } = useCurrentPaymentInfo();
+  const { submitPaymentUpdateAsync, isLoading: isSubmittingUpdate, error: paymentUpdateError, isSuccess: paymentUpdateSuccess, reset: resetPaymentUpdate } = usePaymentUpdateRequest();
+  const { withdrawalData, withdrawalLoading } = useFetchWithdrawalAuth();
+
+  // Modal state
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
   // Sistema de mock basado en environment - solo disponible en desarrollo
   const isMockingEnabled = import.meta.env.MODE === 'development';
@@ -136,6 +148,125 @@ const UserPaymentInformationPage: React.FC = () => {
     }
   };
 
+  const handleOpenUpdateModal = () => {
+    setIsUpdateModalOpen(true);
+    resetPaymentUpdate();
+  };
+
+  const handleCloseUpdateModal = () => {
+    setIsUpdateModalOpen(false);
+  };
+
+  const handleSubmitPaymentUpdate = async (data: PaymentUpdateFormData) => {
+    await submitPaymentUpdateAsync(data);
+    // Refresh withdrawal auth data to get updated isPaymentDataInValidation status
+    queryClient.invalidateQueries({ queryKey: ['payments', 'withdrawal-authorized'] });
+    // Don't close modal - let user see the success/error message inside modal
+  };
+
+  // Function to render the appropriate content when there's no payment info
+  const renderNoPaymentContent = () => {
+    // Check if there's a pending payment request
+    if (!withdrawalLoading && withdrawalData?.isPaymentDataInValidation) {
+      return (
+        <Paper
+          elevation={3}
+          sx={{
+            p: 4,
+            borderRadius: 2,
+            bgcolor: 'background.paper',
+          }}
+        >
+          <Box display="flex" flexDirection="column" alignItems="center" textAlign="center">
+            <Box mb={1}>
+              <PendingIcon
+                sx={{
+                  fontSize: 60,
+                  color: '#0069BF',
+                }}
+              />
+            </Box>
+
+            <Typography
+              variant="h6"
+              component="h1"
+              sx={{
+                fontWeight: 500,
+                color: '#0069BF',
+                mb: 1,
+              }}
+            >
+              Payment Information Update Pending
+            </Typography>
+
+            <Typography
+              variant="body1"
+              sx={{
+                color: 'text.secondary',
+                maxWidth: 520,
+                fontSize: '0.9rem',
+                lineHeight: 1.5,
+              }}
+            >
+              We will notify you once your payment information update has been reviewed and approved. If you have any questions, please contact our support team.
+            </Typography>
+          </Box>
+        </Paper>
+      );
+    }
+
+    // Default "no payment info" content
+    return (
+      <Paper
+        elevation={3}
+        sx={{
+          p: 4,
+          borderRadius: 2,
+          bgcolor: 'background.paper',
+        }}
+      >
+        <Box display="flex" flexDirection="column" alignItems="center" textAlign="center">
+          <Box mb={2}>
+            <PaymentIcon
+              sx={{
+                fontSize: 70,
+                color: 'text.secondary',
+                mb: 1,
+              }}
+            />
+          </Box>
+
+          <Typography
+            variant="h5"
+            component="h1"
+            sx={{
+              fontWeight: 'bold',
+              color: 'text.primary',
+              mb: 1,
+            }}
+          >
+            No Payment Information
+          </Typography>
+
+          <Divider sx={{ width: '60%', my: 2 }} />
+
+          <Typography
+            variant="body1"
+            sx={{
+              color: 'text.secondary',
+              maxWidth: 450,
+              mb: 1,
+              fontSize: '1.05rem',
+            }}
+          >
+            You haven't set up your payment information yet.
+            Click "Update Payment Information" to get started.
+          </Typography>
+        </Box>
+      </Paper>
+    );
+  };
+
   return (
     <>
       <Helmet>
@@ -145,9 +276,19 @@ const UserPaymentInformationPage: React.FC = () => {
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'rgba(0,79,131,1)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '16px' }}>Payment Information</Typography>
-          {/* <BasicButton colorBackground="white" colorText={'#164723'} color="primary" variant="contained" startIcon={<SettingsIcon />}>
-            Update Payment Information
-          </BasicButton> */}
+          {/* Only show update button if there's no pending payment validation */}
+          {(withdrawalLoading || !withdrawalData?.isPaymentDataInValidation) && (
+            <BasicButton 
+              colorBackground="white" 
+              colorText={'#164723'} 
+              color="primary" 
+              variant="contained" 
+              startIcon={<SettingsIcon />}
+              onClick={handleOpenUpdateModal}
+            >
+              Update Payment Information
+            </BasicButton>
+          )}
           <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
         </CustomPageHeader>
 
@@ -221,74 +362,65 @@ const UserPaymentInformationPage: React.FC = () => {
           {currentError && <FetchErrorBox message="Unable to load payment information. Please try again later." />}
 
           {!currentIsLoading && !currentError && (!currentPaymentInfo || !currentPaymentInfo.paymentMethod || !currentPaymentInfo.data) && (
-            <Paper
-              elevation={3}
-              sx={{
-                p: 4,
-                borderRadius: 2,
-                bgcolor: 'background.paper',
-              }}
-            >
-              <Box display="flex" flexDirection="column" alignItems="center" textAlign="center">
-                <Box mb={2}>
-                  <PaymentIcon
-                    sx={{
-                      fontSize: 70,
-                      color: 'text.secondary',
-                      mb: 1,
-                    }}
-                  />
-                </Box>
-
-                <Typography
-                  variant="h5"
-                  component="h1"
-                  sx={{
-                    fontWeight: 'bold',
-                    color: 'text.primary',
-                    mb: 1,
-                  }}
-                >
-                  No Payment Information
-                </Typography>
-
-                <Divider sx={{ width: '60%', my: 2 }} />
-
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: 'text.secondary',
-                    maxWidth: 450,
-                    mb: 1,
-                    fontSize: '1.05rem',
-                  }}
-                >
-                  You haven't set up your payment information yet.
-                  {/* Click "Update Payment Information" to get started. */}
-                </Typography>
-              </Box>
-            </Paper>
+            renderNoPaymentContent()
           )}
 
           {!currentIsLoading && !currentError && currentPaymentInfo && currentPaymentInfo.paymentMethod && currentPaymentInfo.data && (
-            <Paper
-              elevation={3}
-              sx={{
-                p: 4,
-                borderRadius: 2,
-                bgcolor: 'background.paper',
-              }}
-            >
-              <Box mb={3}>
-                <Box display="flex" alignItems="center" justifyContent="flex-end" mb={2}>
-                  <Chip label={getPaymentMethodLabel(currentPaymentInfo.paymentMethod)} color="primary" variant="outlined" size="small" />
+            <>
+              {/* Show pending validation message outside paper if there's a pending request */}
+              {!withdrawalLoading && withdrawalData?.isPaymentDataInValidation && (
+                <Box 
+                  sx={{ 
+                    mb: 2, 
+                    p: 2, 
+                    border: '0.5px solid #fff4d6', 
+                    borderRadius: 1, 
+                    bgcolor: '#fefdf8',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 1.5
+                  }}
+                >
+                  <PendingIcon sx={{ color: '#664d03', mt: 0.25, fontSize: '20px' }} />
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#664d03', mb: 0.5 }}>
+                      Payment information update in progress
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontSize: '0.875rem', color: '#664d03', lineHeight: 1.4 }}>
+                      Please wait for validation of the submitted data before making new changes. Current information is shown below.
+                    </Typography>
+                  </Box>
                 </Box>
+              )}
 
-                {renderPaymentData()}
-              </Box>
-            </Paper>
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 4,
+                  borderRadius: 2,
+                  bgcolor: 'background.paper',
+                }}
+              >
+                <Box mb={3}>
+                  <Box display="flex" alignItems="center" justifyContent="flex-end" mb={2}>
+                    <Chip label={getPaymentMethodLabel(currentPaymentInfo.paymentMethod)} color="primary" variant="outlined" size="small" />
+                  </Box>
+
+                  {renderPaymentData()}
+                </Box>
+              </Paper>
+            </>
           )}
         </Box>
+
+        <PaymentUpdateModal
+          open={isUpdateModalOpen}
+          onClose={handleCloseUpdateModal}
+          onSubmit={handleSubmitPaymentUpdate}
+          loading={isSubmittingUpdate}
+          error={paymentUpdateError}
+          isSuccess={paymentUpdateSuccess}
+        />
       </Box>
     </>
   );

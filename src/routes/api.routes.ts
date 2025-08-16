@@ -38,7 +38,7 @@ export const apiRoutes = {
     reports: {
       user: {
         currentReports: '/financial/reports/user-reports/current',
-        downloadReport: '/financial/reports/user-reports/download',
+        downloadOptions: '/financial/reports/user-reports/download/options',
       },
       admin: {
         unlinked: {
@@ -50,4 +50,9 @@ export const apiRoutes = {
     },
   },
   countries: '/countries',
+  workflow: {
+    uppi: {
+      request: '/v1/workflow/uppi/request',
+    },
+  },
 };

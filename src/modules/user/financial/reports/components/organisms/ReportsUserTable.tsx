@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Box, Tooltip, IconButton } from '@mui/material';
 import FetchErrorBox from '@/components/ui/molecules/FetchErrorBox';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -7,30 +7,35 @@ import { royaltiesgrid } from '@/styles/grid-royalties';
 import { FiberManualRecord as DotIcon } from '@mui/icons-material';
 import GridTables from '@/components/ui/organisms/GridTables';
 import { AgGridReact } from 'ag-grid-react';
-import { useNotificationStore } from '@/stores';
-import { useFetchReports, useDownloadReport } from '../../hooks';
-import { formatError } from '@/lib/formatApiError.util';
+import { useFetchReports } from '../../hooks';
+
+import ReportsDownloadOptionsDialog from '../molecules/ReportsDownloadOptionsDialog';
 
 interface ReportsTableProps {
   distributor: string;
 }
 
 const ReportsTable: React.FC<ReportsTableProps> = ({ distributor }) => {
-  const { setNotification } = useNotificationStore();
   const { reportData, reportFetchLoading, reportFetchError } = useFetchReports(distributor);
-  const { downloadReport } = useDownloadReport();
   const gridRef = useRef<AgGridReact>(null);
 
-  const handleDownload = async (reportId: number): Promise<void> => {
-    await downloadReport.mutateAsync(reportId.toString(), {
-      onSuccess: (response) => {
-        window.open(response, '_blank');
-        setNotification({ message: 'Report downloaded successfully', type: 'success' });
-      },
-      onError: (error: any) => {
-        setNotification({ message: formatError(error).message.join('\n'), type: 'error' });
-      },
-    });
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
+
+  const handleOpenDialog = async (reportId: number) => {
+    // Open dialog and let the dialog fetch the options itself
+    setSelectedReportId(reportId);
+    setOpenDialog(true);
+  };
+
+  const handleDialogClose = () => {
+    // Close first, keep content until exit animation completes
+    setOpenDialog(false);
+  };
+
+  const handleDialogExited = () => {
+    // Now it's safe to clear content without visual flicker
+    setSelectedReportId(null);
   };
 
   const distributorFormatter = (distributor: string) => {
@@ -105,7 +110,7 @@ const ReportsTable: React.FC<ReportsTableProps> = ({ distributor }) => {
       resizable: false,
       cellRenderer: (params: any) => (
         <Tooltip title="Download Report">
-          <IconButton onClick={() => handleDownload(params.data.id)}>
+          <IconButton onClick={() => handleOpenDialog(params.data.id)}>
             <DownloadIcon />
           </IconButton>
         </Tooltip>
@@ -138,15 +143,11 @@ const ReportsTable: React.FC<ReportsTableProps> = ({ distributor }) => {
   }
 
   return (
-    <GridTables
-      theme={royaltiesgrid}
-      ref={gridRef}
-      columns={columns}
-      rowData={rowData}
-      loading={reportFetchLoading || downloadReport.isPending}
-      defaultColDef={defaultColDef}
-      overlayNoRowsTemplate="Reports not found"
-    />
+    <>
+      <GridTables theme={royaltiesgrid} ref={gridRef} columns={columns} rowData={rowData} loading={reportFetchLoading} defaultColDef={defaultColDef} overlayNoRowsTemplate="Reports not found" />
+
+      <ReportsDownloadOptionsDialog open={openDialog} onClose={handleDialogClose} onAfterClose={handleDialogExited} reportId={selectedReportId} />
+    </>
   );
 };
 
