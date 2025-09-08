@@ -80,6 +80,10 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
   }, [isSuccess]);
 
   const onSubmitForm: SubmitHandler<PaymentUpdateFormData> = async (data) => {
+    if (data.paymentMethod !== PaymentMethodDto.PAYPAL) {
+      setSubmitError('This payment method is not yet available for updates. Please select PayPal.');
+      return;
+    }
     try {
       setSubmitError(null);
       setSubmitSuccess(false);
@@ -114,6 +118,7 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
     if (withdrawalLoading) return false;
     if (withdrawalError) return true; // Allow form but will show error
     if (withdrawalData?.isPaymentDataInValidation) return false;
+    if (selectedPaymentMethod !== PaymentMethodDto.PAYPAL) return false; // Only PayPal is currently supported
     return true;
   };
 
@@ -122,6 +127,9 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
     if (withdrawalError) return 'Error checking payment status. You can still try to submit.';
     if (withdrawalData?.isPaymentDataInValidation) {
       return 'You already have a pending payment information update request. Please wait for it to be processed.';
+    }
+    if (selectedPaymentMethod && selectedPaymentMethod !== PaymentMethodDto.PAYPAL) {
+      return 'This payment method is not yet available for updates. Please select PayPal.';
     }
     return null;
   };
