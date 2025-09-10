@@ -1,21 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Box,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
-  List,
-  ListItem,
-  ListItemText,
-  Alert,
-} from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, FormControl, InputLabel, Select, MenuItem, FormHelperText, List, ListItem, ListItemText, Alert } from '@mui/material';
 import { useForm, FormProvider, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import BasicButton from '@/components/ui/atoms/BasicButton';
@@ -154,14 +138,7 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
 
   const renderPaymentDataFields = () => {
     if (selectedPaymentMethod === PaymentMethodDto.PAYPAL) {
-      return (
-        <TextFieldForm
-          name="paymentData.paypalEmail"
-          label="PayPal Email"
-          type="email"
-          variant="outlined"
-        />
-      );
+      return <TextFieldForm name="paymentData.paypalEmail" label="PayPal Email" type="email" variant="outlined" />;
     }
 
     if (selectedPaymentMethod === PaymentMethodDto.BANK_TRANSFER) {
