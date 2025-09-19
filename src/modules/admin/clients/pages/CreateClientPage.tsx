@@ -6,7 +6,8 @@ import BasicButton from '@/components/ui/atoms/BasicButton';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { Helmet } from 'react-helmet';
-import { useClientsAdmin } from '../hooks/useClientsAdmin';
+// Reemplazado hook combinado por hooks individuales
+import { useCreateClientMutation } from '../hooks/useCreateClientMutation';
 import FormValidationErrorModal from '../../../../components/ui/organisms/FormValidationErrorModal';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import { formatError } from '@/lib/formatApiError.util';
@@ -18,12 +19,12 @@ import ClientFormLayout from '../components/organisms/ClientFormLayout';
 
 const CreateClientPage: React.FC = () => {
   const theme = useTheme();
-  const { mutations: clientMutations, loading: clientOperationsLoading } = useClientsAdmin();
+  const createClientMutation = useCreateClientMutation();
   const { setNotification: setClientNotification, clearNotification: clearClientNotification } = useNotificationStore();
 
   const clientForm = useClientForm(async (formData: ClientFormData) => {
     const clientPayload = buildClientPayload(formData);
-    clientMutations.createClient.mutate(clientPayload, {
+    createClientMutation.mutate(clientPayload, {
       onSuccess: () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setClientNotification({ message: 'Client created successfully', type: 'success' });
@@ -53,9 +54,9 @@ const CreateClientPage: React.FC = () => {
             onClick={clientForm.handleClientFormSubmit}
             color="primary"
             variant="contained"
-            disabled={clientOperationsLoading.createClient}
+            disabled={createClientMutation.isPending}
             startIcon={<AddOutlinedIcon />}
-            loading={clientOperationsLoading.createClient}
+            loading={createClientMutation.isPending}
           >
             Create Client
           </BasicButton>

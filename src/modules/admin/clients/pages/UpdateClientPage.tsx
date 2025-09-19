@@ -7,7 +7,9 @@ import BasicButton from '@/components/ui/atoms/BasicButton';
 import NotificationBox from '@/components/ui/molecules/NotificationBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { useClientsAdmin } from '../hooks/useClientsAdmin';
+// Reemplazado hook combinado por hooks individuales
+import { useClientQuery } from '../hooks/useClientQuery';
+import { useUpdateClientMutation } from '../hooks/useUpdateClientMutation';
 import { FormProvider } from 'react-hook-form';
 import { useClientForm, ClientFormData } from '../hooks/useClientForm';
 import FormValidationErrorModal from '../../../../components/ui/organisms/FormValidationErrorModal';
@@ -67,33 +69,35 @@ const UpdateClientPage: React.FC = () => {
   const theme = useTheme();
   const { clientId } = useParams();
   const navigate = useNavigate();
-  const { clientsData: clientData, mutations: clientMutations, loading: clientOperationsLoading, errors: clientApiErrors } = useClientsAdmin(clientId);
+  const clientIdNumeric = clientId ? Number(clientId) : undefined;
+  const clientQuery = useClientQuery(clientIdNumeric);
+  const updateClientMutation = useUpdateClientMutation();
   const { setNotification: setClientNotification, clearNotification: clearClientNotification } = useNotificationStore();
   const [initialClientData, setInitialClientData] = useState<ClientFormData | null>(null);
 
   const formattedClientData = useMemo(() => {
-    if (!clientData) return null;
+    if (!clientQuery.data) return null;
     return {
       client: {
-        clientId: clientData.id,
-        clientName: clientData.clientName,
-        firstName: clientData.firstName,
-        lastName: clientData.lastName,
-        type: clientData.type,
-        taxIdType: clientData.taxIdType,
-        taxId: clientData.taxId,
-        vatRegistered: typeof clientData.vatRegistered === 'boolean' ? clientData.vatRegistered : false,
-        vatId: clientData.vatId,
+        clientId: clientQuery.data.id,
+        clientName: clientQuery.data.clientName,
+        firstName: clientQuery.data.firstName,
+        lastName: clientQuery.data.lastName,
+        type: clientQuery.data.type,
+        taxIdType: clientQuery.data.taxIdType,
+        taxId: clientQuery.data.taxId,
+        vatRegistered: typeof clientQuery.data.vatRegistered === 'boolean' ? clientQuery.data.vatRegistered : false,
+        vatId: clientQuery.data.vatId,
       },
       address: {
-        street: clientData.address?.street,
-        city: clientData.address?.city,
-        state: clientData.address?.state,
-        countryId: clientData.address?.countryId,
-        zip: clientData.address?.zip,
+        street: clientQuery.data.address?.street,
+        city: clientQuery.data.address?.city,
+        state: clientQuery.data.address?.state,
+        countryId: clientQuery.data.address?.countryId,
+        zip: clientQuery.data.address?.zip,
       },
       contract: (() => {
-        const contract = Array.isArray(clientData.contract) ? clientData.contract[0] : clientData.contract;
+        const contract = Array.isArray(clientQuery.data.contract) ? clientQuery.data.contract[0] : clientQuery.data.contract;
         return {
           uuid: contract?.uuid ?? '',
           type: contract?.type ?? '',
@@ -107,13 +111,13 @@ const UpdateClientPage: React.FC = () => {
         };
       })(),
       dmb: {
-        accessType: clientData.dmb?.accessType,
-        status: clientData.dmb?.status,
-        subclientName: clientData.dmb?.subclientName,
-        username: clientData.dmb?.username,
+        accessType: clientQuery.data.dmb?.accessType,
+        status: clientQuery.data.dmb?.status,
+        subclientName: clientQuery.data.dmb?.subclientName,
+        username: clientQuery.data.dmb?.username,
       },
     };
-  }, [clientData]);
+  }, [clientQuery.data]);
 
   // --- HOOKS deben ir antes de cualquier return ---
   const scrollToTop = () => {
@@ -124,20 +128,24 @@ const UpdateClientPage: React.FC = () => {
     const compareData = initialClientData;
     const modifiedFields = getModifiedFields(formData, compareData);
     const clientUpdatePayload = buildClientPayload(modifiedFields);
-    clientMutations.updateClient.mutate(clientUpdatePayload, {
-      onSuccess: () => {
-        clearClientNotification();
-        setClientNotification({ message: 'Client updated successfully', type: 'success' });
-        scrollToTop();
+    if (!clientIdNumeric) return;
+    updateClientMutation.mutate(
+      { clientId: clientIdNumeric, data: clientUpdatePayload },
+      {
+        onSuccess: () => {
+          clearClientNotification();
+          setClientNotification({ message: 'Client updated successfully', type: 'success' });
+          scrollToTop();
+        },
+        onError: (error: any) => {
+          clearClientNotification();
+          const msg = formatError(error).message.join('\n');
+          if (msg) setClientNotification({ message: msg, type: 'error' });
+          else clearClientNotification();
+          scrollToTop();
+        },
       },
-      onError: (error: any) => {
-        clearClientNotification();
-        const msg = formatError(error).message.join('\n');
-        if (msg) setClientNotification({ message: msg, type: 'error' });
-        else clearClientNotification();
-        scrollToTop();
-      },
-    });
+    );
   });
 
   useEffect(() => {
@@ -149,7 +157,7 @@ const UpdateClientPage: React.FC = () => {
 
   // --- END HOOKS ---
 
-  if (clientApiErrors.clientFetch) {
+  if (clientQuery.error) {
     return (
       <Box
         sx={{
@@ -175,14 +183,14 @@ const UpdateClientPage: React.FC = () => {
           </Typography>
 
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            {clientApiErrors.clientFetch.message || 'Failed to load client data.'}
+            {clientQuery.error.message || 'Failed to load client data.'}
           </Typography>
         </Paper>
       </Box>
     );
   }
 
-  if (!clientData) {
+  if (!clientQuery.data) {
     return <SkeletonLoader />;
   }
 
@@ -190,10 +198,10 @@ const UpdateClientPage: React.FC = () => {
 
   return (
     <RoleProtectedRoute allowedRoles={[Roles.Admin]}>
-      <title>{`Update Client: ${clientData?.clientName ?? 'Unknown'} - Córdoba Music Group`}</title>
+      <title>{`Update Client: ${clientQuery.data?.clientName ?? 'Unknown'} - Córdoba Music Group`}</title>
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
-          <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Update Client: ID {clientData?.id}</Typography>
+          <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Update Client: ID {clientQuery.data?.id}</Typography>
           <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
           <BasicButton
             colorBackground="white"
@@ -202,7 +210,7 @@ const UpdateClientPage: React.FC = () => {
             color="primary"
             variant="contained"
             startIcon={<AddOutlinedIcon />}
-            loading={clientOperationsLoading.updateClient}
+            loading={updateClientMutation.isPending}
           >
             Update Client
           </BasicButton>
@@ -215,11 +223,11 @@ const UpdateClientPage: React.FC = () => {
             <form onChange={clientForm.handleInputChange} onSubmit={clientForm.handleClientFormSubmit}>
               <ClientFormLayout />
               <FormSectionAccordion title="Balances" icon={<AttachMoneyIcon sx={{ color: 'secondary.main' }} />} defaultExpanded={false}>
-                <BalancesBlock balances={clientData.balances} />
+                <BalancesBlock balances={clientQuery.data.balances} />
               </FormSectionAccordion>
-              {Array.isArray(clientData.users) && clientData.users.length > 0 && (
+              {Array.isArray(clientQuery.data.users) && clientQuery.data.users.length > 0 && (
                 <FormSectionAccordion title="Users" icon={<GroupIcon sx={{ color: 'primary.main' }} />} defaultExpanded={false}>
-                  <UsersGridTable users={clientData.users} onEdit={(id) => navigate(`${webRoutes.admin.users.edit}/${id}`)} />
+                  <UsersGridTable users={clientQuery.data.users} onEdit={(id) => navigate(`${webRoutes.admin.users.edit}/${id}`)} />
                 </FormSectionAccordion>
               )}
             </form>

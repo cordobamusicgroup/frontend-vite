@@ -7,7 +7,7 @@ import useQuickFilter from '@/hooks/useQuickFilter';
 import GridTables from '@/components/ui/organisms/GridTables';
 import SearchBoxTable from '@/components/ui/organisms/SearchBoxTable';
 import { ColDef } from 'ag-grid-community';
-import { useClientsAdmin } from '@/modules/admin/clients/hooks/useClientsAdmin';
+import { useListClientsQuery } from '@/modules/admin/clients/hooks/useListClientsQuery';
 import { useFetchUsers, useDeleteUsers, useResendWelcomeEmail } from '../../hooks';
 import { logColor } from '@/lib/log.util';
 import UserAdminActionButtons from '../molecules/UserAdminActionButtons';
@@ -26,7 +26,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
   const deleteUsers = useDeleteUsers();
   const resendWelcomeEmail = useResendWelcomeEmail();
   const { data, error: fetchError, isPending: userFetchLoading } = usersQuery;
-  const { clientsData, loading: clientLoading, errors: clientErrors } = useClientsAdmin();
+  const clientsQuery = useListClientsQuery();
   logColor('info', 'ListUserTable', 'rendered');
 
   const { searchTextRef, quickFilterText, applyFilter, resetFilter } = useQuickFilter();
@@ -35,7 +35,7 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
     navigate(`${webRoutes.admin.users.edit}/${user.id}`);
   };
 
-  if (fetchError || clientErrors.clientFetch) {
+  if (fetchError || clientsQuery.error) {
     return <FailedToLoadData secondaryText="Failed to load users data" />;
   }
 
@@ -72,16 +72,16 @@ const ListUserTable: React.FC<Props> = ({ setNotification }) => {
       width: 300,
       valueGetter: (params: any) => {
         // Si los datos están cargando, devuelve un texto temporal
-        if (clientLoading.clientFetch) {
+        if (clientsQuery.isLoading) {
           return 'Loading...';
         }
 
-        const client = clientsData?.find((c: any) => c.id === params.data.clientId);
+        const client = clientsQuery.data?.find((c: any) => c.id === params.data.clientId);
         return client ? `${client.clientName} (${client.id})` : 'Unknown Client';
       },
       cellRenderer: (params: any) => {
         // Renderiza un spinner o el valor final en la celda
-        if (clientLoading.clientFetch) {
+        if (clientsQuery.isLoading) {
           return <TableSkeletonLoader />;
         }
 

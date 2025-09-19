@@ -7,7 +7,7 @@ import useQuickFilter from '@/hooks/useQuickFilter';
 import GridTables from '@/components/ui/organisms/GridTables';
 import SearchBoxTable from '@/components/ui/organisms/SearchBoxTable';
 import { ColDef } from 'ag-grid-community';
-import { useClientsAdmin } from '@/modules/admin/clients/hooks/useClientsAdmin';
+import { useListClientsQuery } from '@/modules/admin/clients/hooks/useListClientsQuery';
 import TableSkeletonLoader from '@/components/ui/atoms/TableSkeletonLoader';
 import { useLabelsAdmin } from '../../hooks/useLabelsAdmin';
 import ActionButtonsLabels from '../atoms/ActionButtonsLabels';
@@ -28,7 +28,7 @@ interface Props {
 
 const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
   const navigate = useNavigate();
-  const { clientsData, loading: clientLoading, errors: clientErrors } = useClientsAdmin();
+  const clientsQuery = useListClientsQuery();
   const { labelsData, labelFetchLoading, labelFetchError, deleteLabels } = useLabelsAdmin();
   const gridRef = useRef<AgGridReact>(null);
 
@@ -38,7 +38,7 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
     navigate(`${webRoutes.admin.labels.edit}/${label.id}`);
   };
 
-  if (clientErrors.clientFetch || labelFetchError) {
+  if (clientsQuery.error || labelFetchError) {
     return (
       <Box
         sx={{
@@ -97,16 +97,16 @@ const ListLabelsTable: React.FC<Props> = ({ setNotification }) => {
       width: 300,
       valueGetter: (params: any) => {
         // Si los datos están cargando, devuelve un texto temporal
-        if (clientLoading.clientFetch) {
+        if (clientsQuery.isLoading) {
           return 'Loading...';
         }
 
-        const client = clientsData?.find((c: any) => c.id === params.data.clientId);
+        const client = clientsQuery.data?.find((c: any) => c.id === params.data.clientId);
         return client ? `${client.clientName} (${client.id})` : 'Unknown Client';
       },
       cellRenderer: (params: any) => {
         // Renderiza un spinner o el valor final en la celda
-        if (clientLoading.clientFetch) {
+        if (clientsQuery.isLoading) {
           return <TableSkeletonLoader />;
         }
 

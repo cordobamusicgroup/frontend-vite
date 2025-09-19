@@ -1,11 +1,12 @@
 import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
-import { useClientsAdmin } from '@/modules/admin/clients/hooks/useClientsAdmin';
+import { useListClientsQuery } from '@/modules/admin/clients/hooks/useListClientsQuery';
 import { Autocomplete, MenuItem } from '@mui/material';
 import { useFormContext } from 'react-hook-form';
 
 const UserDetailsForm: React.FC = () => {
   const { setValue, watch } = useFormContext();
-  const { clientsData: clientData, loading: clientLoading } = useClientsAdmin();
+  const clientListQuery = useListClientsQuery();
+  const clientData: any[] | undefined = clientListQuery.data;
   const clientId = watch('clientId');
   const selectedClient = clientData?.find((client: any) => client.id === clientId) || null;
 
@@ -21,7 +22,7 @@ const UserDetailsForm: React.FC = () => {
       <Autocomplete
         options={clientData}
         getOptionLabel={(option) => `[ID: ${option.id}] ${option.clientName} (${option.firstName} ${option.lastName}) `}
-        loading={clientLoading.clientFetch}
+        loading={clientListQuery.isLoading}
         onChange={(_, value) => setValue('clientId', value ? value.id : null)}
         value={selectedClient}
         isOptionEqualToValue={(option, value) => option.id === value.id}

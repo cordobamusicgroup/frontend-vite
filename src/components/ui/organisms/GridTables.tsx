@@ -11,6 +11,7 @@ import {
   ValidationModule,
   NumberFilterModule,
   DateFilterModule,
+  RowAutoHeightModule,
 } from 'ag-grid-community';
 import { AgGridReact, AgGridReactProps } from 'ag-grid-react';
 import { Box } from '@mui/material';
@@ -38,6 +39,7 @@ ModuleRegistry.registerModules([
   ColumnAutoSizeModule, // Para autoajustar columnas
   NumberFilterModule, // Filtro numérico
   DateFilterModule, // Filtro de fecha
+  RowAutoHeightModule, // Altura automática de filas
   ValidationModule, // Para validaciones si se necesita
 ]);
 
