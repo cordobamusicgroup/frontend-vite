@@ -9,8 +9,10 @@ export enum PaymentMethodDto {
 }
 
 export enum CryptoNetworkDto {
-  TRX = 'TRX',
-  TON = 'TON',
+  BSC = 'BSC', // BNB Smart Chain (BEP20) - 0.02 USDC fee
+  SOL = 'SOL', // Solana - 0.5 USDC fee
+  ETH = 'ETH', // Ethereum (ERC20) - 1 USDC fee
+  XLM = 'XLM', // Stellar Network - 1 USDC fee
 }
 
 export enum BankTransferCurrencyDto {
@@ -40,6 +42,7 @@ export interface PaypalData {
 export interface CryptoData {
   network: CryptoNetworkDto;
   walletAddress: string;
+  memo?: string; // Optional memo field for XLM transactions
 }
 
 export interface AccountHolder {
