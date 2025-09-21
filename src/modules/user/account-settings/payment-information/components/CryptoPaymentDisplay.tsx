@@ -90,7 +90,6 @@ const CryptoPaymentDisplay: React.FC<CryptoPaymentDisplayProps> = ({ data }) => 
           </Typography>
         </Grid>
       )}
-      <Grid size={12}></Grid>
     </Grid>
   );
 };
