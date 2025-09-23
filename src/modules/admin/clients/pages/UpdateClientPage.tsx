@@ -125,10 +125,21 @@ const UpdateClientPage: React.FC = () => {
   };
   const clientForm = useClientForm(async (formData: ClientFormData) => {
     if (!initialClientData) return;
+
+    if (!clientIdNumeric) {
+      setClientNotification({ message: 'Client ID is missing. Cannot update.', type: 'error' });
+      return;
+    }
+
     const compareData = initialClientData;
     const modifiedFields = getModifiedFields(formData, compareData);
     const clientUpdatePayload = buildClientPayload(modifiedFields);
-    if (!clientIdNumeric) return;
+
+    if (Object.keys(clientUpdatePayload).length === 0) {
+      setClientNotification({ message: 'No changes detected to update.', type: 'info' });
+      return;
+    }
+
     updateClientMutation.mutate(
       { clientId: clientIdNumeric, data: clientUpdatePayload },
       {
