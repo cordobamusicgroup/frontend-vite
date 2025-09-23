@@ -21,6 +21,7 @@ import { buildClientPayload } from '../utils/buildClientPayload.util';
 import webRoutes from '@/routes/web.routes';
 import FormSectionAccordion from '@/components/ui/molecules/FormSectionAccordion';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import PaymentInfoSection from '../components/molecules/PaymentInfoSection';
 import { formatError } from '@/lib/formatApiError.util';
 import GroupIcon from '@mui/icons-material/Group';
 import { Roles } from '@/constants/roles';
@@ -236,6 +237,7 @@ const UpdateClientPage: React.FC = () => {
               <FormSectionAccordion title="Balances" icon={<AttachMoneyIcon sx={{ color: 'secondary.main' }} />} defaultExpanded={false}>
                 <BalancesBlock balances={clientQuery.data.balances} />
               </FormSectionAccordion>
+              <PaymentInfoSection paymentData={clientQuery.data.paymentData || clientQuery.data.payment_info} />
               {Array.isArray(clientQuery.data.users) && clientQuery.data.users.length > 0 && (
                 <FormSectionAccordion title="Users" icon={<GroupIcon sx={{ color: 'primary.main' }} />} defaultExpanded={false}>
                   <UsersGridTable users={clientQuery.data.users} onEdit={(id) => navigate(`${webRoutes.admin.users.edit}/${id}`)} />
