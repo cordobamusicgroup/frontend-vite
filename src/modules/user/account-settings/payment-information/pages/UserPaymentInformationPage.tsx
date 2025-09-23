@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Paper, Divider, Chip, Skeleton, Select, MenuItem, FormControl, InputLabel, Alert } from '@mui/material';
+import { Box, Typography, Paper, Divider, Chip, Skeleton, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import PaymentIcon from '@mui/icons-material/Payment';
 import PendingIcon from '@mui/icons-material/Pending';
 import FetchErrorBox from '@/components/ui/molecules/FetchErrorBox';
@@ -259,8 +259,7 @@ const UserPaymentInformationPage: React.FC = () => {
               fontSize: '1.05rem',
             }}
           >
-            You haven't set up your payment information yet.
-            Click "Update Payment Information" to get started.
+            You haven't set up your payment information yet. Click "Update Payment Information" to get started.
           </Typography>
         </Box>
       </Paper>
@@ -278,14 +277,7 @@ const UserPaymentInformationPage: React.FC = () => {
           <Typography sx={{ flexGrow: 1, fontSize: '16px' }}>Payment Information</Typography>
           {/* Only show update button if there's no pending payment validation */}
           {(withdrawalLoading || !withdrawalData?.isPaymentDataInValidation) && (
-            <BasicButton 
-              colorBackground="white" 
-              colorText={'#164723'} 
-              color="primary" 
-              variant="contained" 
-              startIcon={<SettingsIcon />}
-              onClick={handleOpenUpdateModal}
-            >
+            <BasicButton colorBackground="white" colorText={'#164723'} color="primary" variant="contained" startIcon={<SettingsIcon />} onClick={handleOpenUpdateModal}>
               Update Payment Information
             </BasicButton>
           )}
@@ -333,52 +325,42 @@ const UserPaymentInformationPage: React.FC = () => {
                 bgcolor: 'background.paper',
               }}
             >
-              <Box display="flex" alignItems="center" justifyContent="flex-end" mb={2}>
-                <Skeleton variant="rectangular" width={100} height={24} sx={{ borderRadius: 1 }} />
+              {/* Payment method chip skeleton */}
+              <Box display="flex" alignItems="center" justifyContent="flex-end" mb={3}>
+                <Skeleton variant="rectangular" width={120} height={28} sx={{ borderRadius: 1 }} />
               </Box>
 
-              <Box mb={3}>
-                <Skeleton variant="text" width="40%" height={32} sx={{ mb: 2 }} />
-                <Skeleton variant="text" width="60%" height={24} sx={{ mb: 1 }} />
-                <Skeleton variant="text" width="80%" height={24} sx={{ mb: 1 }} />
-                <Skeleton variant="text" width="50%" height={24} sx={{ mb: 3 }} />
+              {/* Simple content skeletons */}
+              <Box mb={2}>
+                <Skeleton variant="text" width="30%" height={24} sx={{ mb: 1 }} />
+                <Skeleton variant="rectangular" width="100%" height={48} sx={{ borderRadius: 1, mb: 2 }} />
+              </Box>
 
-                <Box display="flex" gap={2} mb={2}>
-                  <Skeleton variant="text" width="30%" height={24} />
-                  <Skeleton variant="text" width="40%" height={24} />
-                </Box>
-                <Box display="flex" gap={2} mb={2}>
-                  <Skeleton variant="text" width="35%" height={24} />
-                  <Skeleton variant="text" width="45%" height={24} />
-                </Box>
-                <Box display="flex" gap={2}>
-                  <Skeleton variant="text" width="25%" height={24} />
-                  <Skeleton variant="text" width="55%" height={24} />
-                </Box>
+              <Box mb={2}>
+                <Skeleton variant="text" width="25%" height={24} sx={{ mb: 1 }} />
+                <Skeleton variant="rectangular" width="100%" height={48} sx={{ borderRadius: 1 }} />
               </Box>
             </Paper>
           )}
 
           {currentError && <FetchErrorBox message="Unable to load payment information. Please try again later." />}
 
-          {!currentIsLoading && !currentError && (!currentPaymentInfo || !currentPaymentInfo.paymentMethod || !currentPaymentInfo.data) && (
-            renderNoPaymentContent()
-          )}
+          {!currentIsLoading && !currentError && (!currentPaymentInfo || !currentPaymentInfo.paymentMethod || !currentPaymentInfo.data) && renderNoPaymentContent()}
 
           {!currentIsLoading && !currentError && currentPaymentInfo && currentPaymentInfo.paymentMethod && currentPaymentInfo.data && (
             <>
               {/* Show pending validation message outside paper if there's a pending request */}
               {!withdrawalLoading && withdrawalData?.isPaymentDataInValidation && (
-                <Box 
-                  sx={{ 
-                    mb: 2, 
-                    p: 2, 
-                    border: '0.5px solid #fff4d6', 
-                    borderRadius: 1, 
+                <Box
+                  sx={{
+                    mb: 2,
+                    p: 2,
+                    border: '0.5px solid #fff4d6',
+                    borderRadius: 1,
                     bgcolor: '#fefdf8',
                     display: 'flex',
                     alignItems: 'flex-start',
-                    gap: 1.5
+                    gap: 1.5,
                   }}
                 >
                   <PendingIcon sx={{ color: '#664d03', mt: 0.25, fontSize: '20px' }} />

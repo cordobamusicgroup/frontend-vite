@@ -10,7 +10,9 @@ import GridTables from '@/components/ui/organisms/GridTables';
 import SearchBoxTable from '@/components/ui/organisms/SearchBoxTable';
 import DMBStatusChip from '../atoms/DMBStatusChip';
 import { ColDef } from 'ag-grid-community';
-import { useClientsAdmin } from '../../hooks/useClientsAdmin';
+// Reemplazado hook combinado por hooks individuales
+import { useListClientsQuery } from '../../hooks/useListClientsQuery';
+import { useDeleteClientsMutation } from '../../hooks/useDeleteClientsMutation';
 import ActionButtonsClient from '../atoms/ActionsButtonsClient';
 import { useNotificationStore } from '@/stores';
 import { formatError } from '@/lib/formatApiError.util';
@@ -29,7 +31,8 @@ const formatCurrency = (currencySymbol: string, value: number): string => {
 
 const ListClientsTable: React.FC<ClientTableProps> = () => {
   const navigate = useNavigate();
-  const { clientsData, loading, mutations, errors } = useClientsAdmin();
+  const listQuery = useListClientsQuery();
+  const deleteClientsMutation = useDeleteClientsMutation();
   const gridRef = useRef<AgGridReact>(null);
   const { setNotification } = useNotificationStore();
 
@@ -38,19 +41,18 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
     navigate(`${webRoutes.admin.clients.edit}/${client.id}`);
   };
 
-  if (errors.clientFetch) {
-    return <FetchErrorBox message={errors.clientFetch.message} defaultMessage="Failed to load client data." />;
+  if (listQuery.error) {
+    return <FetchErrorBox message={(listQuery.error as any).message} defaultMessage="Failed to load client data." />;
   }
 
   const handleDelete = async (clientId: number): Promise<void> => {
-    mutations.deleteClients.mutateAsync([clientId], {
-      onSuccess: () => {
-        setNotification({ message: `Client with ID ${clientId} deleted successfully`, type: 'success' });
+    deleteClientsMutation.mutate(
+      { ids: [clientId] },
+      {
+        onSuccess: () => setNotification({ message: `Client with ID ${clientId} deleted successfully`, type: 'success' }),
+        onError: (error: any) => setNotification({ message: formatError(error).message.join('\n'), type: 'error' }),
       },
-      onError: (error: any) => {
-        setNotification({ message: formatError(error).message.join('\n'), type: 'error' });
-      },
-    });
+    );
   };
 
   const columns: ColDef[] = [
@@ -130,7 +132,7 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
   ];
 
   const rowData =
-    clientsData?.map((apiData: any) => {
+    listQuery.data?.map((apiData: any) => {
       const usd = apiData.balances?.find((b: any) => b.currency === 'USD') || {};
       const eur = apiData.balances?.find((b: any) => b.currency === 'EUR') || {};
       return {
@@ -159,7 +161,7 @@ const ListClientsTable: React.FC<ClientTableProps> = () => {
   return (
     <Box sx={{ height: 600, width: '100%' }}>
       <SearchBoxTable searchTextRef={searchTextRef} applyFilter={applyFilter} resetFilter={resetFilter} />
-      <GridTables ref={gridRef} defaultColDef={defaultColDef} columns={columns} rowData={rowData} loading={loading.clientFetch || loading.deleteClients} quickFilterText={quickFilterText} />
+      <GridTables ref={gridRef} defaultColDef={defaultColDef} columns={columns} rowData={rowData} loading={listQuery.isLoading || deleteClientsMutation.isPending} quickFilterText={quickFilterText} />
     </Box>
   );
 };

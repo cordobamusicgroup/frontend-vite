@@ -2,12 +2,13 @@ import { Autocomplete, MenuItem } from '@mui/material';
 import { useFormContext } from 'react-hook-form';
 import { LabelStatus, LabelRegistrationStatus } from '@/constants/backend.enums';
 import { CheckCircleOutline, DoDisturbOnOutlined, BlockOutlined, DisabledByDefault, PendingOutlined } from '@mui/icons-material';
-import { useClientsAdmin } from '@/modules/admin/clients/hooks/useClientsAdmin';
+import { useListClientsQuery } from '@/modules/admin/clients/hooks/useListClientsQuery';
 import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
 
 const LabelDetailsForm: React.FC = () => {
   const { setValue, watch } = useFormContext();
-  const { clientsData, loading } = useClientsAdmin();
+  const clientsQuery = useListClientsQuery();
+  const clientsData: any[] | undefined = clientsQuery.data;
 
   const clientId = watch('clientId');
   const selectedClient = clientsData?.find((client: any) => client.id === clientId) || null;
@@ -38,7 +39,7 @@ const LabelDetailsForm: React.FC = () => {
       <Autocomplete
         options={clientsData}
         getOptionLabel={(option) => `[ID: ${option.id}] ${option.clientName} (${option.firstName} ${option.lastName}) `}
-        loading={loading.clientFetch}
+        loading={clientsQuery.isLoading}
         onChange={(_, value) => setValue('clientId', value ? value.id : null)}
         value={selectedClient}
         isOptionEqualToValue={(option, value) => option.id === value.id}

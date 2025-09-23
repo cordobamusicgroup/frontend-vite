@@ -29,17 +29,14 @@ const ErrorModal2: React.FC<ErrorModal2Props> = ({ open, onClose, children }) =>
     >
       <Box mb={1} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'left', gap: 1 }}>
         <ErrorOutlineIcon fontSize="large" sx={{ color: '#d32f2f' }} />
-        <Typography
-          variant="h6"
-          component="span"
-          sx={{ fontWeight: 700, display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#d32f2f' }}
-        >
+        <Typography variant="h6" component="span" sx={{ fontWeight: 700, display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#d32f2f' }}>
           ERROR
         </Typography>
       </Box>
 
       <Box p={1}>
-        <Typography variant="body2" sx={{ color: '#d32f2f' }}>
+        {/* Usamos component="div" para permitir hijos con <ul>, <li>, etc. sin violar HTML semantics */}
+        <Typography component="div" variant="body2" sx={{ color: '#d32f2f' }} role="alert">
           {children}
         </Typography>
       </Box>

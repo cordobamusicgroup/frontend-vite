@@ -1,14 +1,14 @@
-import { TextField, type TextFieldProps } from "@mui/material";
-import { Controller, useFormContext } from "react-hook-form";
+import { TextField, type TextFieldProps } from '@mui/material';
+import { Controller, useFormContext } from 'react-hook-form';
 
-interface TextFieldFormProps extends Omit<TextFieldProps, "error"> {
+interface TextFieldFormProps extends Omit<TextFieldProps, 'error'> {
   name: string; // Nombre del campo
   label: string;
   defaultValue?: string; // Valor por defecto
   rules?: object; // Reglas opcionales de validación
 }
 
-const TextFieldForm: React.FC<TextFieldFormProps> = ({ name, label, defaultValue = "", rules, ...props }) => {
+const TextFieldForm: React.FC<TextFieldFormProps> = ({ name, label, defaultValue = '', rules, helperText, ...props }) => {
   const { control } = useFormContext();
 
   return (
@@ -23,12 +23,12 @@ const TextFieldForm: React.FC<TextFieldFormProps> = ({ name, label, defaultValue
           // Convert null values to empty string to avoid React warnings
           variant="standard"
           {...props}
-          value={field.value === null ? "" : field.value}
+          value={field.value === null ? '' : field.value}
           label={label}
           fullWidth
           sx={{ marginBottom: 2, marginTop: 2 }}
           error={Boolean(error)}
-          helperText={error?.message}
+          helperText={error?.message || helperText}
         />
       )}
     />

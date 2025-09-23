@@ -1,28 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Box,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
-  List,
-  ListItem,
-  ListItemText,
-  Alert,
-} from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, FormControl, InputLabel, Select, MenuItem, FormHelperText, List, ListItem, ListItemText, Alert } from '@mui/material';
 import { useForm, FormProvider, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
 import { PaymentUpdateValidationSchema, PaymentUpdateFormData } from '../schemas/PaymentUpdateValidationSchema';
-import { PaymentMethodDto } from '../hooks/useCurrentPaymentInfo';
+import { PaymentMethodDto, CryptoNetworkDto } from '../hooks/useCurrentPaymentInfo';
 import { logColor } from '@/lib/log.util';
 import { useFetchWithdrawalAuth } from '@/modules/user/financial/payments-operations/hooks/queries/useFetchWithdrawalAuth';
 
@@ -80,10 +64,6 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
   }, [isSuccess]);
 
   const onSubmitForm: SubmitHandler<PaymentUpdateFormData> = async (data) => {
-    if (data.paymentMethod !== PaymentMethodDto.PAYPAL) {
-      setSubmitError('This payment method is not yet available for updates. Please select PayPal.');
-      return;
-    }
     try {
       setSubmitError(null);
       setSubmitSuccess(false);
@@ -118,8 +98,8 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
     if (withdrawalLoading) return false;
     if (withdrawalError) return true; // Allow form but will show error
     if (withdrawalData?.isPaymentDataInValidation) return false;
-    if (selectedPaymentMethod !== PaymentMethodDto.PAYPAL) return false; // Only PayPal is currently supported
-    return true;
+    if (selectedPaymentMethod === PaymentMethodDto.BANK_TRANSFER) return false; // Bank transfer not yet available for updates
+    return true; // All payment methods are now supported
   };
 
   const getValidationMessage = () => {
@@ -128,8 +108,8 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
     if (withdrawalData?.isPaymentDataInValidation) {
       return 'You already have a pending payment information update request. Please wait for it to be processed.';
     }
-    if (selectedPaymentMethod && selectedPaymentMethod !== PaymentMethodDto.PAYPAL) {
-      return 'This payment method is not yet available for updates. Please select PayPal.';
+    if (selectedPaymentMethod === PaymentMethodDto.BANK_TRANSFER) {
+      return 'Bank transfer updates are not yet available. This option is currently for viewing only.';
     }
     return null;
   };
@@ -154,14 +134,7 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
 
   const renderPaymentDataFields = () => {
     if (selectedPaymentMethod === PaymentMethodDto.PAYPAL) {
-      return (
-        <TextFieldForm
-          name="paymentData.paypalEmail"
-          label="PayPal Email"
-          type="email"
-          variant="outlined"
-        />
-      );
+      return <TextFieldForm name="paymentData.paypalEmail" label="PayPal Email" type="email" variant="outlined" />;
     }
 
     if (selectedPaymentMethod === PaymentMethodDto.BANK_TRANSFER) {
@@ -174,9 +147,83 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
 
     if (selectedPaymentMethod === PaymentMethodDto.CRYPTO) {
       return (
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          Cryptocurrency updates will be available soon.
-        </Typography>
+        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Alert severity="error" sx={{ mb: 1 }}>
+            <Typography variant="body2">
+              <strong>CRITICAL:</strong> This wallet address will receive USDC payments from us. Do NOT enter an address that doesn't support USDC tokens. Using an incompatible address will result in
+              permanent loss of funds.
+            </Typography>
+          </Alert>
+
+          <Controller
+            name="paymentData.network"
+            control={control}
+            render={({ field, fieldState: { error } }) => (
+              <FormControl fullWidth error={!!error}>
+                <InputLabel>Cryptocurrency Network (USDC Only)</InputLabel>
+                <Select {...field} label="Cryptocurrency Network (USDC Only)">
+                  <MenuItem value={CryptoNetworkDto.BSC}>
+                    <Box>
+                      <Typography variant="body2" fontWeight="medium">
+                        BNB Smart Chain (BEP20) - USDC
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Fee: 0.02 USDC
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value={CryptoNetworkDto.SOL}>
+                    <Box>
+                      <Typography variant="body2" fontWeight="medium">
+                        Solana - USDC
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Fee: 0.5 USDC
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value={CryptoNetworkDto.ETH}>
+                    <Box>
+                      <Typography variant="body2" fontWeight="medium">
+                        Ethereum (ERC20) - USDC
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Fee: 1 USDC
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value={CryptoNetworkDto.XLM}>
+                    <Box>
+                      <Typography variant="body2" fontWeight="medium">
+                        Stellar Network - USDC
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Fee: 1 USDC
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                </Select>
+                {error && <FormHelperText>{error.message}</FormHelperText>}
+              </FormControl>
+            )}
+          />
+
+          <TextFieldForm
+            name="paymentData.walletAddress"
+            label="USDC Wallet Address"
+            variant="outlined"
+            inputProps={{ style: { fontFamily: 'monospace' } }}
+            helperText="Enter your USDC wallet address where you want to receive payments"
+          />
+
+          {selectedPaymentMethod === PaymentMethodDto.CRYPTO && watch('paymentData.network') === CryptoNetworkDto.XLM && (
+            <TextFieldForm name="paymentData.memo" label="Memo (Optional)" variant="outlined" helperText="Optional memo for Stellar USDC transactions - required by some exchanges" />
+          )}
+
+          <Alert severity="info">
+            <Typography variant="body2">Withdrawal payments are processed instantly. Verify your wallet address carefully as transactions cannot be reversed.</Typography>
+          </Alert>
+        </Box>
       );
     }
 
