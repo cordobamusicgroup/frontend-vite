@@ -5,15 +5,15 @@ import { PaymentMethodDto, CryptoNetworkDto } from '../hooks/useCurrentPaymentIn
 const walletPatterns = {
   [CryptoNetworkDto.BSC]: /^0x[a-fA-F0-9]{40}$/,
   [CryptoNetworkDto.ETH]: /^0x[a-fA-F0-9]{40}$/,
-  [CryptoNetworkDto.SOL]: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
-  [CryptoNetworkDto.XLM]: /^G[A-Z0-9]{55}$/,
+  [CryptoNetworkDto.SOL]: /^[A-Za-z0-9]{32,44}$/,
+  [CryptoNetworkDto.XLM]: /^[GM][A-Z2-7]{55}$/,
 };
 
 const walletErrorMessages = {
   [CryptoNetworkDto.BSC]: 'Please enter a valid BSC wallet address (starts with 0x)',
   [CryptoNetworkDto.ETH]: 'Please enter a valid Ethereum wallet address (starts with 0x)',
   [CryptoNetworkDto.SOL]: 'Please enter a valid Solana wallet address',
-  [CryptoNetworkDto.XLM]: 'Please enter a valid Stellar wallet address (starts with G)',
+  [CryptoNetworkDto.XLM]: 'Please enter a valid Stellar wallet address (starts with G or M)',
 };
 
 /**
