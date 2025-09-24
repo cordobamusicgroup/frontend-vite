@@ -26,7 +26,7 @@ const TextFieldForm: React.FC<TextFieldFormProps> = ({ name, label, defaultValue
           value={field.value === null ? '' : field.value}
           label={label}
           fullWidth
-          sx={{ marginBottom: 2, marginTop: 2 }}
+          sx={{ marginBottom: 1, marginTop: 1 }}
           error={Boolean(error)}
           helperText={error?.message || helperText}
         />
