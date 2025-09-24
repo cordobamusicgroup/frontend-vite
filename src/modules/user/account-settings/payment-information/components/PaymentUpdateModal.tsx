@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, FormControl, InputLabel, Select, MenuItem, FormHelperText, List, ListItem, ListItemText, Alert } from '@mui/material';
-import { useForm, FormProvider, Controller, SubmitHandler } from 'react-hook-form';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, List, ListItem, ListItemText, Alert } from '@mui/material';
+import { useForm, FormProvider, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
-import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
-import FormSectionAccordion from '@/components/ui/molecules/FormSectionAccordion';
-import PersonIcon from '@mui/icons-material/Person';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import PaymentFormContent from './organisms/PaymentFormContent';
 import { PaymentUpdateValidationSchema, PaymentUpdateFormData } from '../schemas/PaymentUpdateValidationSchema';
-import { PaymentMethodDto, CryptoNetworkDto } from '../hooks/useCurrentPaymentInfo';
-import { BankTransferCurrencyDto, TransferTypeDto, UsdAccountTypeDto } from '../types/bankTransfer.types';
 import { logColor } from '@/lib/log.util';
+import { PaymentMethodDto } from '../hooks/useCurrentPaymentInfo';
+import { BankTransferCurrencyDto, TransferTypeDto } from '../types/bankTransfer.types';
 import { useFetchWithdrawalAuth } from '@/modules/user/financial/payments-operations/hooks/queries/useFetchWithdrawalAuth';
 
 interface PaymentUpdateModalProps {
@@ -25,108 +22,70 @@ interface PaymentUpdateModalProps {
 
 const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, onSubmit, loading = false, error, isSuccess = false }) => {
   const [isValidationErrorModalOpen, setIsValidationErrorModalOpen] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const { withdrawalData, withdrawalLoading, withdrawalError } = useFetchWithdrawalAuth();
 
   const methods = useForm<PaymentUpdateFormData>({
     resolver: yupResolver(PaymentUpdateValidationSchema),
+    mode: 'onChange',
+    reValidateMode: 'onChange',
   });
 
   const {
-    control,
     handleSubmit,
     formState: { errors },
     reset,
     watch,
   } = methods;
 
-  const selectedPaymentMethod = watch('paymentMethod');
-  const selectedCurrency = watch('paymentData.currency');
-  const selectedTransferType = watch('paymentData.bank_details.transfer_type');
+  const selectedPaymentMethod = watch('paymentMethod') as PaymentMethodDto;
+  const selectedCurrency = watch('paymentData.currency') as BankTransferCurrencyDto;
+  const selectedTransferType = watch('paymentData.bank_details.transfer_type') as TransferTypeDto;
 
-  // Check for errors in specific sections using React Hook Form errors
-  const hasAccountHolderErrors = !!errors?.paymentData?.accountHolder;
-  const hasBankDetailsErrors = !!errors?.paymentData?.bank_details;
-
-  // Reset transfer type when currency changes
+  // Reset all payment data when payment method changes
   useEffect(() => {
-    if (selectedCurrency && selectedTransferType) {
-      const isValidCombination = 
-        (selectedCurrency === BankTransferCurrencyDto.USD && [TransferTypeDto.ACH, TransferTypeDto.SWIFT].includes(selectedTransferType)) ||
-        (selectedCurrency === BankTransferCurrencyDto.EUR && [TransferTypeDto.SEPA, TransferTypeDto.SWIFT].includes(selectedTransferType));
-      
-      if (!isValidCombination) {
-        methods.setValue('paymentData.bank_details.transfer_type', '' as any);
-        methods.setValue('paymentData.bank_details.ach', undefined);
-        methods.setValue('paymentData.bank_details.swift', undefined);
-        methods.setValue('paymentData.bank_details.sepa', undefined);
-      }
-    }
-  }, [selectedCurrency, selectedTransferType, methods]);
+    if (!selectedPaymentMethod) return;
+    
+    // Reset all payment data and keep only the selected payment method
+    methods.resetField('paymentData');
+  }, [selectedPaymentMethod, methods]);
 
-  // Reset states when modal opens/closes
+  // Reset transfer type when currency changes using RHF trigger
+  useEffect(() => {
+    if (!selectedCurrency) return;
+    
+    // Reset bank details when currency changes
+    methods.resetField('paymentData.bank_details.transfer_type');
+    methods.resetField('paymentData.bank_details.ach');
+    methods.resetField('paymentData.bank_details.swift');
+    methods.resetField('paymentData.bank_details.sepa');
+  }, [selectedCurrency, methods]);
+
+  // Reset form when modal opens/closes
   useEffect(() => {
     if (open) {
-      setSubmitError(null);
-      setSubmitSuccess(false);
+      reset();
     }
-  }, [open]);
-
-  // Update states when external props change
-  useEffect(() => {
-    if (error) {
-      setSubmitError(error?.message || 'An error occurred while submitting the request');
-      setSubmitSuccess(false);
-    }
-  }, [error]);
-
-  useEffect(() => {
-    if (isSuccess) {
-      setSubmitSuccess(true);
-      setSubmitError(null);
-    }
-  }, [isSuccess]);
+  }, [open, reset]);
 
   const onSubmitForm: SubmitHandler<PaymentUpdateFormData> = async (data) => {
-    try {
-      setSubmitError(null);
-      setSubmitSuccess(false);
-      logColor('info', 'PaymentUpdateModal', 'Form submitted:', data);
-      await onSubmit(data);
-    } catch (error: any) {
-      setSubmitError(error?.message || 'An error occurred while submitting the request');
-      setSubmitSuccess(false);
-    }
+    logColor('info', 'PaymentUpdateModal', 'Form submitted:', data);
+    await onSubmit(data);
   };
 
   const handleFormSubmit = handleSubmit(
-    (data) => {
-      onSubmitForm(data);
-    },
-    (validationErrors) => {
-      if (Object.keys(validationErrors).length > 0) {
-        setIsValidationErrorModalOpen(true);
-      }
-    },
+    onSubmitForm,
+    () => setIsValidationErrorModalOpen(true)
   );
 
   const handleClose = () => {
     reset();
-    setSubmitError(null);
-    setSubmitSuccess(false);
     onClose();
   };
 
-  // Check if user can submit a payment update request
-  const canSubmitRequest = () => {
-    if (withdrawalLoading) return false;
-    if (withdrawalError) return true; // Allow form but will show error
-    if (withdrawalData?.isPaymentDataInValidation) return false;
-    return true; // All payment methods are now supported
-  };
-
+  // Computed values using RHF state
+  const canSubmitRequest = !withdrawalLoading && !withdrawalData?.isPaymentDataInValidation;
+  
   const getValidationMessage = () => {
     if (withdrawalLoading) return 'Checking payment status...';
     if (withdrawalError) return 'Error checking payment status. You can still try to submit.';
@@ -138,232 +97,24 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
 
   const extractValidationMessages = (errors: any): string[] => {
     const messages: string[] = [];
-    const iterate = (errObj: any) => {
-      if (errObj?.message) {
-        messages.push(errObj.message);
-      }
-      if (errObj && typeof errObj === 'object') {
-        for (const key in errObj) {
-          if (typeof errObj[key] === 'object') {
-            iterate(errObj[key]);
-          }
+    
+    const flattenErrors = (obj: any, path = ''): void => {
+      Object.keys(obj).forEach(key => {
+        const currentPath = path ? `${path}.${key}` : key;
+        const value = obj[key];
+        
+        if (value?.message) {
+          messages.push(value.message);
+        } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+          flattenErrors(value, currentPath);
         }
-      }
+      });
     };
-    iterate(errors);
+    
+    if (errors) flattenErrors(errors);
     return messages;
   };
 
-  const renderPaymentDataFields = () => {
-    if (selectedPaymentMethod === PaymentMethodDto.PAYPAL) {
-      return <TextFieldForm name="paymentData.paypalEmail" label="PayPal Email" type="email" variant="outlined" placeholder="Enter your PayPal email address" />;
-    }
-
-    if (selectedPaymentMethod === PaymentMethodDto.BANK_TRANSFER) {
-      return (
-        <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column' }}>
-          <Controller
-            name="paymentData.currency"
-            control={control}
-            render={({ field, fieldState: { error } }) => (
-              <FormControl fullWidth error={!!error} sx={{ marginBottom: 1.5 }}>
-                <InputLabel>Currency</InputLabel>
-                <Select {...field} label="Currency" value={field.value || ''}>
-                  <MenuItem value={BankTransferCurrencyDto.USD}>USD</MenuItem>
-                  <MenuItem value={BankTransferCurrencyDto.EUR}>EUR</MenuItem>
-                </Select>
-                {error && <FormHelperText>{error.message}</FormHelperText>}
-              </FormControl>
-            )}
-          />
-          
-          {selectedCurrency && (
-            <>
-              <FormSectionAccordion
-                title="Account Holder Information"
-                icon={<PersonIcon />}
-                defaultExpanded={false}
-                hasError={hasAccountHolderErrors}
-              >
-                <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
-                  <TextFieldForm name="paymentData.accountHolder.first_name" label="First Name" variant="outlined" placeholder="Enter first name" />
-                  <TextFieldForm name="paymentData.accountHolder.last_name" label="Last Name" variant="outlined" placeholder="Enter last name" />
-                </Box>
-                
-                <TextFieldForm name="paymentData.accountHolder.street_address" label="Street Address" variant="outlined" placeholder="Enter street address" />
-                <TextFieldForm name="paymentData.accountHolder.house_number" label="House Number (Optional)" variant="outlined" placeholder="Enter house number (optional)" />
-                
-                <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
-                  <TextFieldForm name="paymentData.accountHolder.city" label="City" variant="outlined" placeholder="Enter city" />
-                  <TextFieldForm name="paymentData.accountHolder.state" label="State" variant="outlined" placeholder="Enter state" />
-                  <TextFieldForm name="paymentData.accountHolder.zip" label="ZIP Code" variant="outlined" placeholder="Enter ZIP code" />
-                </Box>
-                
-                <TextFieldForm name="paymentData.accountHolder.country" label="Country" variant="outlined" placeholder="Enter country" />
-              </FormSectionAccordion>
-              
-              <FormSectionAccordion
-                title="Bank Details"
-                icon={<AccountBalanceIcon />}
-                defaultExpanded={false}
-                hasError={hasBankDetailsErrors}
-              >
-              
-              <Controller
-                name="paymentData.bank_details.transfer_type"
-                control={control}
-                render={({ field, fieldState: { error } }) => {
-                  const getMenuItems = () => {
-                    if (selectedCurrency === BankTransferCurrencyDto.USD) {
-                      return [
-                        <MenuItem key="ach" value={TransferTypeDto.ACH}>ACH</MenuItem>,
-                        <MenuItem key="swift-usd" value={TransferTypeDto.SWIFT}>SWIFT</MenuItem>
-                      ];
-                    }
-                    if (selectedCurrency === BankTransferCurrencyDto.EUR) {
-                      return [
-                        <MenuItem key="sepa" value={TransferTypeDto.SEPA}>SEPA</MenuItem>,
-                        <MenuItem key="swift-eur" value={TransferTypeDto.SWIFT}>SWIFT</MenuItem>
-                      ];
-                    }
-                    return [];
-                  };
-
-                  return (
-                    <FormControl fullWidth error={!!error} sx={{ marginBottom: 1, marginTop: 1 }}>
-                      <InputLabel>Transfer Type</InputLabel>
-                      <Select {...field} label="Transfer Type" value={field.value || ''}>
-                        {getMenuItems()}
-                      </Select>
-                      {error && <FormHelperText>{error.message}</FormHelperText>}
-                    </FormControl>
-                  );
-                }}
-              />
-              
-              {selectedTransferType === TransferTypeDto.ACH && (
-                <>
-                  <TextFieldForm name="paymentData.bank_details.ach.routing_number" label="Routing Number" variant="outlined" placeholder="Enter routing number" />
-                  <TextFieldForm name="paymentData.bank_details.ach.account_number" label="Account Number" variant="outlined" placeholder="Enter account number" />
-                  <Controller
-                    name="paymentData.bank_details.ach.account_type"
-                    control={control}
-                    render={({ field, fieldState: { error } }) => (
-                      <FormControl fullWidth error={!!error} sx={{ marginBottom: 1, marginTop: 1 }}>
-                        <InputLabel>Account Type</InputLabel>
-                        <Select {...field} label="Account Type" value={field.value || ''}>
-                          <MenuItem value={UsdAccountTypeDto.CHECKING}>Checking</MenuItem>
-                          <MenuItem value={UsdAccountTypeDto.SAVINGS}>Savings</MenuItem>
-                        </Select>
-                        {error && <FormHelperText>{error.message}</FormHelperText>}
-                      </FormControl>
-                    )}
-                  />
-                </>
-              )}
-              
-              {selectedTransferType === TransferTypeDto.SWIFT && (
-                <>
-                  <TextFieldForm name="paymentData.bank_details.swift.swift_bic" label="SWIFT BIC" variant="outlined" placeholder="Enter SWIFT BIC code" />
-                  <TextFieldForm name="paymentData.bank_details.swift.iban_account_number" label="IBAN Account Number" variant="outlined" placeholder="Enter IBAN account number" />
-                </>
-              )}
-              
-              {selectedTransferType === TransferTypeDto.SEPA && (
-                <TextFieldForm name="paymentData.bank_details.sepa.iban" label="IBAN" variant="outlined" placeholder="Enter IBAN number" />
-              )}
-              </FormSectionAccordion>
-            </>
-          )}
-        </Box>
-      );
-    }
-
-    if (selectedPaymentMethod === PaymentMethodDto.CRYPTO) {
-      return (
-        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Alert severity="error" sx={{ mb: 1 }}>
-            <Typography variant="body2">
-              <strong>CRITICAL:</strong> This wallet address will receive USDC payments from us. Do NOT enter an address that doesn't support USDC tokens. Using an incompatible address will result in
-              permanent loss of funds.
-            </Typography>
-          </Alert>
-
-          <Controller
-            name="paymentData.network"
-            control={control}
-            render={({ field, fieldState: { error } }) => (
-              <FormControl fullWidth error={!!error}>
-                <InputLabel>Cryptocurrency Network (USDC Only)</InputLabel>
-                <Select {...field} label="Cryptocurrency Network (USDC Only)">
-                  <MenuItem value={CryptoNetworkDto.BSC}>
-                    <Box>
-                      <Typography variant="body2" fontWeight="medium">
-                        BNB Smart Chain (BEP20) - USDC
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Fee: 0.02 USDC
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value={CryptoNetworkDto.SOL}>
-                    <Box>
-                      <Typography variant="body2" fontWeight="medium">
-                        Solana - USDC
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Fee: 0.5 USDC
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value={CryptoNetworkDto.ETH}>
-                    <Box>
-                      <Typography variant="body2" fontWeight="medium">
-                        Ethereum (ERC20) - USDC
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Fee: 1 USDC
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value={CryptoNetworkDto.XLM}>
-                    <Box>
-                      <Typography variant="body2" fontWeight="medium">
-                        Stellar Network - USDC
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Fee: 1 USDC
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                </Select>
-                {error && <FormHelperText>{error.message}</FormHelperText>}
-              </FormControl>
-            )}
-          />
-
-          <TextFieldForm
-            name="paymentData.walletAddress"
-            label="USDC Wallet Address"
-            variant="outlined"
-            placeholder="Enter your USDC wallet address"
-            inputProps={{ style: { fontFamily: 'monospace' } }}
-            helperText="Enter your USDC wallet address where you want to receive payments"
-          />
-
-          {selectedPaymentMethod === PaymentMethodDto.CRYPTO && watch('paymentData.network') === CryptoNetworkDto.XLM && (
-            <TextFieldForm name="paymentData.memo" label="Memo (Optional)" variant="outlined" placeholder="Enter memo (optional)" helperText="Optional memo for Stellar USDC transactions - required by some exchanges" />
-          )}
-
-          <Alert severity="info">
-            <Typography variant="body2">Withdrawal payments are processed instantly. Verify your wallet address carefully as transactions cannot be reversed.</Typography>
-          </Alert>
-        </Box>
-      );
-    }
-
-    return null;
-  };
 
   return (
     <>
@@ -378,16 +129,16 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
           <FormProvider {...methods}>
             <Box component="form" sx={{ mt: 1 }}>
               {/* Success Message */}
-              {submitSuccess && (
+              {isSuccess && (
                 <Alert severity="success" sx={{ mb: 2 }}>
                   Payment update request submitted successfully! Your request is being processed.
                 </Alert>
               )}
 
               {/* Error Messages */}
-              {submitError && (
+              {error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
-                  {submitError}
+                  {error?.message || 'An error occurred while submitting the request'}
                 </Alert>
               )}
 
@@ -406,26 +157,12 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
               )}
 
               {/* Only show form if there's no pending payment validation and not successful */}
-              {!withdrawalData?.isPaymentDataInValidation && !withdrawalLoading && !submitSuccess && (
-                <>
-                  <Controller
-                    name="paymentMethod"
-                    control={control}
-                    render={({ field, fieldState: { error } }) => (
-                      <FormControl fullWidth error={!!error} sx={{ marginBottom: 1.5 }}>
-                        <InputLabel>Payment Method</InputLabel>
-                        <Select {...field} label="Payment Method">
-                          <MenuItem value={PaymentMethodDto.PAYPAL}>PayPal</MenuItem>
-                          <MenuItem value={PaymentMethodDto.BANK_TRANSFER}>Bank Transfer</MenuItem>
-                          <MenuItem value={PaymentMethodDto.CRYPTO}>Cryptocurrency</MenuItem>
-                        </Select>
-                        {error && <FormHelperText>{error.message}</FormHelperText>}
-                      </FormControl>
-                    )}
-                  />
-
-                  {renderPaymentDataFields()}
-                </>
+              {!withdrawalData?.isPaymentDataInValidation && !withdrawalLoading && !isSuccess && (
+                <PaymentFormContent
+                  selectedPaymentMethod={selectedPaymentMethod}
+                  selectedCurrency={selectedCurrency}
+                  selectedTransferType={selectedTransferType}
+                />
               )}
             </Box>
           </FormProvider>
@@ -433,10 +170,10 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
 
         <DialogActions sx={{ p: 3 }}>
           <BasicButton onClick={handleClose} color="secondary" variant="outlined" disabled={loading}>
-            {submitSuccess ? 'Close' : 'Cancel'}
+            {isSuccess ? 'Close' : 'Cancel'}
           </BasicButton>
-          {!submitSuccess && !withdrawalData?.isPaymentDataInValidation && !withdrawalLoading && (
-            <BasicButton onClick={handleFormSubmit} color="primary" variant="contained" loading={loading} disabled={loading || !canSubmitRequest()}>
+          {!isSuccess && !withdrawalData?.isPaymentDataInValidation && !withdrawalLoading && (
+            <BasicButton onClick={handleFormSubmit} color="primary" variant="contained" loading={loading} disabled={loading || !canSubmitRequest}>
               Submit Request
             </BasicButton>
           )}
