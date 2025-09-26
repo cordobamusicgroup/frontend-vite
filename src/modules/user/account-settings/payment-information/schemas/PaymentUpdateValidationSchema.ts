@@ -1,6 +1,6 @@
 import * as yup from 'yup';
-import { PaymentMethodDto, CryptoNetworkDto } from '../hooks/useCurrentPaymentInfo';
-import { BankTransferCurrencyDto, TransferTypeDto, UsdAccountTypeDto, USD_TRANSFER_TYPES, EUR_TRANSFER_TYPES } from '../types/bankTransfer.types';
+import { PaymentMethodDto, CryptoNetworkDto, CRYPTO_NETWORKS } from '../hooks/useCurrentPaymentInfo';
+import { BankTransferCurrencyDto, TransferTypeDto, UsdAccountTypeDto, USD_TRANSFER_TYPES, EUR_TRANSFER_TYPES, BANK_TRANSFER_CURRENCIES, USD_ACCOUNT_TYPES } from '../types/bankTransfer.types';
 
 // Validation patterns for wallet addresses
 const walletPatterns = {
@@ -33,7 +33,7 @@ export const PaymentUpdateValidationSchema = yup.object().shape({
         is: PaymentMethodDto.CRYPTO,
         then: (schema) =>
           schema.shape({
-            network: yup.string().oneOf(Object.values(CryptoNetworkDto), 'Invalid cryptocurrency network').required('Network is required'),
+            network: yup.string().oneOf(CRYPTO_NETWORKS, 'Invalid cryptocurrency network').required('Network is required'),
             walletAddress: yup
               .string()
               .required('Wallet address is required')
@@ -70,7 +70,7 @@ export const PaymentUpdateValidationSchema = yup.object().shape({
             is: PaymentMethodDto.BANK_TRANSFER,
             then: (schema) =>
               schema.shape({
-                currency: yup.string().oneOf(Object.values(BankTransferCurrencyDto), 'Invalid currency').required('Currency is required'),
+                currency: yup.string().oneOf(BANK_TRANSFER_CURRENCIES, 'Invalid currency').required('Currency is required'),
                 accountHolder: yup.object().shape({
                   first_name: yup.string().required('First name is required'),
                   last_name: yup.string().required('Last name is required'),
@@ -104,7 +104,7 @@ export const PaymentUpdateValidationSchema = yup.object().shape({
                     then: (schema) => schema.shape({
                       routing_number: yup.string().required('Routing number is required'),
                       account_number: yup.string().required('Account number is required'),
-                      account_type: yup.string().oneOf(Object.values(UsdAccountTypeDto), 'Invalid account type').required('Account type is required'),
+                      account_type: yup.string().oneOf(USD_ACCOUNT_TYPES, 'Invalid account type').required('Account type is required'),
                     }).required(),
                     otherwise: (schema) => schema.optional(),
                   }),

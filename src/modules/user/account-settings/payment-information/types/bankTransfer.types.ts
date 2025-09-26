@@ -41,6 +41,17 @@ export interface BankDetailsDto {
   sepa?: EurSepaDetailsDto;
 }
 
+// Helper constants for validation
+export const BANK_TRANSFER_CURRENCIES = [
+  BankTransferCurrencyDto.USD,
+  BankTransferCurrencyDto.EUR
+] as const;
+
+export const USD_ACCOUNT_TYPES = [
+  UsdAccountTypeDto.CHECKING,
+  UsdAccountTypeDto.SAVINGS
+] as const;
+
 // Helper types for currency-specific transfer types
 export const USD_TRANSFER_TYPES = [TransferTypeDto.ACH, TransferTypeDto.SWIFT] as const;
 export const EUR_TRANSFER_TYPES = [TransferTypeDto.SEPA, TransferTypeDto.SWIFT] as const;

@@ -15,6 +15,13 @@ export enum CryptoNetworkDto {
   XLM = 'XLM', // Stellar Network - 1 USDC fee
 }
 
+export const CRYPTO_NETWORKS = [
+  CryptoNetworkDto.BSC,
+  CryptoNetworkDto.SOL,
+  CryptoNetworkDto.ETH,
+  CryptoNetworkDto.XLM
+] as const;
+
 export enum BankTransferCurrencyDto {
   USD = 'USD',
   EUR = 'EUR',
