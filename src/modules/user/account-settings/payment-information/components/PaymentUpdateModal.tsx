@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, List, ListItem, ListItemText, Alert } from '@mui/material';
-import { useForm, FormProvider, SubmitHandler } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { FormProvider } from 'react-hook-form';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import PaymentFormContent from './organisms/PaymentFormContent';
-import { PaymentUpdateValidationSchema, PaymentUpdateFormData } from '../schemas/PaymentUpdateValidationSchema';
-import { logColor } from '@/lib/log.util';
-import { PaymentMethodDto } from '../hooks/useCurrentPaymentInfo';
-import { BankTransferCurrencyDto, TransferTypeDto } from '../types/bankTransfer.types';
+import { PaymentUpdateFormData } from '../schemas/PaymentUpdateValidationSchema';
 import { useFetchWithdrawalAuth } from '@/modules/user/financial/payments-operations/hooks/queries/useFetchWithdrawalAuth';
+import { usePaymentUpdateForm } from '../hooks/usePaymentUpdateForm';
 
 interface PaymentUpdateModalProps {
   open: boolean;
@@ -25,55 +22,11 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
 
   const { withdrawalData, withdrawalLoading, withdrawalError } = useFetchWithdrawalAuth();
 
-  const methods = useForm<PaymentUpdateFormData>({
-    resolver: yupResolver(PaymentUpdateValidationSchema),
-    mode: 'onChange',
-    reValidateMode: 'onChange',
-  });
+  const { methods, selectedPaymentMethod, selectedCurrency, selectedTransferType, onSubmitForm, handleSubmit } = usePaymentUpdateForm({ onSubmit, open });
 
-  const {
-    handleSubmit,
-    formState: { errors },
-    reset,
-    watch,
-  } = methods;
+  const { formState: { errors }, reset } = methods;
 
-  const selectedPaymentMethod = watch('paymentMethod') as PaymentMethodDto;
-  const selectedCurrency = watch('paymentData.currency') as BankTransferCurrencyDto;
-  const selectedTransferType = watch('paymentData.bank_details.transfer_type') as TransferTypeDto;
-
-  // Reset all payment data when payment method changes
-  useEffect(() => {
-    if (!selectedPaymentMethod) return;
-    
-    // Reset all payment data and keep only the selected payment method
-    methods.resetField('paymentData');
-  }, [selectedPaymentMethod, methods]);
-
-  // Reset transfer type when currency changes using RHF trigger
-  useEffect(() => {
-    if (!selectedCurrency) return;
-    
-    // Reset bank details when currency changes
-    methods.resetField('paymentData.bank_details.transfer_type');
-    methods.resetField('paymentData.bank_details.ach');
-    methods.resetField('paymentData.bank_details.swift');
-    methods.resetField('paymentData.bank_details.sepa');
-  }, [selectedCurrency, methods]);
-
-  // Reset form when modal opens/closes
-  useEffect(() => {
-    if (open) {
-      reset();
-    }
-  }, [open, reset]);
-
-  const onSubmitForm: SubmitHandler<PaymentUpdateFormData> = async (data) => {
-    logColor('info', 'PaymentUpdateModal', 'Form submitted:', data);
-    await onSubmit(data);
-  };
-
-  const handleFormSubmit = handleSubmit(
+  const handleFormSubmitWithValidation = handleSubmit(
     onSubmitForm,
     () => setIsValidationErrorModalOpen(true)
   );
@@ -173,7 +126,7 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
             {isSuccess ? 'Close' : 'Cancel'}
           </BasicButton>
           {!isSuccess && !withdrawalData?.isPaymentDataInValidation && !withdrawalLoading && (
-            <BasicButton onClick={handleFormSubmit} color="primary" variant="contained" loading={loading} disabled={loading || !canSubmitRequest}>
+            <BasicButton onClick={handleFormSubmitWithValidation} color="primary" variant="contained" loading={loading} disabled={loading || !canSubmitRequest}>
               Submit Request
             </BasicButton>
           )}

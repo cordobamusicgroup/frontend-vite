@@ -1,6 +1,7 @@
 import * as yup from 'yup';
 import { PaymentMethodDto, CryptoNetworkDto, CRYPTO_NETWORKS } from '../hooks/useCurrentPaymentInfo';
 import { BankTransferCurrencyDto, TransferTypeDto, UsdAccountTypeDto, USD_TRANSFER_TYPES, EUR_TRANSFER_TYPES, BANK_TRANSFER_CURRENCIES, USD_ACCOUNT_TYPES } from '../types/bankTransfer.types';
+import { cleanPaymentFormData } from '../utils/cleanBankDetails';
 
 // Validation patterns for wallet addresses
 const walletPatterns = {
@@ -129,6 +130,9 @@ export const PaymentUpdateValidationSchema = yup.object().shape({
           }),
       }),
   }),
+}).transform((value) => {
+  // Automatically clean the form data after validation
+  return cleanPaymentFormData(value);
 });
 
 export type PaymentUpdateFormData = {
