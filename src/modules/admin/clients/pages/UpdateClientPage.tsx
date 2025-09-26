@@ -41,23 +41,23 @@ function BalancesBlock({ balances }: { balances: any[] }) {
   const usd = balances?.find((b: any) => b.currency === 'USD') || {};
   const eur = balances?.find((b: any) => b.currency === 'EUR') || {};
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center', mb: 1 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 1 }}>
       <Box>
         <Typography variant="subtitle2" color="text.secondary">
           USD
         </Typography>
-        <Typography variant="h6">$ {Number(usd.amount ?? 0).toFixed(2)}</Typography>
+        <Typography variant="h6">$ {Number(usd.amount ?? 0)}</Typography>
         <Typography variant="body2" color="text.secondary">
-          Retained: $ {Number(usd.retained ?? 0).toFixed(2)}
+          Retained: $ {Number(usd.retained ?? 0)}
         </Typography>
       </Box>
       <Box>
         <Typography variant="subtitle2" color="text.secondary">
           EUR
         </Typography>
-        <Typography variant="h6">€ {Number(eur.amount ?? 0).toFixed(2)}</Typography>
+        <Typography variant="h6">€ {Number(eur.amount ?? 0)}</Typography>
         <Typography variant="body2" color="text.secondary">
-          Retained: € {Number(eur.retained ?? 0).toFixed(2)}
+          Retained: € {Number(eur.retained ?? 0)}
         </Typography>
       </Box>
     </Box>
@@ -85,6 +85,7 @@ const UpdateClientPage: React.FC = () => {
         firstName: clientQuery.data.firstName,
         lastName: clientQuery.data.lastName,
         type: clientQuery.data.type,
+        companyName: clientQuery.data.companyName,
         taxIdType: clientQuery.data.taxIdType,
         taxId: clientQuery.data.taxId,
         vatRegistered: typeof clientQuery.data.vatRegistered === 'boolean' ? clientQuery.data.vatRegistered : false,
@@ -213,7 +214,19 @@ const UpdateClientPage: React.FC = () => {
       <title>{`Update Client: ${clientQuery.data?.clientName ?? 'Unknown'} - Córdoba Music Group`}</title>
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
-          <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Update Client: ID {clientQuery.data?.id}</Typography>
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography sx={{ fontSize: '20px', fontWeight: 'bold' }}>
+              Update Client: {clientQuery.data?.clientName || `ID ${clientQuery.data?.id}`}
+            </Typography>
+            <Typography sx={{ fontSize: '14px', opacity: 0.8 }}>
+              {clientQuery.data?.firstName && clientQuery.data?.lastName
+                ? `${clientQuery.data.firstName} ${clientQuery.data.lastName} • `
+                : ''}
+              {clientQuery.data?.type === 'PERSON' ? 'Person' :
+               clientQuery.data?.type === 'BUSINESS' ? 'Business' :
+               'Unknown Type'} • ID: {clientQuery.data?.id}
+            </Typography>
+          </Box>
           <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
           <BasicButton
             colorBackground="white"

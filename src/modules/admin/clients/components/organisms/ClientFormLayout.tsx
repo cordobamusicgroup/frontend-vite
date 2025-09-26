@@ -27,7 +27,7 @@ const ClientFormLayout: React.FC = () => {
 
   return (
     <>
-      <FormSectionAccordion title="Personal Details" icon={<PersonIcon sx={{ color: 'primary.main' }} />} hasError={!!errorsBySection.personalDetails} defaultExpanded={true}>
+      <FormSectionAccordion title="Personal Details" icon={<PersonIcon sx={{ color: 'primary.main' }} />} hasError={!!errorsBySection.personalDetails} defaultExpanded={false}>
         <ClientDetailsForm />
       </FormSectionAccordion>
       <FormSectionAccordion title="Address" icon={<HomeIcon sx={{ color: 'primary.main' }} />} hasError={!!errorsBySection.address}>
