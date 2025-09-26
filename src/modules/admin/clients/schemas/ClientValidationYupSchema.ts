@@ -6,6 +6,13 @@ export const ClientValidationYupSchema = yup.object({
     firstName: yup.string().required('First name is required'),
     lastName: yup.string().required('Last name is required'),
     type: yup.string().required('Type is required'),
+    companyName: yup
+      .string()
+      .when('type', {
+        is: 'BUSINESS',
+        then: (schema) => schema.required('Company name is required for business clients'),
+        otherwise: (schema) => schema.notRequired(),
+      }),
     taxIdType: yup.string().required('Tax ID Type is required'),
     taxId: yup.string().required('Tax ID is required'),
     vatRegistered: yup.boolean().required('Please indicate if the client is VAT registered'),

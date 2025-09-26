@@ -85,6 +85,7 @@ const UpdateClientPage: React.FC = () => {
         firstName: clientQuery.data.firstName,
         lastName: clientQuery.data.lastName,
         type: clientQuery.data.type,
+        companyName: clientQuery.data.companyName,
         taxIdType: clientQuery.data.taxIdType,
         taxId: clientQuery.data.taxId,
         vatRegistered: typeof clientQuery.data.vatRegistered === 'boolean' ? clientQuery.data.vatRegistered : false,
@@ -213,7 +214,19 @@ const UpdateClientPage: React.FC = () => {
       <title>{`Update Client: ${clientQuery.data?.clientName ?? 'Unknown'} - Córdoba Music Group`}</title>
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
-          <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Update Client: ID {clientQuery.data?.id}</Typography>
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography sx={{ fontSize: '20px', fontWeight: 'bold' }}>
+              Update Client: {clientQuery.data?.clientName || `ID ${clientQuery.data?.id}`}
+            </Typography>
+            <Typography sx={{ fontSize: '14px', opacity: 0.8 }}>
+              {clientQuery.data?.firstName && clientQuery.data?.lastName
+                ? `${clientQuery.data.firstName} ${clientQuery.data.lastName} • `
+                : ''}
+              {clientQuery.data?.type === 'PERSON' ? '👤 Person' :
+               clientQuery.data?.type === 'BUSINESS' ? '🏢 Business' :
+               'Unknown Type'} • ID: {clientQuery.data?.id}
+            </Typography>
+          </Box>
           <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
           <BasicButton
             colorBackground="white"
