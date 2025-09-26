@@ -41,23 +41,23 @@ function BalancesBlock({ balances }: { balances: any[] }) {
   const usd = balances?.find((b: any) => b.currency === 'USD') || {};
   const eur = balances?.find((b: any) => b.currency === 'EUR') || {};
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center', mb: 1 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 1 }}>
       <Box>
         <Typography variant="subtitle2" color="text.secondary">
           USD
         </Typography>
-        <Typography variant="h6">$ {Number(usd.amount ?? 0).toFixed(2)}</Typography>
+        <Typography variant="h6">$ {Number(usd.amount ?? 0)}</Typography>
         <Typography variant="body2" color="text.secondary">
-          Retained: $ {Number(usd.retained ?? 0).toFixed(2)}
+          Retained: $ {Number(usd.retained ?? 0)}
         </Typography>
       </Box>
       <Box>
         <Typography variant="subtitle2" color="text.secondary">
           EUR
         </Typography>
-        <Typography variant="h6">€ {Number(eur.amount ?? 0).toFixed(2)}</Typography>
+        <Typography variant="h6">€ {Number(eur.amount ?? 0)}</Typography>
         <Typography variant="body2" color="text.secondary">
-          Retained: € {Number(eur.retained ?? 0).toFixed(2)}
+          Retained: € {Number(eur.retained ?? 0)}
         </Typography>
       </Box>
     </Box>
