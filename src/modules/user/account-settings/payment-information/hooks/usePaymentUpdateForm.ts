@@ -33,6 +33,14 @@ export const usePaymentUpdateForm = ({ onSubmit, open }: UsePaymentUpdateFormPro
     methods.resetField('paymentData');
   }, [selectedPaymentMethod, methods]);
 
+  // Reset bank_details when currency changes (to avoid incompatible transfer types)
+  useEffect(() => {
+    if (!selectedCurrency) return;
+
+    // Reset all bank details when currency changes
+    methods.resetField('paymentData.bank_details');
+  }, [selectedCurrency, methods]);
+
   // Reset form when modal opens
   useEffect(() => {
     if (open) {
