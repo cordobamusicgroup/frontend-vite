@@ -222,8 +222,8 @@ const UpdateClientPage: React.FC = () => {
               {clientQuery.data?.firstName && clientQuery.data?.lastName
                 ? `${clientQuery.data.firstName} ${clientQuery.data.lastName} • `
                 : ''}
-              {clientQuery.data?.type === 'PERSON' ? '👤 Person' :
-               clientQuery.data?.type === 'BUSINESS' ? '🏢 Business' :
+              {clientQuery.data?.type === 'PERSON' ? 'Person' :
+               clientQuery.data?.type === 'BUSINESS' ? 'Business' :
                'Unknown Type'} • ID: {clientQuery.data?.id}
             </Typography>
           </Box>
