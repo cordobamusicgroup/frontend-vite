@@ -24,12 +24,12 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
 
   const { methods, selectedPaymentMethod, selectedCurrency, selectedTransferType, onSubmitForm, handleSubmit } = usePaymentUpdateForm({ onSubmit, open });
 
-  const { formState: { errors }, reset } = methods;
+  const {
+    formState: { errors },
+    reset,
+  } = methods;
 
-  const handleFormSubmitWithValidation = handleSubmit(
-    onSubmitForm,
-    () => setIsValidationErrorModalOpen(true)
-  );
+  const handleFormSubmitWithValidation = handleSubmit(onSubmitForm, () => setIsValidationErrorModalOpen(true));
 
   const handleClose = () => {
     reset();
@@ -38,7 +38,7 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
 
   // Computed values using RHF state
   const canSubmitRequest = !withdrawalLoading && !withdrawalData?.isPaymentDataInValidation;
-  
+
   const getValidationMessage = () => {
     if (withdrawalLoading) return 'Checking payment status...';
     if (withdrawalError) return 'Error checking payment status. You can still try to submit.';
@@ -50,12 +50,12 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
 
   const extractValidationMessages = (errors: any): string[] => {
     const messages: string[] = [];
-    
+
     const flattenErrors = (obj: any, path = ''): void => {
-      Object.keys(obj).forEach(key => {
+      Object.keys(obj).forEach((key) => {
         const currentPath = path ? `${path}.${key}` : key;
         const value = obj[key];
-        
+
         if (value?.message) {
           messages.push(value.message);
         } else if (value && typeof value === 'object' && !Array.isArray(value)) {
@@ -63,11 +63,10 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
         }
       });
     };
-    
+
     if (errors) flattenErrors(errors);
     return messages;
   };
-
 
   return (
     <>
@@ -111,11 +110,7 @@ const PaymentUpdateModal: React.FC<PaymentUpdateModalProps> = ({ open, onClose, 
 
               {/* Only show form if there's no pending payment validation and not successful */}
               {!withdrawalData?.isPaymentDataInValidation && !withdrawalLoading && !isSuccess && (
-                <PaymentFormContent
-                  selectedPaymentMethod={selectedPaymentMethod}
-                  selectedCurrency={selectedCurrency}
-                  selectedTransferType={selectedTransferType}
-                />
+                <PaymentFormContent selectedPaymentMethod={selectedPaymentMethod} selectedCurrency={selectedCurrency} selectedTransferType={selectedTransferType} />
               )}
             </Box>
           </FormProvider>
