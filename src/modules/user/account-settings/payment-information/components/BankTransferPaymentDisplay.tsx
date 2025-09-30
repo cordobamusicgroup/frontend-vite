@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, Grid, Divider, Chip } from '@mui/material';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import FetchErrorBox from '@/components/ui/molecules/FetchErrorBox';
 import {
   BankTransferData,
   BankTransferCurrencyDto,
@@ -14,6 +15,16 @@ interface BankTransferPaymentDisplayProps {
 
 const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({ data }) => {
   const { accountHolder, bank_details, currency } = data;
+
+  // Defensive validation to ensure we have the required data
+  if (!accountHolder || !bank_details || !currency) {
+    return <FetchErrorBox message="Missing required payment information. Please update your payment details." />;
+  }
+
+  // Validate accountHolder has required fields
+  if (!accountHolder.first_name || !accountHolder.last_name) {
+    return <FetchErrorBox message="Incomplete account holder information. Please update your payment details." />;
+  }
 
   return (
     <Grid container spacing={2}>
@@ -40,7 +51,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
               </Typography>
             </Box>
             <Typography variant="body1" fontWeight="medium">
-              {accountHolder.country}
+              {accountHolder.country || 'N/A'}
             </Typography>
           </Grid>
           <Grid size={12}>
@@ -50,9 +61,9 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
               </Typography>
             </Box>
             <Typography variant="body1" fontWeight="medium">
-              {accountHolder.street_address}
-              {accountHolder.house_number && ` ${accountHolder.house_number}`}, 
-              {accountHolder.city}, {accountHolder.state} {accountHolder.zip}
+              {accountHolder.street_address || ''}
+              {accountHolder.house_number ? ` ${accountHolder.house_number}` : ''},
+              {accountHolder.city || ''}, {accountHolder.state || ''} {accountHolder.zip || ''}
             </Typography>
           </Grid>
         </Grid>
@@ -84,7 +95,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.ach.routing_number}
+                    {bank_details.ach.routing_number || 'N/A'}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 4 }}>
@@ -94,7 +105,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.ach.account_number}
+                    {bank_details.ach.account_number || 'N/A'}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 4 }}>
@@ -104,7 +115,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.ach.account_type}
+                    {bank_details.ach.account_type || 'N/A'}
                   </Typography>
                 </Grid>
               </>
@@ -119,7 +130,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.swift.swift_bic}
+                    {bank_details.swift.swift_bic || 'N/A'}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -129,7 +140,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.swift.iban_account_number}
+                    {bank_details.swift.iban_account_number || 'N/A'}
                   </Typography>
                 </Grid>
               </>
@@ -157,7 +168,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.sepa.account_holder.full_name}
+                    {accountHolder.first_name} {accountHolder.last_name}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -167,7 +178,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.sepa.iban}
+                    {bank_details.sepa.iban || 'N/A'}
                   </Typography>
                 </Grid>
               </>
@@ -182,7 +193,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.swift.account_holder.full_name}
+                    {accountHolder.first_name} {accountHolder.last_name}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 4 }}>
@@ -192,7 +203,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.swift.swift_bic}
+                    {bank_details.swift.swift_bic || 'N/A'}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 4 }}>
@@ -202,7 +213,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.swift.iban_account_number}
+                    {bank_details.swift.iban_account_number || 'N/A'}
                   </Typography>
                 </Grid>
               </>
