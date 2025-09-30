@@ -135,7 +135,27 @@ const UpdateClientPage: React.FC = () => {
 
     const compareData = initialClientData;
     const modifiedFields = getModifiedFields(formData, compareData);
-    const clientUpdatePayload = buildClientPayload(modifiedFields);
+
+    // Special handling: when status changes to DRAFT, always include signedAt and signedBy to reset them
+    if (formData.contract?.status === 'DRAFT' && compareData.contract?.status !== 'DRAFT') {
+      if (!modifiedFields.contract) {
+        modifiedFields.contract = {};
+      }
+      modifiedFields.contract.signedAt = formData.contract.signedAt;
+      modifiedFields.contract.signedBy = formData.contract.signedBy;
+    }
+
+    // Special handling: when type changes from BUSINESS, always include companyName to reset it
+    if (formData.client?.type !== 'BUSINESS' && compareData.client?.type === 'BUSINESS') {
+      if (!modifiedFields.client) {
+        modifiedFields.client = {};
+      }
+      modifiedFields.client.companyName = formData.client.companyName;
+    }
+
+    // Allow null values for fields that need to be reset in database
+    const allowNullKeys = ['companyName', 'signedAt'];
+    const clientUpdatePayload = buildClientPayload(modifiedFields, allowNullKeys, true);
 
     if (Object.keys(clientUpdatePayload).length === 0) {
       setClientNotification({ message: 'No changes detected to update.', type: 'info' });

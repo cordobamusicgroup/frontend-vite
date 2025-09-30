@@ -1,6 +1,7 @@
 import { FormControlLabel, MenuItem, Switch, Box } from '@mui/material';
 import { Person, Business } from '@mui/icons-material';
 import { Controller, useFormContext } from 'react-hook-form';
+import { useEffect } from 'react';
 import { typeOptions, taxIdTypeOptions } from '@/constants/backend.enums';
 import TextFieldForm from '@/components/ui/atoms/TextFieldForm';
 
@@ -8,6 +9,16 @@ const ClientDetailsForm: React.FC = () => {
   const { control, setValue, watch } = useFormContext();
   const vatRegistered = watch('client.vatRegistered');
   const clientType = watch('client.type');
+
+  // Clear companyName when clientType changes from BUSINESS to PERSON
+  useEffect(() => {
+    if (clientType !== 'BUSINESS') {
+      setValue('client.companyName', '', {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [clientType, setValue]);
 
   return (
     <>
