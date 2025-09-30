@@ -22,7 +22,19 @@ const ContractDetailsForm: React.FC = () => {
       shouldDirty: true,
       shouldValidate: true,
     });
-  }, [status, setValue]);
+
+    // Clear signedAt and signedBy when status becomes DRAFT
+    if (isDraft) {
+      setValue('contract.signedAt', undefined, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      setValue('contract.signedBy', '', {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [status, setValue, isDraft]);
 
   return (
     <Box>
