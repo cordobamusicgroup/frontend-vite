@@ -8,23 +8,22 @@ import {
   UsdTransferTypeDto,
   EurTransferTypeDto,
 } from '../hooks/useCurrentPaymentInfo';
+import { useValidatedBankTransferData } from '../hooks/useValidatedBankTransferData';
 
 interface BankTransferPaymentDisplayProps {
   data: BankTransferData;
 }
 
 const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({ data }) => {
-  const { accountHolder, bank_details, currency } = data;
+  const validation = useValidatedBankTransferData(data);
 
-  // Defensive validation to ensure we have the required data
-  if (!accountHolder || !bank_details || !currency) {
-    return <FetchErrorBox message="Missing required payment information. Please update your payment details." />;
+  // Handle validation errors
+  if (!validation.isValid) {
+    return <FetchErrorBox message={validation.errorMessage || 'Invalid payment data'} />;
   }
 
-  // Validate accountHolder has required fields
-  if (!accountHolder.first_name || !accountHolder.last_name) {
-    return <FetchErrorBox message="Incomplete account holder information. Please update your payment details." />;
-  }
+  const { normalizedData } = validation;
+  const { accountHolder, bankDetails, currency } = normalizedData!;
 
   return (
     <Grid container spacing={2}>
@@ -41,7 +40,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
               </Typography>
             </Box>
             <Typography variant="body1" fontWeight="medium">
-              {accountHolder.first_name} {accountHolder.last_name}
+              {accountHolder.fullName}
             </Typography>
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
@@ -51,7 +50,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
               </Typography>
             </Box>
             <Typography variant="body1" fontWeight="medium">
-              {accountHolder.country || 'N/A'}
+              {accountHolder.country}
             </Typography>
           </Grid>
           <Grid size={12}>
@@ -61,9 +60,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
               </Typography>
             </Box>
             <Typography variant="body1" fontWeight="medium">
-              {accountHolder.street_address || ''}
-              {accountHolder.house_number ? ` ${accountHolder.house_number}` : ''},
-              {accountHolder.city || ''}, {accountHolder.state || ''} {accountHolder.zip || ''}
+              {accountHolder.address}
             </Typography>
           </Grid>
         </Grid>
@@ -74,19 +71,19 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
         <Typography variant="h6" color="primary.main" mb={2}>
           Bank Details ({currency})
         </Typography>
-        
+
         {currency === BankTransferCurrencyDto.USD && (
           <Grid container spacing={2}>
             <Grid size={12}>
-              <Chip 
-                label={bank_details.transfer_type} 
-                color="secondary" 
-                size="small" 
+              <Chip
+                label={bankDetails.transferType}
+                color="secondary"
+                size="small"
                 sx={{ mb: 2 }}
               />
             </Grid>
             
-            {bank_details.transfer_type === UsdTransferTypeDto.ACH && bank_details.ach && (
+            {bankDetails.transferType === UsdTransferTypeDto.ACH && bankDetails.routingNumber && (
               <>
                 <Grid size={{ xs: 12, md: 4 }}>
                   <Box display="flex" alignItems="center" mb={1}>
@@ -95,7 +92,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.ach.routing_number || 'N/A'}
+                    {bankDetails.routingNumber}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 4 }}>
@@ -105,7 +102,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.ach.account_number || 'N/A'}
+                    {bankDetails.accountNumber}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 4 }}>
@@ -115,13 +112,13 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.ach.account_type || 'N/A'}
+                    {bankDetails.accountType}
                   </Typography>
                 </Grid>
               </>
             )}
             
-            {bank_details.transfer_type === UsdTransferTypeDto.SWIFT && bank_details.swift && (
+            {bankDetails.transferType === UsdTransferTypeDto.SWIFT && bankDetails.swiftBic && (
               <>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Box display="flex" alignItems="center" mb={1}>
@@ -130,7 +127,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.swift.swift_bic || 'N/A'}
+                    {bankDetails.swiftBic}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -140,7 +137,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.swift.iban_account_number || 'N/A'}
+                    {bankDetails.ibanAccountNumber}
                   </Typography>
                 </Grid>
               </>
@@ -151,15 +148,15 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
         {currency === BankTransferCurrencyDto.EUR && (
           <Grid container spacing={2}>
             <Grid size={12}>
-              <Chip 
-                label={bank_details.transfer_type} 
-                color="secondary" 
-                size="small" 
+              <Chip
+                label={bankDetails.transferType}
+                color="secondary"
+                size="small"
                 sx={{ mb: 2 }}
               />
             </Grid>
             
-            {bank_details.transfer_type === EurTransferTypeDto.SEPA && bank_details.sepa && (
+            {bankDetails.transferType === EurTransferTypeDto.SEPA && bankDetails.iban && (
               <>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Box display="flex" alignItems="center" mb={1}>
@@ -168,7 +165,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {accountHolder.first_name} {accountHolder.last_name}
+                    {accountHolder.fullName}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -178,13 +175,13 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.sepa.iban || 'N/A'}
+                    {bankDetails.iban}
                   </Typography>
                 </Grid>
               </>
             )}
             
-            {bank_details.transfer_type === EurTransferTypeDto.SWIFT && bank_details.swift && (
+            {bankDetails.transferType === EurTransferTypeDto.SWIFT && bankDetails.swiftBic && (
               <>
                 <Grid size={{ xs: 12, md: 4 }}>
                   <Box display="flex" alignItems="center" mb={1}>
@@ -193,7 +190,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {accountHolder.first_name} {accountHolder.last_name}
+                    {accountHolder.fullName}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 4 }}>
@@ -203,7 +200,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.swift.swift_bic || 'N/A'}
+                    {bankDetails.swiftBic}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 4 }}>
@@ -213,7 +210,7 @@ const BankTransferPaymentDisplay: React.FC<BankTransferPaymentDisplayProps> = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {bank_details.swift.iban_account_number || 'N/A'}
+                    {bankDetails.ibanAccountNumber}
                   </Typography>
                 </Grid>
               </>
