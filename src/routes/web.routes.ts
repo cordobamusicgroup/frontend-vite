@@ -36,7 +36,7 @@ const baseRoutes = {
       invoices: '/financial/invoices',
     },
     distribution: {
-      dmbSubmissionQC: '/distribution/dmb-submission-qc',
+      releaseSubmission: '/dmb/release-submission',
     },
     userSettings: {
       root: '/account-settings',

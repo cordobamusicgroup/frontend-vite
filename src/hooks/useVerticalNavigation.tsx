@@ -39,13 +39,13 @@ export const useVerticalNavigation = (): MenuItemType[] => {
       path: webRoutes.backoffice.overview,
     },
     {
-      text: 'Distribution',
+      text: 'Digital Media Base',
       icon: <AlbumIcon />,
       roles: [Roles.All],
       subMenuItems: [
         {
-          text: 'DMB Submission QC',
-          path: webRoutes.backoffice.distribution.dmbSubmissionQC,
+          text: 'Release Submission',
+          path: webRoutes.backoffice.distribution.releaseSubmission,
           roles: [Roles.All],
         },
       ],

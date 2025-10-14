@@ -55,16 +55,7 @@ export const PaymentUpdateValidationSchema = yup.object().shape({
 
                 return true;
               }),
-            memo: yup
-              .string()
-              .optional()
-              .test('memo-validation', 'Memo cannot be empty when provided', function (value) {
-                // If memo is provided, it cannot be empty or just whitespace
-                if (value !== undefined && value !== null && value.trim().length === 0) {
-                  return false;
-                }
-                return true;
-              }),
+            memo: yup.string().optional(),
           }),
         otherwise: (schema) =>
           schema.when('paymentMethod', {

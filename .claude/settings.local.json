@@ -1,20 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir:*)",
-      "Bash(move \"C:\\Users\\santi\\Desktop\\Dev\\cmg\\cmg-frontend-app\\src\\modules\\admin\\users\\hooks\\useFetchUsers.tsx\" \"C:\\Users\\santi\\Desktop\\Dev\\cmg\\cmg-frontend-app\\src\\modules\\admin\\users\\hooks\\queries\"\")",
-      "Bash(move \"C:\\Users\\santi\\Desktop\\Dev\\cmg\\cmg-frontend-app\\src\\modules\\admin\\users\\hooks\\useRegisterUser.ts\" \"C:\\Users\\santi\\Desktop\\Dev\\cmg\\cmg-frontend-app\\src\\modules\\admin\\users\\hooks\\mutations\"\")",
-      "Bash(move \"C:\\Users\\santi\\Desktop\\Dev\\cmg\\cmg-frontend-app\\src\\modules\\admin\\users\\hooks\\useUpdateUser.ts\" \"C:\\Users\\santi\\Desktop\\Dev\\cmg\\cmg-frontend-app\\src\\modules\\admin\\users\\hooks\\mutations\"\")",
-      "Bash(move \"C:\\Users\\santi\\Desktop\\Dev\\cmg\\cmg-frontend-app\\src\\modules\\admin\\users\\hooks\\useDeleteUsers.ts\" \"C:\\Users\\santi\\Desktop\\Dev\\cmg\\cmg-frontend-app\\src\\modules\\admin\\users\\hooks\\mutations\"\")",
-      "Bash(mv:*)",
-      "Bash(pnpm run lint:*)",
-      "Bash(rmdir:*)",
-      "Bash(rm:*)",
-      "mcp__ide__getDiagnostics",
-      "Bash(npx tsc:*)",
-      "Bash(pnpm run:*)",
-      "Bash(npx eslint:*)"
+      "Read(//c/Users/santi/Desktop/Dev/cmg/cmg-backend-app/**)"
     ],
-    "deny": []
+    "deny": [],
+    "ask": []
   }
 }
