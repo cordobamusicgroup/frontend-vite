@@ -1,45 +1,199 @@
 import React from 'react';
-import { Box, Typography, Container, Paper, Divider } from '@mui/material';
-import BuildCircleIcon from '@mui/icons-material/BuildCircle';
-import { Helmet } from 'react-helmet';
+import { Box, Typography, useTheme } from '@mui/material';
+import type { MetaFunction } from 'react-router';
+import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
+import BasicButton from '@/components/ui/atoms/BasicButton';
+import { useNotificationStore } from '@/stores';
+import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
+import { FormProvider } from 'react-hook-form';
+import BackPageButton from '@/components/ui/atoms/BackPageButton';
+import NotificationBox from '@/components/ui/molecules/NotificationBox';
+import FormValidationErrorModal from '@/components/ui/organisms/FormValidationErrorModal';
+import LoadingModal from '@/components/ui/molecules/LoadingModal';
+import ReleaseSubmissionFormLayout from '../components/organisms/ReleaseSubmissionFormLayout';
+import { useReleaseSubmissionForm } from '../hooks/useReleaseSubmissionForm';
+import { ReleaseSubmissionFormData } from '../schemas/ReleaseSubmissionValidationSchema';
+import { useWordPressSubmission } from '../hooks/useWordPressSubmission';
+import { SubmitReleaseToWordPressRequest } from '../types/wordpress-submission.types';
+import { logColor } from '@/lib/log.util';
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Release Submission - Córdoba Music Group' },
+    { name: 'description', content: 'Submit releases for quality control review' },
+  ];
+};
 
 const DMBSubmissionQCUser: React.FC = () => {
+  const theme = useTheme();
+  const { setNotification, clearNotification } = useNotificationStore();
+  const wordPressSubmission = useWordPressSubmission();
+
+  /**
+   * Handle release submission to WordPress
+   * Maps form data to WordPress API request format
+   */
+  const handleSubmitRelease = async (formData: ReleaseSubmissionFormData) => {
+    try {
+      logColor('info', 'DMBSubmissionQCUser', 'Release submission data:', formData);
+
+      // Build track changes array - only include tracks with capitalization overrides
+      const tracksWithOverrides = formData.tracks.filter(
+        (track) =>
+          track.overrideTrackTitleCapitalization || track.overrideTrackVersionCapitalization
+      );
+
+      logColor('info', 'DMBSubmissionQCUser', 'Tracks with overrides:', tracksWithOverrides);
+
+      const trackChanges = tracksWithOverrides.map((track) => {
+        logColor('info', 'DMBSubmissionQCUser', `Track ID: ${track.trackId}`, track);
+        return {
+          trackId: track.trackId,
+          newTitle: track.overrideTrackTitleCapitalization ? track.trackTitle : undefined,
+          newVersion: track.overrideTrackVersionCapitalization ? track.trackVersion : undefined,
+        };
+      });
+
+      // Build WordPress submission payload
+      const wordPressPayload: SubmitReleaseToWordPressRequest = {
+        productCode: formData.upc,
+        newAlbumTitle: formData.overrideAlbumTitleCapitalization
+          ? formData.albumTitle
+          : undefined,
+        newAlbumVersion: formData.overrideAlbumVersionCapitalization
+          ? formData.albumVersion
+          : undefined,
+        trackChanges: trackChanges.length > 0 ? trackChanges : undefined,
+      };
+
+      logColor('info', 'DMBSubmissionQCUser', 'WordPress payload:', wordPressPayload);
+
+      // Log track changes in detail
+      if (wordPressPayload.trackChanges) {
+        wordPressPayload.trackChanges.forEach((tc, idx) => {
+          logColor('info', 'DMBSubmissionQCUser', `Track change ${idx + 1}:`, {
+            trackId: tc.trackId,
+            newTitle: tc.newTitle,
+            newVersion: tc.newVersion,
+          });
+        });
+      }
+
+      // Submit to WordPress
+      const result = await wordPressSubmission.mutateAsync(wordPressPayload);
+
+      logColor('success', 'DMBSubmissionQCUser', 'WordPress submission result:', result);
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setNotification({
+        message: `Release submitted successfully! Entry ID: ${result.entryId}. You will receive an email within 48-72 working hours.`,
+        type: 'success',
+      });
+
+      // Clear validation data but keep the UPC field
+      const currentUpc = formData.upc;
+      releaseSubmissionForm.reset();
+      releaseSubmissionForm.methods.setValue('upc', currentUpc);
+    } catch (error: any) {
+      logColor('error', 'DMBSubmissionQCUser', 'Submission error:', error);
+      logColor('error', 'DMBSubmissionQCUser', 'Error response data:', error?.response?.data);
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Handle specific error cases
+      let errorMessage = 'An error occurred while submitting the release';
+
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+
+        // Handle duplicate EAN error
+        if (error.response.data.existingEntryId) {
+          errorMessage = `This release (EAN: ${formData.upc}) has already been submitted. Entry ID: ${error.response.data.existingEntryId}`;
+        }
+
+        // Handle validation error (release not ready for QC)
+        if (error.response.data.failedChecks) {
+          const failedFields = error.response.data.failedChecks
+            .map((check: any) => check.field)
+            .join(', ');
+          errorMessage = `Release is not ready for QC. Failed checks: ${failedFields}`;
+        }
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      setNotification({
+        message: errorMessage,
+        type: 'error',
+      });
+    }
+  };
+
+  const releaseSubmissionForm = useReleaseSubmissionForm({
+    onSubmit: handleSubmitRelease,
+  });
+
+  const handleInputChange = () => clearNotification();
+
+  // Watch the validation state from the form
+  const isReleaseValid = releaseSubmissionForm.methods.watch('isReleaseValid');
+  const hasValidationData = releaseSubmissionForm.methods.watch('albumId');
+
+  // Use WordPress submission loading state
+  const isSubmitting = wordPressSubmission.isPending;
+
+  const handleFormSubmit = async () => {
+    await releaseSubmissionForm.handleFormSubmitWithValidation();
+  };
+
   return (
     <>
-      <Helmet>
-        <title>DMB Submission QC - Córdoba Music Group</title>
-      </Helmet>
-      <Container maxWidth="sm">
-        {' '}
-        {/* Reducido de md a sm */}
-        <Box my={4}>
-          <Paper elevation={3} sx={{ p: 4, borderRadius: 2, bgcolor: 'background.paper' }}>
-            {' '}
-            {/* Menos padding */}
-            <Box display="flex" flexDirection="column" alignItems="center" textAlign="center">
-              <Box mb={2}>
-                <BuildCircleIcon
-                  sx={{
-                    fontSize: 70, // Más pequeño
-                    color: 'primary.main',
-                    mb: 1,
-                  }}
-                />
-              </Box>
-              <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 1 }}>
-                Page under construction
-              </Typography>
-              <Divider sx={{ width: '60%', my: 2 }} />
-              <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 450, mb: 1, fontSize: '1.05rem' }}>
-                We're building a centralized hub where you'll be able to submit and manage all your QC requests from one place.
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 450, fontSize: '0.98rem' }}>
-                Stay tuned for updates!
-              </Typography>
-            </Box>
-          </Paper>
-        </Box>
-      </Container>
+      <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+        <CustomPageHeader
+          background={'linear-gradient(58deg, rgba(9,54,95,1) 0%, rgba(0,27,51,1) 85%)'}
+          color={theme.palette.primary.contrastText}
+        >
+          <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Release Submission for Review</Typography>
+          <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
+          <BasicButton
+            colorBackground="white"
+            colorText={theme.palette.secondary.main}
+            onClick={handleFormSubmit}
+            color="primary"
+            variant="contained"
+            disabled={isSubmitting || !hasValidationData || !isReleaseValid}
+            startIcon={<SendOutlinedIcon />}
+            loading={isSubmitting}
+            sx={{
+              '&.Mui-disabled': {
+                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                color: 'rgba(0, 27, 51, 0.5)',
+              },
+            }}
+          >
+            Submit Release
+          </BasicButton>
+        </CustomPageHeader>
+
+        <NotificationBox />
+
+        <FormProvider {...releaseSubmissionForm.methods}>
+          <form onChange={handleInputChange}>
+            <ReleaseSubmissionFormLayout />
+            <FormValidationErrorModal
+              open={releaseSubmissionForm.isValidationErrorModalOpen}
+              onClose={() => releaseSubmissionForm.setIsValidationErrorModalOpen(false)}
+              errors={releaseSubmissionForm.errors}
+            />
+          </form>
+        </FormProvider>
+
+        {/* Loading Modal */}
+        <LoadingModal
+          open={isSubmitting}
+          message="Submitting release for review..."
+        />
+      </Box>
     </>
   );
 };

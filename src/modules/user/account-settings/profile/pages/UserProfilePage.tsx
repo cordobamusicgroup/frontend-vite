@@ -6,6 +6,7 @@ import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { CachedOutlined, ErrorOutline } from '@mui/icons-material';
 import { Box, List, ListItem, ListItemText, Paper, Typography, useTheme } from '@mui/material';
 import { useState, useEffect, useMemo } from 'react';
+import type { MetaFunction } from 'react-router';
 import { useForm, FormProvider } from 'react-hook-form';
 import UserFormLayout from '../components/organisms/UserFormLayout';
 import { useProfileUser } from '../hooks/useProfileUser';
@@ -13,8 +14,14 @@ import { UserValidationSchema } from '../schemas/UserValidationSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import { useNotificationStore } from '@/stores';
-import { Helmet } from 'react-helmet';
 import SkeletonLoader from '@/components/ui/molecules/SkeletonLoader';
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Profile Settings - Córdoba Music Group' },
+    { name: 'description', content: 'Manage your profile information' },
+  ];
+};
 
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -176,9 +183,6 @@ const ProfileUserPage: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{`Profile - Córdoba Music Group`}</title>
-      </Helmet>
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Profile</Typography>

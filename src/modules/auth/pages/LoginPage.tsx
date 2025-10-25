@@ -12,14 +12,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { MetaFunction } from 'react-router';
 import { useErrorStore } from '@/stores';
 import LoginFormFields from '../components/molecules/LoginFormFields';
-import { Helmet } from 'react-helmet';
 import { useState } from 'react';
 import ForgotPasswordPopup from './ForgotPasswordPopup';
 import ErrorModal2 from '@/components/ui/molecules/ErrorModal2';
 import useAuthQueries from '../hooks/useAuthQueries';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Auth - Córdoba Music Group' }];
+  return [
+    { title: 'Login - Córdoba Music Group' },
+    { name: 'description', content: 'Login page for Córdoba Music Group' },
+  ];
 };
 
 interface IFormInput {
@@ -50,10 +52,6 @@ function LoginPage() {
 
   return (
     <>
-      <Helmet>
-        <title>Auth - Córdoba Music Group</title>
-        <meta name="description" content="Login page for Córdoba Music Group" />
-      </Helmet>
       <FormProvider {...methods}>
         <Box component="form" onSubmit={handleSubmit(onSubmitLogin)} sx={{ mt: 3, width: '100%', maxWidth: '400px', mx: 'auto' }}>
           <LoginFormFields />

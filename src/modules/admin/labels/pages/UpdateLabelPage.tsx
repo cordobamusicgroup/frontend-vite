@@ -7,7 +7,7 @@ import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { Helmet } from 'react-helmet';
+import type { MetaFunction } from 'react-router';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,6 +29,13 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
     }
     return changedFields;
   }, {});
+};
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Edit Label - Córdoba Music Group' },
+    { name: 'description', content: 'Edit label information and settings' },
+  ];
 };
 
 const UpdateLabelPage: React.FC = () => {
@@ -174,11 +181,7 @@ const UpdateLabelPage: React.FC = () => {
   };
 
   return (
-    <>
-      <Helmet>
-        <title>{`Update Label: ${labelData?.name ?? 'Unknown'} - Córdoba Music Group`}</title>
-      </Helmet>
-      <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+    <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Update Label: {labelData?.name ?? 'Unknown'}</Typography>
           <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
@@ -213,7 +216,6 @@ const UpdateLabelPage: React.FC = () => {
           </List>
         </ErrorModal2>
       </Box>
-    </>
   );
 };
 

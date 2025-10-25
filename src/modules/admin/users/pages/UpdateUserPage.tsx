@@ -6,7 +6,7 @@ import BasicButton from '@/components/ui/atoms/BasicButton';
 import NotificationBox from '@/components/ui/molecules/NotificationBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { Helmet } from 'react-helmet';
+import type { MetaFunction } from 'react-router';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -32,6 +32,13 @@ const getModifiedFields = (currentFormData: any, initialData: any) => {
 // TODO:
 // ! Implementar ruta de validación por rol (RoleProtectedRoute global y/o wrapper de rutas)
 // ? Llevar getModifiedFields a un util global en shared/utils, ya que se repite en varios componentes
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Edit User - Córdoba Music Group' },
+    { name: 'description', content: 'Edit user information and permissions' },
+  ];
+};
 
 const UpdateUserPage: React.FC = () => {
   const theme = useTheme();
@@ -173,11 +180,7 @@ const UpdateUserPage: React.FC = () => {
   };
 
   return (
-    <>
-      <Helmet>
-        <title>{`Update User: ${userData?.fullName ?? 'Unknown'} - Córdoba Music Group`}</title>
-      </Helmet>
-      <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+    <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'linear-gradient(58deg, rgba(0,51,102,1) 0%, rgba(0,102,204,1) 85%)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Update User: {userData?.fullName ?? 'Unknown'}</Typography>
           <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
@@ -210,7 +213,6 @@ const UpdateUserPage: React.FC = () => {
           </List>
         </ErrorModal2>
       </Box>
-    </>
   );
 };
 

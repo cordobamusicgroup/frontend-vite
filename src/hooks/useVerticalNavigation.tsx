@@ -7,6 +7,7 @@ import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
 import ContactEmergencyIcon from '@mui/icons-material/ContactEmergency';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import AlbumIcon from '@mui/icons-material/Album';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import { useUserStore } from '@/stores';
 import { filterItemsByRole } from '@/lib/filterItemsByRole.util';
 
@@ -39,13 +40,13 @@ export const useVerticalNavigation = (): MenuItemType[] => {
       path: webRoutes.backoffice.overview,
     },
     {
-      text: 'Distribution',
+      text: 'Digital Media Base',
       icon: <AlbumIcon />,
       roles: [Roles.All],
       subMenuItems: [
         {
-          text: 'DMB Submission QC',
-          path: webRoutes.backoffice.distribution.dmbSubmissionQC,
+          text: 'Release Submission',
+          path: webRoutes.backoffice.distribution.releaseSubmission,
           roles: [Roles.All],
         },
       ],
@@ -66,6 +67,12 @@ export const useVerticalNavigation = (): MenuItemType[] => {
           roles: [Roles.All],
         },
       ],
+    },
+    {
+      text: 'Support',
+      icon: <SupportAgentIcon />,
+      roles: [Roles.All],
+      path: webRoutes.backoffice.support,
     },
     {
       text: 'Clients',
