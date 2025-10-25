@@ -4,7 +4,8 @@ import * as yup from 'yup';
  * Track schema for editable track information
  */
 const TrackSchema = yup.object().shape({
-  trackId: yup.string().required(),
+  trackId: yup.string().required(), // DMB Track ID - used for WordPress submission
+  trackIsrc: yup.string().nullable().optional(), // ISRC code (can be null in DMB)
   trackTitle: yup.string().required(),
   trackVersion: yup.string().nullable().optional(),
   overrideTrackTitleCapitalization: yup.boolean().optional().default(false),

@@ -38,6 +38,7 @@ const ReleaseSubmissionFormLayout: React.FC = () => {
       const tracksArray = result.discs.flatMap((disc) =>
         disc.tracks.map((track) => ({
           trackId: track.trackId,
+          trackIsrc: track.trackIsrc, // ISRC needed for WordPress submission
           trackTitle: track.trackTitle,
           trackVersion: track.trackVersion,
           overrideTrackTitleCapitalization: false,

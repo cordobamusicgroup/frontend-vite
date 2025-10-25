@@ -55,4 +55,13 @@ export const apiRoutes = {
       request: '/v1/workflow/uppi/request',
     },
   },
+  external: {
+    dmb: {
+      readyForQC: '/external/dmb-api/albums/ready-for-qc',
+    },
+    wordpress: {
+      submitRelease: '/external/wordpress/submit-release',
+      getEntry: (id: number) => `/external/wordpress/entries/${id}`,
+    },
+  },
 };
