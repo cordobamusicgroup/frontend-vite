@@ -38,6 +38,7 @@ const baseRoutes = {
     distribution: {
       releaseSubmission: '/dmb/release-submission',
     },
+    support: '/support',
     userSettings: {
       root: '/account-settings',
       profile: '/account-settings/profile',

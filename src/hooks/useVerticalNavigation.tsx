@@ -7,6 +7,7 @@ import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
 import ContactEmergencyIcon from '@mui/icons-material/ContactEmergency';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import AlbumIcon from '@mui/icons-material/Album';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import { useUserStore } from '@/stores';
 import { filterItemsByRole } from '@/lib/filterItemsByRole.util';
 
@@ -66,6 +67,12 @@ export const useVerticalNavigation = (): MenuItemType[] => {
           roles: [Roles.All],
         },
       ],
+    },
+    {
+      text: 'Support',
+      icon: <SupportAgentIcon />,
+      roles: [Roles.All],
+      path: webRoutes.backoffice.support,
     },
     {
       text: 'Clients',
