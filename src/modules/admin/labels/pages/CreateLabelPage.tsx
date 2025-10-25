@@ -6,7 +6,7 @@ import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { Helmet } from 'react-helmet';
+import type { MetaFunction } from 'react-router';
 import { logColor } from '@/lib/log.util';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
@@ -19,6 +19,13 @@ import LabelFormLayout from '../components/organisms/LabelFormLayout';
 import { formatError } from '@/lib/formatApiError.util';
 
 type LabelFormData = z.infer<typeof LabelValidationSchema>;
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Create Label - Córdoba Music Group' },
+    { name: 'description', content: 'Create a new music label' },
+  ];
+};
 
 const CreateLabelPage: React.FC = () => {
   const theme = useTheme();
@@ -103,11 +110,7 @@ const CreateLabelPage: React.FC = () => {
   };
 
   return (
-    <>
-      <Helmet>
-        <title>Create Label - Córdoba Music Group</title>
-      </Helmet>
-      <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+    <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'#24793B'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Creating New Label</Typography>
           <BackPageButton colorBackground="white" colorText={theme.palette.secondary.main} />
@@ -143,7 +146,6 @@ const CreateLabelPage: React.FC = () => {
           </List>
         </ErrorModal2>
       </Box>
-    </>
   );
 };
 

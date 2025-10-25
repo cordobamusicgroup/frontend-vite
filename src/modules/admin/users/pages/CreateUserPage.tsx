@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Box, List, ListItem, ListItemText, Typography, useTheme } from '@mui/material';
+import type { MetaFunction } from 'react-router';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { Helmet } from 'react-helmet';
 import { FormProvider, useForm, SubmitHandler } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -16,6 +16,13 @@ import { formatError } from '@/lib/formatApiError.util';
 import { useRegisterUser } from '../hooks';
 import UsersFormLayout from '../components/organisms/UsersFormLayout';
 import { UsersValidationSchema } from '../schemas/UsersAdminValidationSchema';
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Create User - Córdoba Music Group' },
+    { name: 'description', content: 'Create a new user' },
+  ];
+};
 
 type UserFormData = yup.InferType<typeof UsersValidationSchema>;
 
@@ -98,9 +105,6 @@ const CreateUserPage: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Create User - Córdoba Music Group</title>
-      </Helmet>
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'linear-gradient(58deg, rgba(0,51,102,1) 0%, rgba(0,102,204,1) 85%)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Creating User</Typography>

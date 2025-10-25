@@ -1,11 +1,11 @@
 import { useClientForm, ClientFormData } from '../hooks/useClientForm';
 import { Box, Typography, useTheme } from '@mui/material';
+import type { MetaFunction } from 'react-router';
 import { FormProvider } from 'react-hook-form';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { Helmet } from 'react-helmet';
 // Reemplazado hook combinado por hooks individuales
 import { useCreateClientMutation } from '../hooks/useCreateClientMutation';
 import FormValidationErrorModal from '../../../../components/ui/organisms/FormValidationErrorModal';
@@ -16,6 +16,13 @@ import { Roles } from '@/constants/roles';
 import RoleProtectedRoute from '@/routes/RoleProtectedRoute';
 import NotificationBox from '@/components/ui/molecules/NotificationBox';
 import ClientFormLayout from '../components/organisms/ClientFormLayout';
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Create Client - Córdoba Music Group' },
+    { name: 'description', content: 'Create a new client' },
+  ];
+};
 
 const CreateClientPage: React.FC = () => {
   const theme = useTheme();
@@ -41,9 +48,6 @@ const CreateClientPage: React.FC = () => {
 
   return (
     <RoleProtectedRoute allowedRoles={[Roles.Admin]}>
-      <Helmet>
-        <title>Create Client - Córdoba Music Group</title>
-      </Helmet>
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'linear-gradient(58deg, rgba(0,124,233,1) 0%, rgba(0,79,131,1) 85%)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '18px' }}>Creating New Client</Typography>

@@ -8,8 +8,15 @@ import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { Helmet } from 'react-helmet';
+import type { MetaFunction } from 'react-router';
 import ListUserTable from '../components/organisms/ListUsersTable';
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Users - Córdoba Music Group' },
+    { name: 'description', content: 'Manage users and permissions' },
+  ];
+};
 
 const ListUsersPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,11 +28,7 @@ const ListUsersPage: React.FC = () => {
   };
 
   return (
-    <>
-      <Helmet>
-        <title>Users - Córdoba Music Group</title>
-      </Helmet>
-      <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+    <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'linear-gradient(58deg, rgba(0,51,102,1) 0%, rgba(0,102,204,1) 85%)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '16px' }}>Manage Users</Typography>
           <BasicButton colorBackground="white" colorText={'#164723'} onClick={handleCreate} color="primary" variant="contained" startIcon={<PersonAddIcon />}>
@@ -42,7 +45,6 @@ const ListUsersPage: React.FC = () => {
           <ListUserTable setNotification={setNotification} />
         </Box>
       </Box>
-    </>
   );
 };
 

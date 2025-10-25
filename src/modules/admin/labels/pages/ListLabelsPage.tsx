@@ -8,8 +8,15 @@ import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { Helmet } from 'react-helmet';
+import type { MetaFunction } from 'react-router';
 import ListLabelsTable from '../components/organisms/ListLabelsTable';
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Labels - Córdoba Music Group' },
+    { name: 'description', content: 'Manage music labels' },
+  ];
+};
 
 const ListLabelsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,11 +28,7 @@ const ListLabelsPage: React.FC = () => {
   };
 
   return (
-    <>
-      <Helmet>
-        <title>Labels - Córdoba Music Group</title>
-      </Helmet>
-      <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+    <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'#24793B'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '16px' }}>Manage Labels</Typography>
           <BasicButton colorBackground="white" colorText={'#164723'} onClick={handleCreateLabel} color="primary" variant="contained" startIcon={<PersonAddIcon />}>
@@ -42,7 +45,6 @@ const ListLabelsPage: React.FC = () => {
           <ListLabelsTable setNotification={setNotification} />
         </Box>
       </Box>
-    </>
   );
 };
 
