@@ -72,7 +72,7 @@ const DMBSubmissionQCUser: React.FC = () => {
       if (wordPressPayload.trackChanges) {
         wordPressPayload.trackChanges.forEach((tc, idx) => {
           logColor('info', 'DMBSubmissionQCUser', `Track change ${idx + 1}:`, {
-            isrc: tc.isrc,
+            trackId: tc.trackId,
             newTitle: tc.newTitle,
             newVersion: tc.newVersion,
           });

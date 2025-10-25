@@ -15,8 +15,8 @@ export const useReleaseSubmissionForm = ({ onSubmit }: UseReleaseSubmissionFormP
     resolver: yupResolver(ReleaseSubmissionValidationSchema),
     defaultValues: {
       upc: '',
-      releaseTitle: '',
-      releaseArtist: '',
+      albumTitle: '',
+      albumArtist: '',
     },
   });
 
