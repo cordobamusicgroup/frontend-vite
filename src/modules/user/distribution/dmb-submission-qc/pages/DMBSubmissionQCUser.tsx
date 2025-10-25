@@ -1,10 +1,10 @@
 import React from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
+import type { MetaFunction } from 'react-router';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import BasicButton from '@/components/ui/atoms/BasicButton';
 import { useNotificationStore } from '@/stores';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
-import { Helmet } from 'react-helmet';
 import { FormProvider } from 'react-hook-form';
 import BackPageButton from '@/components/ui/atoms/BackPageButton';
 import NotificationBox from '@/components/ui/molecules/NotificationBox';
@@ -16,6 +16,13 @@ import { ReleaseSubmissionFormData } from '../schemas/ReleaseSubmissionValidatio
 import { useWordPressSubmission } from '../hooks/useWordPressSubmission';
 import { SubmitReleaseToWordPressRequest } from '../types/wordpress-submission.types';
 import { logColor } from '@/lib/log.util';
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Release Submission - Córdoba Music Group' },
+    { name: 'description', content: 'Submit releases for quality control review' },
+  ];
+};
 
 const DMBSubmissionQCUser: React.FC = () => {
   const theme = useTheme();
@@ -141,9 +148,6 @@ const DMBSubmissionQCUser: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Release Submission - Córdoba Music Group</title>
-      </Helmet>
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader
           background={'linear-gradient(58deg, rgba(9,54,95,1) 0%, rgba(0,27,51,1) 85%)'}

@@ -1,13 +1,20 @@
 import theme from '@/theme';
 import { Box, Typography, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel } from '@mui/material';
 import { useState } from 'react';
+import type { MetaFunction } from 'react-router';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import SuccessBox from '@/components/ui/molecules/SuccessBox';
 import ErrorBox from '@/components/ui/molecules/ErrorBox';
 import BalancesBlock from '../components/organisms/BalancesBlock';
 import TransactionsTable from '../components/organisms/TransactionsTable';
 import InformativeBox from '@/components/ui/molecules/InformativeBox';
-import { Helmet } from 'react-helmet';
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Payments & Operations - Córdoba Music Group' },
+    { name: 'description', content: 'Monitor your account balances and transaction history' },
+  ];
+};
 
 export default function PaymentsUserPage() {
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -20,11 +27,7 @@ export default function PaymentsUserPage() {
   };
 
   return (
-    <>
-      <Helmet>
-        <title>Payments & Operations - Córdoba Music Group</title>
-      </Helmet>
-      <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+    <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'#0173C2'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '16px' }}>Payments & Operations</Typography>
         </CustomPageHeader>
@@ -84,6 +87,5 @@ export default function PaymentsUserPage() {
           )}
         </>
       </Box>
-    </>
   );
 }

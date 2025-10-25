@@ -5,9 +5,16 @@ import { useNotificationStore } from '@/stores';
 import theme from '@/theme';
 import { Box, Typography, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel } from '@mui/material';
 import { useState } from 'react';
-import { Helmet } from 'react-helmet';
+import type { MetaFunction } from 'react-router';
 import ReportsTable from '../components/organisms/ReportsUserTable';
 import InformativeBox from '@/components/ui/molecules/InformativeBox';
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Financial Reports - Córdoba Music Group' },
+    { name: 'description', content: 'View and manage your financial reports' },
+  ];
+};
 
 export default function ReportsPage() {
   const { notification, setNotification } = useNotificationStore();
@@ -20,12 +27,7 @@ export default function ReportsPage() {
   };
 
   return (
-    <>
-      <Helmet>
-        <title>Financial Reports - Córdoba Music Group</title>
-      </Helmet>
-
-      <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+    <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'#0A5F33'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ fontSize: '16px' }}>Financial Reports</Typography>
           {/* <BasicButton colorBackground="white" colorText={"#0A5F33"} color="primary" variant="contained" startIcon={<FileUpload />}>
@@ -85,6 +87,5 @@ export default function ReportsPage() {
           </Box>
         )}
       </Box>
-    </>
   );
 }

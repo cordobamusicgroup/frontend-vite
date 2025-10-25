@@ -3,7 +3,7 @@ import { Box, Typography, Paper, Divider, Chip, Skeleton, Select, MenuItem, Form
 import PaymentIcon from '@mui/icons-material/Payment';
 import PendingIcon from '@mui/icons-material/Pending';
 import FetchErrorBox from '@/components/ui/molecules/FetchErrorBox';
-import { Helmet } from 'react-helmet';
+import type { MetaFunction } from 'react-router';
 import { logColor } from '@/lib/log.util';
 import CustomPageHeader from '@/components/ui/molecules/CustomPageHeader';
 import { useTheme } from '@mui/material/styles';
@@ -20,6 +20,13 @@ import { usePaymentUpdateRequest } from '../hooks/usePaymentUpdateRequest';
 import { PaymentUpdateFormData } from '../schemas/PaymentUpdateValidationSchema';
 import { useFetchWithdrawalAuth } from '@/modules/user/financial/payments-operations/hooks/queries/useFetchWithdrawalAuth';
 import { useQueryClient } from '@tanstack/react-query';
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Payment Information - Córdoba Music Group' },
+    { name: 'description', content: 'Manage your payment methods and billing information' },
+  ];
+};
 
 /**
  * Página de información de pagos del usuario.
@@ -268,10 +275,6 @@ const UserPaymentInformationPage: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Payment Information - Córdoba Music Group</title>
-      </Helmet>
-
       <Box p={3} sx={{ display: 'flex', flexDirection: 'column' }}>
         <CustomPageHeader background={'rgba(0,79,131,1)'} color={theme.palette.primary.contrastText}>
           <Typography sx={{ flexGrow: 1, fontSize: '16px' }}>Payment Information</Typography>

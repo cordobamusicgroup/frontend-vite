@@ -1,8 +1,15 @@
 import React from 'react';
 import { Box, Typography, Paper, useTheme, Grid } from '@mui/material';
-import { Helmet } from 'react-helmet';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import EmailIcon from '@mui/icons-material/Email';
+import type { MetaFunction } from 'react-router';
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'Support Center - Córdoba Music Group' },
+    { name: 'description', content: 'Get help with any questions or issues you may have' },
+  ];
+};
 
 const SupportPage: React.FC = () => {
   const theme = useTheme();
@@ -17,12 +24,7 @@ const SupportPage: React.FC = () => {
   };
 
   return (
-    <>
-      <Helmet>
-        <title>Support Center - Córdoba Music Group</title>
-      </Helmet>
-
-      <Box p={3} sx={{ display: 'flex', flexDirection: 'column', maxWidth: 1200, margin: '0 auto' }}>
+    <Box p={3} sx={{ display: 'flex', flexDirection: 'column', maxWidth: 1200, margin: '0 auto' }}>
         {/* Banner */}
         <Paper
           elevation={3}
@@ -182,7 +184,6 @@ const SupportPage: React.FC = () => {
           </Grid>
         </Grid>
       </Box>
-    </>
   );
 };
 
