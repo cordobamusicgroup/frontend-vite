@@ -43,7 +43,12 @@ export default function ReportsPage() {
           </Select>
         </FormControl>
 
-        <InformativeBox collapsible>
+        <InformativeBox
+          id="reports-user-page-info"
+          title="About Financial Reports"
+          collapsible
+          defaultOpen={false}
+        >
           <Typography variant="body2" sx={{ mb: 1 }}>
             Here you can view your financial reports. The <b>"Debit State"</b> column shows whether the report amount has already been credited to your balance:
           </Typography>
