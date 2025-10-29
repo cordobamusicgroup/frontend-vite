@@ -46,7 +46,12 @@ export default function PaymentsUserPage() {
             </Select>
           </FormControl>
 
-          <InformativeBox collapsible>
+          <InformativeBox
+            id="payments-user-page-info"
+            title="About Balances and Transactions"
+            collapsible
+            defaultOpen={false}
+          >
             <Typography variant="body2" sx={{ mb: 1 }}>
               On this page, you can monitor your <b>account balances</b> and review the complete history of <b>payments and transactions</b> associated with your account:
             </Typography>

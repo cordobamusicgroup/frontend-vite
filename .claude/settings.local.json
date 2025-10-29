@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/Users/santi/Desktop/Dev/cmg/cmg-backend-app/**)"
+      "Read(//c/Users/santi/Desktop/Dev/cmg/cmg-backend-app/**)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

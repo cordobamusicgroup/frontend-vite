@@ -4,9 +4,12 @@ import { persist, devtools } from "zustand/middleware";
 interface PageDataState {
   openMenu: boolean;
   openSubMenu: string | null;
+  informativeBoxes: Record<string, boolean>; // Track open/closed state by box ID
   toggleMenu: () => void;
   setMenuOpen: (openMenu: boolean) => void;
   toggleSubMenu: (subMenu: string) => void;
+  toggleInformativeBox: (boxId: string) => void;
+  setInformativeBoxState: (boxId: string, isOpen: boolean) => void;
 }
 
 // Almacenamiento persistente con localStorage
@@ -29,6 +32,7 @@ export const usePageDataStore = create<PageDataState>()(
       (set) => ({
         openMenu: false,
         openSubMenu: null,
+        informativeBoxes: {},
 
         toggleMenu: () => set((state) => ({ openMenu: !state.openMenu })),
         setMenuOpen: (openMenu) => set({ openMenu }),
@@ -36,6 +40,20 @@ export const usePageDataStore = create<PageDataState>()(
           set((state) => ({
             openSubMenu: state.openSubMenu === subMenu ? null : subMenu,
             openMenu: state.openMenu || state.openSubMenu !== subMenu,
+          })),
+        toggleInformativeBox: (boxId) =>
+          set((state) => ({
+            informativeBoxes: {
+              ...state.informativeBoxes,
+              [boxId]: !state.informativeBoxes[boxId],
+            },
+          })),
+        setInformativeBoxState: (boxId, isOpen) =>
+          set((state) => ({
+            informativeBoxes: {
+              ...state.informativeBoxes,
+              [boxId]: isOpen,
+            },
           })),
       }),
       {
